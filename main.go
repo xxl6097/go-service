@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/kardianos/service"
 	"github.com/xxl6097/go-glog/glog"
-	"go-service/svr"
+	"github.com/xxl6097go-service/svr"
 	"os"
 	"time"
 )
