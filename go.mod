@@ -1,4 +1,4 @@
-module go-service
+module github.com/xxl6097go-service
 
 go 1.22
 
