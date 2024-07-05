@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/go-glog/glog"
-	"log"
 )
 
 type Daemon struct {
@@ -16,7 +15,8 @@ func NewDaemon(shut service.Interface, conf *service.Config) *Daemon {
 	this := &Daemon{}
 	s, e := service.New(shut, conf)
 	if e != nil {
-		log.Fatal("service new failed ", e)
+		glog.Error("service new failed ", e)
+		return nil
 	}
 	this.conf = conf
 	this.svr = &s

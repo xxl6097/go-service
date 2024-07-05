@@ -32,6 +32,9 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	conf.Executable = this.binPath
 	conf.Arguments = []string{"-d"}
 	this.daemon = NewDaemon(iservice, conf)
+	if this.daemon == nil {
+		return nil
+	}
 	return &this
 }
 

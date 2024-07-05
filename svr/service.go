@@ -20,7 +20,7 @@ func initLog(installPath string) {
 // Run func Run(config *service.Config, version string, runner service.Interface) {
 func Run(iService IService) {
 	if iService == nil {
-		glog.Fatal("config is nil")
+		glog.Debug("config is nil")
 		return
 	}
 	installPath := defaultInstallPath + string(filepath.Separator) + iService.Config().Name
@@ -29,7 +29,11 @@ func Run(iService IService) {
 	baseDir := filepath.Dir(os.Args[0])
 	os.Chdir(baseDir) // for system service
 	glog.Info("Run...", len(os.Args), os.Args)
+	glog.Infof("config...%+v", iService.Config())
 	installer := NewInstaller(iService, installPath)
+	if installer == nil {
+		return
+	}
 	if len(os.Args) > 1 {
 		glog.SetNoHeader(false)
 		glog.SetNoColor(false)
