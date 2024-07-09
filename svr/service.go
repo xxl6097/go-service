@@ -12,7 +12,7 @@ func initLog(installPath string) {
 	glog.SetLogFile(installPath+string(filepath.Separator)+"logs", "app.log")
 	glog.SetMaxSize(1 * 1024 * 1024)
 	glog.SetMaxAge(15)
-	//glog.SetCons(true)
+	glog.SetCons(true)
 	glog.SetNoHeader(true)
 	glog.SetNoColor(true)
 }
