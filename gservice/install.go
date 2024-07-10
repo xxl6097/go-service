@@ -77,18 +77,13 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 
 func (this *Installer) Install() {
 	defer glog.Flush()
-	if this.iservice != nil {
-		this.iservice.OnInstall(this.binDir)
-	}
 	SetFirewall(this.binName, this.binPath)
 	SetRLimit()
-	glog.Println("安装路径：", this.binDir)
+
 	if _, err := os.Stat(this.binDir); !os.IsNotExist(err) {
 		err5 := os.RemoveAll(this.binDir)
 		if err5 != nil {
 			glog.Error("删除失败", this.binDir)
-		} else {
-			glog.Debug("删除成功", this.binDir)
 		}
 	}
 
@@ -97,13 +92,16 @@ func (this *Installer) Install() {
 		glog.Printf("MkdirAll %s error:%s", this.binDir, err)
 		return
 	}
+	if this.iservice != nil {
+		this.iservice.OnInstall(this.binDir)
+	}
+	glog.Println("安装路径：", this.binDir)
 	err = os.Chdir(this.binDir)
 	if err != nil {
 		glog.Println("cd error:", err)
 		return
 	}
 
-	this.daemon.IsRunning()
 	this.Uninstall()
 	binPath, err1 := os.Executable()
 	if err1 != nil {
@@ -148,18 +146,13 @@ func (this *Installer) Install() {
 
 func (this *Installer) Uninstall() {
 	defer glog.Flush()
-	defer glog.Println("卸载结束")
-	glog.Println("开始卸载程序")
 	if this.daemon.IsRunning() {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
 			glog.Println("卸载失败，错误信息：", err)
 			return
 		}
-	} else {
-		glog.Println("服务未运行")
 	}
-
 	_, err2 := this.daemon.Status()
 	if err2 != nil {
 		glog.Println(err2)
@@ -171,14 +164,13 @@ func (this *Installer) Uninstall() {
 	} else {
 		glog.Println("服务成功卸载！")
 	}
-	glog.Println("卸载程序路径", this.binDir)
 	os.Remove(this.binPath + "0")
 	os.Remove(this.binPath)
 }
 
 func (this *Installer) InstallByFilename() {
 	defer glog.Flush()
-	glog.Println("installByFilename", os.Args[0])
+	//glog.Println("installByFilename", os.Args[0])
 	targetPath := os.Args[0]
 	args := []string{"install"}
 	env := os.Environ()
