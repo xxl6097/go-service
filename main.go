@@ -10,6 +10,9 @@ import (
 
 type Main struct{}
 
+func (i *Main) OnInstall() {
+}
+
 // Shutdown 服务结束回调
 func (i *Main) Shutdown(s service.Service) error {
 	defer glog.Flush()

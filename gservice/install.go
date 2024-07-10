@@ -13,15 +13,17 @@ import (
 )
 
 type Installer struct {
-	daemon  *Daemon
-	binDir  string
-	binName string
-	binPath string
+	daemon   *Daemon
+	iservice IService
+	binDir   string
+	binName  string
+	binPath  string
 }
 
 func NewInstaller(iservice IService, installPath string) *Installer {
 	this := Installer{
-		binDir: installPath,
+		binDir:   installPath,
+		iservice: iservice,
 	}
 	conf := iservice.Config()
 	this.binName = conf.Name
@@ -129,6 +131,9 @@ func (this *Installer) Install() {
 		glog.Println("服务启动失败，错误信息:", err)
 	} else {
 		glog.Println("服务启动成功！")
+		if this.iservice != nil {
+			this.iservice.OnInstall()
+		}
 	}
 }
 
@@ -160,7 +165,6 @@ func (this *Installer) Uninstall() {
 func (this *Installer) InstallByFilename() {
 	defer glog.Flush()
 	glog.Println("installByFilename", os.Args[0])
-	glog.Println("install start")
 	targetPath := os.Args[0]
 	args := []string{"install"}
 	env := os.Environ()
@@ -174,7 +178,6 @@ func (this *Installer) InstallByFilename() {
 		glog.Println("install by filename, start process error:", err)
 		return
 	}
-	glog.Println("install end")
 	glog.Println("Press the Any Key to exit")
 	fmt.Scanln()
 	os.Exit(0)
