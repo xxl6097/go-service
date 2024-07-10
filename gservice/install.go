@@ -81,6 +81,15 @@ func (this *Installer) Install() {
 	SetFirewall(this.binName, this.binPath)
 	SetRLimit()
 	glog.Println("安装路径：", this.binDir)
+	if _, err := os.Stat(this.binDir); !os.IsNotExist(err) {
+		err5 := os.RemoveAll(this.binPath)
+		if err5 != nil {
+			glog.Error("删除失败", this.binPath)
+		} else {
+			glog.Debug("删除成功", this.binPath)
+		}
+	}
+
 	err := os.MkdirAll(this.binDir, 0775)
 	if err != nil {
 		glog.Printf("MkdirAll %s error:%s", this.binDir, err)
