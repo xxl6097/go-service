@@ -10,7 +10,7 @@ import (
 
 type Main struct{}
 
-func (i *Main) OnInstall() {
+func (i *Main) OnInstall(installDir string) {
 }
 
 // Shutdown 服务结束回调

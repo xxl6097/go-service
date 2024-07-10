@@ -132,7 +132,7 @@ func (this *Installer) Install() {
 	} else {
 		glog.Println("服务启动成功！")
 		if this.iservice != nil {
-			this.iservice.OnInstall()
+			this.iservice.OnInstall(this.binDir)
 		}
 	}
 }
