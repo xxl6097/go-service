@@ -12,10 +12,12 @@ func initLog(installPath string) {
 	glog.SetLogFile(filepath.Join(installPath, "logs"), "app.log")
 	glog.SetMaxSize(1 * 1024 * 1024)
 	glog.SetMaxAge(15)
+	glog.SetNoHeader(false)
 }
 
 // Run func Run(config *service.Config, version string, runner service.Interface) {
 func Run(iService IService) {
+	glog.SetNoHeader(true)
 	if iService == nil {
 		glog.Debug("config is nil")
 		return
