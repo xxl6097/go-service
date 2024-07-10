@@ -49,6 +49,7 @@ func Run(iService IService) {
 			installer.Restart()
 			return
 		case "-d":
+			glog.Flush()
 			initLog(installPath)
 			glog.Println("创建进程..")
 			installer.Run()
