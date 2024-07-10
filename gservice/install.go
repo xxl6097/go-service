@@ -32,7 +32,18 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	}
 	this.binPath = filepath.Join(this.binDir, this.binName)
 	conf.Executable = this.binPath
-	conf.Arguments = []string{"-d"}
+	_args := make([]string, 0)
+	_args = append(_args, "-d")
+	if conf.Arguments != nil && len(conf.Arguments) > 0 {
+		for i := 0; i < len(conf.Arguments); i++ {
+			if conf.Arguments[i] == "-d" {
+				panic("不允许有-d参数")
+			}
+		}
+		_args = append(_args, conf.Arguments...)
+	}
+
+	conf.Arguments = _args
 	this.daemon = NewDaemon(iservice, conf)
 	if this.daemon == nil {
 		return nil
