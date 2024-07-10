@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/kardianos/service"
 	"github.com/xxl6097/go-glog/glog"
+	"github.com/xxl6097/go-service/gservice"
 	"os"
 	"time"
 )
@@ -64,5 +65,5 @@ func run() {
 }
 func main() {
 	glog.Println("hello")
-	//svr.Run(&Main{})
+	gservice.Run(&Main{})
 }

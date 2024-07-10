@@ -1,4 +1,4 @@
-package svr
+package gservice
 
 import (
 	"bytes"

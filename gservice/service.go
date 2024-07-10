@@ -1,4 +1,4 @@
-package svr
+package gservice
 
 import (
 	"github.com/xxl6097/go-glog/glog"
@@ -9,7 +9,7 @@ import (
 )
 
 func initLog(installPath string) {
-	glog.SetLogFile(installPath+string(filepath.Separator)+"logs", "app.log")
+	glog.SetLogFile(filepath.Join(installPath, "logs"), "app.log")
 	glog.SetMaxSize(1 * 1024 * 1024)
 	glog.SetMaxAge(15)
 }
@@ -20,8 +20,7 @@ func Run(iService IService) {
 		glog.Debug("config is nil")
 		return
 	}
-	installPath := defaultInstallPath + string(filepath.Separator) + iService.Config().Name
-	initLog(installPath)
+	installPath := filepath.Join(defaultInstallPath, iService.Config().Name)
 	rand.Seed(time.Now().UnixNano())
 	baseDir := filepath.Dir(os.Args[0])
 	os.Chdir(baseDir) // for system service
@@ -50,6 +49,7 @@ func Run(iService IService) {
 			installer.Restart()
 			return
 		case "-d":
+			initLog(installPath)
 			glog.Println("创建进程..")
 			installer.Run()
 			glog.Println("进程结束..")
