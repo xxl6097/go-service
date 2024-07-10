@@ -9,10 +9,13 @@ import (
 type Daemon struct {
 	conf *service.Config
 	svr  *service.Service
+	shut service.Interface
 }
 
 func NewDaemon(shut service.Interface, conf *service.Config) *Daemon {
-	this := &Daemon{}
+	this := &Daemon{
+		shut: shut,
+	}
 	s, e := service.New(shut, conf)
 	if e != nil {
 		glog.Error("service new failed ", e)
@@ -59,7 +62,16 @@ func (d *Daemon) IsRunning() bool {
 func (d *Daemon) Uninstall() error {
 	return d.control(service.ControlAction[4])
 }
-func (d *Daemon) Install() error {
+func (d *Daemon) Install(args []string) error {
+	if args != nil && len(args) > 0 {
+		d.conf.Arguments = append(d.conf.Arguments, args...)
+		s, e := service.New(d.shut, d.conf)
+		if e != nil {
+			glog.Error("service new failed ", e)
+			return nil
+		}
+		d.svr = &s
+	}
 	return d.control(service.ControlAction[3])
 }
 func (d *Daemon) Restart() error {

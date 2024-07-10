@@ -103,8 +103,9 @@ func (this *Installer) Install() {
 		glog.Printf("MkdirAll %s error:%s", this.binDir, err)
 		return
 	}
+	var args []string
 	if this.iservice != nil {
-		this.iservice.OnInstall(this.binDir)
+		args = this.iservice.OnInstall(this.binDir)
 	}
 	glog.Println("安装路径：", this.binDir)
 	err = os.Chdir(this.binDir)
@@ -140,7 +141,7 @@ func (this *Installer) Install() {
 	dst.Close()
 	// install system service
 	glog.Println("程序位置:", this.binPath)
-	err = this.daemon.Install() //.Control("install", this.binPath, []string{"-d"})
+	err = this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Println("服务安装成功!")
 	} else {

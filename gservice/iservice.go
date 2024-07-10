@@ -6,5 +6,5 @@ type IService interface {
 	service.Interface
 	Config() *service.Config
 	Version() string
-	OnInstall(string)
+	OnInstall(string) []string
 }
