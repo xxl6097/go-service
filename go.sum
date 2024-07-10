@@ -18,6 +18,8 @@ github.com/xxl6097/go-glog v0.0.16 h1:pGTHG6QR2Wvi9m5ea4pso0tfrWtf2UFvELdJ55M6na
 github.com/xxl6097/go-glog v0.0.16/go.mod h1:FI2GotVtTm6pXskaTa6g6+Z0tqSGS0iJP9sqcsCnGMY=
 github.com/xxl6097/go-glog v0.0.17 h1:qJg7ThY5/6vDDVsLkQJef87B/CElMh06S25GTYXud3Y=
 github.com/xxl6097/go-glog v0.0.17/go.mod h1:FI2GotVtTm6pXskaTa6g6+Z0tqSGS0iJP9sqcsCnGMY=
+github.com/xxl6097/go-glog v0.0.18 h1:KKfl9UHF1YA9Zrc7WVB3IYaU4ux0qZATuYXOXi0M5YY=
+github.com/xxl6097/go-glog v0.0.18/go.mod h1:FI2GotVtTm6pXskaTa6g6+Z0tqSGS0iJP9sqcsCnGMY=
 golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.1.0 h1:kunALQeHf1/185U1i0GOB/fy1IPRDDpuoOOqRReG57U=
 golang.org/x/sys v0.1.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
