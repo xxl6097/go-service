@@ -101,6 +101,7 @@ func (this *Installer) Install() {
 		return
 	}
 
+	this.daemon.IsRunning()
 	this.Uninstall()
 	binPath, err1 := os.Executable()
 	if err1 != nil {
@@ -160,6 +161,11 @@ func (this *Installer) Uninstall() {
 		glog.Println("服务未运行")
 	}
 
+	_, err2 := this.daemon.Status()
+	if err2 != nil {
+		glog.Println(err2)
+		return
+	}
 	err := this.daemon.Uninstall() //Control("uninstall", "", nil)
 	if err != nil {
 		glog.Println("服务卸载失败，错误信息：", err)

@@ -26,8 +26,8 @@ func Run(iService IService) {
 	rand.Seed(time.Now().UnixNano())
 	baseDir := filepath.Dir(os.Args[0])
 	os.Chdir(baseDir) // for system service
-	glog.Info("Run...", len(os.Args), os.Args)
-	glog.Infof("config...%+v", iService.Config())
+	//glog.Info("Run...", len(os.Args), os.Args)
+	//glog.Infof("config...%+v", iService.Config())
 	installer := NewInstaller(iService, installPath)
 	if installer == nil {
 		return

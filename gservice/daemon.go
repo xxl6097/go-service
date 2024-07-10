@@ -31,11 +31,15 @@ func (d *Daemon) control(cmd string) error {
 	}
 	return nil
 }
+
+func (d *Daemon) Status() (service.Status, error) {
+	return (*d.svr).Status()
+}
 func (d *Daemon) IsRunning() bool {
 	if d.svr == nil {
 		return false
 	}
-	status, err := (*d.svr).Status()
+	status, err := d.Status()
 	if err != nil {
 		glog.Println(err)
 		return false
