@@ -82,11 +82,11 @@ func (this *Installer) Install() {
 	SetRLimit()
 	glog.Println("安装路径：", this.binDir)
 	if _, err := os.Stat(this.binDir); !os.IsNotExist(err) {
-		err5 := os.RemoveAll(this.binPath)
+		err5 := os.RemoveAll(this.binDir)
 		if err5 != nil {
-			glog.Error("删除失败", this.binPath)
+			glog.Error("删除失败", this.binDir)
 		} else {
-			glog.Debug("删除成功", this.binPath)
+			glog.Debug("删除成功", this.binDir)
 		}
 	}
 
