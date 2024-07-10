@@ -77,7 +77,9 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 
 func (this *Installer) Install() {
 	defer glog.Flush()
-	defer glog.Println("安装结束")
+	if this.iservice != nil {
+		this.iservice.OnInstall(this.binDir)
+	}
 	SetFirewall(this.binName, this.binPath)
 	SetRLimit()
 	glog.Println("安装路径：", this.binDir)
@@ -141,9 +143,6 @@ func (this *Installer) Install() {
 		glog.Println("服务启动失败，错误信息:", err)
 	} else {
 		glog.Println("服务启动成功！")
-		if this.iservice != nil {
-			this.iservice.OnInstall(this.binDir)
-		}
 	}
 }
 
