@@ -12,9 +12,6 @@ func initLog(installPath string) {
 	glog.SetLogFile(installPath+string(filepath.Separator)+"logs", "app.log")
 	glog.SetMaxSize(1 * 1024 * 1024)
 	glog.SetMaxAge(15)
-	//glog.SetCons(true)
-	glog.SetNoHeader(true)
-	glog.SetNoColor(true)
 }
 
 // Run func Run(config *service.Config, version string, runner service.Interface) {
@@ -35,8 +32,6 @@ func Run(iService IService) {
 		return
 	}
 	if len(os.Args) > 1 {
-		glog.SetNoHeader(false)
-		glog.SetNoColor(false)
 		switch os.Args[1] {
 		case "version", "-v", "--version":
 			glog.Println(iService.Version())
