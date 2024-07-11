@@ -107,7 +107,7 @@ func (this *Installer) Install() {
 	if this.iservice != nil {
 		args = this.iservice.OnInstall(this.binDir)
 	}
-	glog.Println("安装路径：", this.binDir)
+	//glog.Println("安装路径：", this.binDir)
 	err = os.Chdir(this.binDir)
 	if err != nil {
 		glog.Println("cd error:", err)
@@ -120,7 +120,7 @@ func (this *Installer) Install() {
 		glog.Fatal("os.Executable() error", err1)
 		return
 	}
-	glog.Println("可执行程序位置：", binPath)
+	//glog.Println("可执行程序位置：", binPath)
 	src, errFiles := os.Open(binPath) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
 	if errFiles != nil {
 		glog.Printf("os.OpenFile %s error:%s", os.Args[0], errFiles)
@@ -140,7 +140,7 @@ func (this *Installer) Install() {
 	src.Close()
 	dst.Close()
 	// install system service
-	glog.Println("程序位置:", this.binPath)
+	//glog.Println("程序位置:", this.binPath)
 	err = this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Println("服务安装成功!")
