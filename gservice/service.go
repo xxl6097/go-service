@@ -43,6 +43,9 @@ func Run(iService IService) {
 		case "uninstall":
 			installer.Uninstall()
 			return
+		case "upgrade":
+			installer.Upgrade()
+			return
 		case "start":
 			installer.StartService()
 		case "stop":

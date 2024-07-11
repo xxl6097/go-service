@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/xxl6097/go-glog/glog"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -127,13 +129,13 @@ func (this *Installer) Install() {
 		return
 	}
 
-	binPath, err1 := os.Executable()
+	currentBinPath, err1 := os.Executable()
 	if err1 != nil {
 		glog.Fatal("os.Executable() error", err1)
 		return
 	}
 	//glog.Println("可执行程序位置：", binPath)
-	src, errFiles := os.Open(binPath) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
+	src, errFiles := os.Open(currentBinPath) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
 	if errFiles != nil {
 		glog.Printf("os.OpenFile %s error:%s", os.Args[0], errFiles)
 		return
@@ -201,6 +203,55 @@ func (this *Installer) Uninstall() {
 	}
 }
 
+// IsURL 判断给定的字符串是否是一个有效的URL
+func IsURL(str string) bool {
+	u, err := url.ParseRequestURI(str)
+	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func (this *Installer) Upgrade() {
+	if this.daemon.IsRunning() {
+		err := this.daemon.Stop() //.Control("stop", "", nil)
+		if err != nil {           // service maybe not install
+			glog.Println("服务停止失败，错误信息：", err)
+			return
+		}
+	}
+	if len(os.Args) <= 2 {
+		glog.Error("参数错误，请重新配置参数")
+		return
+	}
+	if strings.Compare(os.Args[1], "upgrade") != 0 {
+		glog.Error("参数错误，请重新配置参数")
+		return
+	}
+	binUrl := os.Args[2]
+	if !IsURL(binUrl) {
+		glog.Error("参数错误，请输入正确的URL", binUrl)
+		return
+	}
+	if _, err := os.Stat(this.binPath); !os.IsNotExist(err) {
+		errs := os.Remove(this.binPath)
+		if errs != nil {
+			glog.Error("删除失败L", this.binPath)
+			return
+		}
+	}
+
+	err1 := download(binUrl, this.binPath)
+	if err1 != nil {
+		glog.Error("下载失败", err1)
+		return
+	}
+	glog.Error(this.binPath, "下载成功.")
+	err := this.daemon.Start()
+	if err != nil {
+		glog.Println("服务启动失败，错误信息:", err)
+	} else {
+		glog.Println("服务启动成功！")
+	}
+}
+
 func (this *Installer) InstallByFilename() {
 	defer glog.Flush()
 	//glog.Println("installByFilename", os.Args[0])
@@ -261,4 +312,26 @@ func (this *Installer) StopService() {
 }
 func (this *Installer) Run() error {
 	return this.daemon.Run()
+}
+
+func download(url, filePath string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("server returned HTTP status %v", resp.StatusCode)
+	}
+	out, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
 }
