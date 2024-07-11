@@ -179,7 +179,7 @@ func (this *Installer) Uninstall() {
 	//os.Remove(this.binPath + "0")
 	//os.Remove(this.binPath)
 	// 尝试删除自身
-	if err := os.Remove(this.binDir); err != nil {
+	if err := os.RemoveAll(this.binDir); err != nil {
 		fmt.Printf("Error removing executable: %v\n", err)
 		os.Exit(1)
 	}
