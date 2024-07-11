@@ -176,8 +176,13 @@ func (this *Installer) Uninstall() {
 	} else {
 		glog.Println("服务成功卸载！")
 	}
-	os.Remove(this.binPath + "0")
-	os.Remove(this.binPath)
+	//os.Remove(this.binPath + "0")
+	//os.Remove(this.binPath)
+	// 尝试删除自身
+	if err := os.Remove(this.binDir); err != nil {
+		fmt.Printf("Error removing executable: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func (this *Installer) InstallByFilename() {
