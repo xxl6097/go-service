@@ -46,7 +46,6 @@ function menu() {
   echo "4. 编译 Linux arm64"
   echo "请输入编号:"
   read index
-  tag
   case "$index" in
   [1]) (build_win windows amd64) ;;
   [2]) (build_windows_arm64) ;;
