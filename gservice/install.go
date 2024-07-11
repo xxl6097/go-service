@@ -88,9 +88,22 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 
 func (this *Installer) Install() {
 	defer glog.Flush()
+	_, err2 := this.daemon.Status()
+	if err2 == nil {
+		glog.Print("检测到", this.binName, "程序已经安装，需要卸载吗?(y/n):")
+		var yes string
+		fmt.Scanln(&yes)
+		if strings.Compare("y", yes) == 0 || strings.Compare("yes", yes) == 0 {
+			this.Uninstall()
+		} else {
+			glog.Debug("结束安装.")
+			os.Exit(0)
+			return
+		}
+	}
+
 	SetFirewall(this.binName, this.binPath)
 	SetRLimit()
-	this.Uninstall()
 	if _, err := os.Stat(this.binDir); !os.IsNotExist(err) {
 		err5 := os.RemoveAll(this.binDir)
 		if err5 != nil {
@@ -166,7 +179,7 @@ func (this *Installer) Uninstall() {
 	}
 	_, err2 := this.daemon.Status()
 	if err2 != nil {
-		glog.Println(err2)
+		glog.Println(this.binName, "程序未安装", err2)
 		return
 	}
 	err := this.daemon.Uninstall() //Control("uninstall", "", nil)
@@ -178,9 +191,13 @@ func (this *Installer) Uninstall() {
 	//os.Remove(this.binPath + "0")
 	//os.Remove(this.binPath)
 	// 尝试删除自身
+	glog.Println("尝试删除自身:", this.binDir)
 	if err := os.RemoveAll(this.binDir); err != nil {
 		fmt.Printf("Error removing executable: %v\n", err)
+		time.Sleep(time.Second * 3)
 		os.Exit(1)
+	} else {
+		glog.Println("尝试删除成功")
 	}
 }
 

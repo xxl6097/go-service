@@ -44,17 +44,17 @@ func (d *Daemon) IsRunning() bool {
 	}
 	status, err := d.Status()
 	if err != nil {
-		glog.Println(err)
+		//glog.Println(err)
 		return false
 	}
 	//glog.Println("status", status)
 	if status == service.StatusRunning {
-		glog.Println(d.conf.Name, "is running")
+		//glog.Println(d.conf.Name, "is running")
 		return true
 	} else if status == service.StatusStopped {
-		glog.Println(d.conf.Name, "is stopped")
+		//glog.Println(d.conf.Name, "is stopped")
 	} else {
-		glog.Println(d.conf.Name, "StatusUnknown", status)
+		//glog.Println(d.conf.Name, "StatusUnknown", status)
 	}
 	return false
 }

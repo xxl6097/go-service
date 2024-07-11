@@ -5,16 +5,6 @@ DisplayName=AAATest
 Description="基于Go语言的服务程序，可安装和管理第三方应用程序，可运行于Windows、Linux、Macos、Openwrt等各类操作系统。"
 version=0.0.0
 
-function tag() {
-    version=$(getversion)
-    echo "current version:${version}"
-    git add .
-    git commit -m "release v${version}"
-    git tag -a v$version -m "release v${version}"
-    git push origin v$version
-    echo $version >version.txt
-}
-
 
 function build() {
   rm -rf bin
