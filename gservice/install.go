@@ -196,8 +196,10 @@ func (this *Installer) InstallByFilename() {
 		glog.Println("install by filename, start process error:", err)
 		return
 	}
-	glog.Println("Press the Any Key to exit")
-	fmt.Scanln()
+	for i := 10; i > 0; i-- {
+		fmt.Printf("\r%d秒后退出程序..", i)
+		time.Sleep(1 * time.Second)
+	}
 	os.Exit(0)
 }
 
