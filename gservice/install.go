@@ -90,7 +90,7 @@ func (this *Installer) Install() {
 	defer glog.Flush()
 	SetFirewall(this.binName, this.binPath)
 	SetRLimit()
-
+	this.Uninstall()
 	if _, err := os.Stat(this.binDir); !os.IsNotExist(err) {
 		err5 := os.RemoveAll(this.binDir)
 		if err5 != nil {
@@ -114,7 +114,6 @@ func (this *Installer) Install() {
 		return
 	}
 
-	this.Uninstall()
 	binPath, err1 := os.Executable()
 	if err1 != nil {
 		glog.Fatal("os.Executable() error", err1)
