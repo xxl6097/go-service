@@ -215,12 +215,13 @@ func (this *Installer) Upgrade() {
 		}
 	}
 
+	glog.Debug("下载文件", binUrl)
 	err1 := download(binUrl, this.binPath)
 	if err1 != nil {
 		glog.Error("下载失败", err1)
 		return
 	}
-	glog.Error(this.binPath, "下载成功.")
+	glog.Debug("下载成功.", this.binPath)
 
 	var args []string
 	if this.iservice != nil {
