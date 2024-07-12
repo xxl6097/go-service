@@ -28,9 +28,11 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 		iservice: iservice,
 	}
 	conf := iservice.Config()
+	//可执行文件名称是取的配置文件配置的名称
 	this.binName = conf.Name
 	if strings.Compare(runtime.GOOS, "windows") == 0 {
-		this.binName += ".exe"
+		//this.binName += ".exe"
+		this.binName = filepath.Join(conf.Name, ".exe")
 	}
 	this.binPath = filepath.Join(this.binDir, this.binName)
 	conf.Executable = this.binPath
@@ -52,41 +54,6 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	}
 	return &this
 }
-
-//
-//// Shutdown 服务结束回调
-//func (i *Installer) Shutdown(s service.Service) error {
-//	defer glog.Flush()
-//	status, err := s.Status()
-//	glog.Println("Shutdown")
-//	glog.Println("Status", status, err)
-//	glog.Println("Platform", s.Platform())
-//	glog.Println("String", s.String())
-//	return nil
-//}
-//
-//// Start 服务启动回调
-//func (i *Installer) Start(s service.Service) error {
-//	defer glog.Flush()
-//	status, err := s.Status()
-//	glog.Println("启动服务")
-//	glog.Println("Status", status, err)
-//	glog.Println("Platform", s.Platform())
-//	glog.Println("String", s.String())
-//	return nil
-//}
-//
-//// Stop 服务停止回调
-//func (i *Installer) Stop(s service.Service) error {
-//	defer glog.Flush()
-//	glog.Println("停止服务")
-//
-//	if service.Interactive() {
-//		glog.Println("停止deamon")
-//		os.Exit(0)
-//	}
-//	return nil
-//}
 
 func (this *Installer) Install() {
 	defer glog.Flush()
@@ -129,6 +96,7 @@ func (this *Installer) Install() {
 		return
 	}
 
+	//这个地方是取的当前运行的执行文件
 	currentBinPath, err1 := os.Executable()
 	if err1 != nil {
 		glog.Fatal("os.Executable() error", err1)
@@ -140,6 +108,7 @@ func (this *Installer) Install() {
 		glog.Printf("os.OpenFile %s error:%s", os.Args[0], errFiles)
 		return
 	}
+	//将本程序复制到目标为止，目标文件名称为配置文件的名称
 	dst, errFiles := os.OpenFile(this.binPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
 	if errFiles != nil {
 		glog.Printf("os.OpenFile %s error:%s", this.binPath, errFiles)
