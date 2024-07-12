@@ -33,7 +33,7 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	if exePath != "" {
 		ext := filepath.Ext(exePath)
 		if ext != "" {
-			this.binName = filepath.Join(conf.Name, ext)
+			this.binName = conf.Name + ext
 		}
 	}
 	this.binPath = filepath.Join(this.binDir, this.binName)
