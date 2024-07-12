@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -30,9 +29,12 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	conf := iservice.Config()
 	//可执行文件名称是取的配置文件配置的名称
 	this.binName = conf.Name
-	if strings.Compare(runtime.GOOS, "windows") == 0 {
-		//this.binName += ".exe"
-		this.binName = filepath.Join(conf.Name, ".exe")
+	exePath, _ := os.Executable()
+	if exePath != "" {
+		ext := filepath.Ext(exePath)
+		if ext != "" {
+			this.binName = filepath.Join(conf.Name, ext)
+		}
 	}
 	this.binPath = filepath.Join(this.binDir, this.binName)
 	conf.Executable = this.binPath
