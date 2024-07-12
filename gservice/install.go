@@ -174,13 +174,75 @@ func (this *Installer) Uninstall() {
 	}
 }
 
-// IsURL 判断给定的字符串是否是一个有效的URL
-func IsURL(str string) bool {
-	u, err := url.ParseRequestURI(str)
-	return err == nil && u.Scheme != "" && u.Host != ""
+func (this *Installer) Upgrade() {
+	if this.daemon.IsRunning() {
+		err := this.daemon.Stop() //.Control("stop", "", nil)
+		if err != nil {           // service maybe not install
+			glog.Println("服务停止失败，错误信息：", err)
+			return
+		}
+	}
+	_, err2 := this.daemon.Status()
+	if err2 == nil {
+		err := this.daemon.Uninstall()
+		if err != nil {
+			glog.Println("服务卸载失败，错误信息：", err)
+			return
+		} else {
+			glog.Println("服务成功卸载！")
+		}
+	}
+
+	if len(os.Args) <= 2 {
+		glog.Error("参数错误，请重新配置参数")
+		return
+	}
+	if strings.Compare(os.Args[1], "upgrade") != 0 {
+		glog.Error("参数错误，请重新配置参数")
+		return
+	}
+	binUrl := os.Args[2]
+	if !IsURL(binUrl) {
+		glog.Error("参数错误，请输入正确的URL", binUrl)
+		return
+	}
+	//删除可执行文件
+	if _, err := os.Stat(this.binPath); !os.IsNotExist(err) {
+		errs := os.Remove(this.binPath)
+		if errs != nil {
+			glog.Error("删除失败L", this.binPath)
+			return
+		}
+	}
+
+	err1 := download(binUrl, this.binPath)
+	if err1 != nil {
+		glog.Error("下载失败", err1)
+		return
+	}
+	glog.Error(this.binPath, "下载成功.")
+
+	var args []string
+	if this.iservice != nil {
+		args = this.iservice.OnInstall(this.binDir)
+	}
+
+	err0 := this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
+	if err0 == nil {
+		glog.Println("服务升级成功!")
+	} else {
+		glog.Println("服务升级失败，错误信息:", err0)
+	}
+	time.Sleep(time.Second * 2)
+	err := this.daemon.Start()
+	if err != nil {
+		glog.Println("服务启动失败，错误信息:", err)
+	} else {
+		glog.Println("服务启动成功！")
+	}
 }
 
-func (this *Installer) Upgrade() {
+func (this *Installer) Upgradebak() {
 	if this.daemon.IsRunning() {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
@@ -305,4 +367,19 @@ func download(url, filePath string) error {
 		return err
 	}
 	return nil
+}
+
+// IsURL 判断给定的字符串是否是一个有效的URL
+func IsURL(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(toTest)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme == "http" || u.Scheme == "https"
 }
