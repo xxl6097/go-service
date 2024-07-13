@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -29,13 +30,10 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	conf := iservice.Config()
 	//可执行文件名称是取的配置文件配置的名称
 	this.binName = conf.Name
-	exePath, _ := os.Executable()
-	if exePath != "" {
-		ext := filepath.Ext(exePath)
-		if ext != "" {
-			this.binName = conf.Name + ext
-		}
+	if IsWindows() {
+		this.binName = conf.Name + ".exe"
 	}
+
 	this.binPath = filepath.Join(this.binDir, this.binName)
 	conf.Executable = this.binPath
 	_args := make([]string, 0)
@@ -383,4 +381,10 @@ func IsURL(toTest string) bool {
 	}
 
 	return u.Scheme == "http" || u.Scheme == "https"
+}
+func IsWindows() bool {
+	if strings.Compare(runtime.GOOS, "windows") == 0 {
+		return true
+	}
+	return false
 }
