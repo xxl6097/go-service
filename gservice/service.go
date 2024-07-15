@@ -17,6 +17,7 @@ func initLog(installPath string) {
 
 // Run func Run(config *service.Config, version string, runner service.Interface) {
 func Run(iService IService) {
+	defer glog.Flush()
 	glog.SetNoHeader(true)
 	if iService == nil {
 		glog.Debug("config is nil")
