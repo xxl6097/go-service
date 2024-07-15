@@ -28,7 +28,7 @@ func Run(iService IService) {
 	os.Chdir(baseDir) // for system service
 	//glog.Info("Run...", len(os.Args), os.Args)
 	//glog.Infof("config...%+v", iService.Config())
-	installer := NewInstaller(iService, installPath)
+	installer = NewInstaller(iService, installPath)
 	if installer == nil {
 		return
 	}
@@ -63,5 +63,13 @@ func Run(iService IService) {
 		}
 	} else {
 		installer.InstallByFilename()
+	}
+}
+
+var installer *Installer
+
+func Uninstall() {
+	if installer != nil {
+		installer.Uninstall()
 	}
 }
