@@ -50,6 +50,7 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 	conf.Arguments = _args
 	this.daemon = NewDaemon(iservice, conf)
 	if this.daemon == nil {
+		glog.Error("daemon is nil")
 		return nil
 	}
 	return &this

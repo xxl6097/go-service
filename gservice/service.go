@@ -20,7 +20,7 @@ func Run(iService IService) {
 	defer glog.Flush()
 	glog.SetNoHeader(true)
 	if iService == nil {
-		glog.Debug("config is nil")
+		glog.Error("config is nil")
 		return
 	}
 	installPath := filepath.Join(defaultInstallPath, iService.Config().Name)
@@ -31,6 +31,7 @@ func Run(iService IService) {
 	//glog.Infof("config...%+v", iService.Config())
 	installer = NewInstaller(iService, installPath)
 	if installer == nil {
+		glog.Error("installer is nil")
 		return
 	}
 	if len(os.Args) > 1 {
