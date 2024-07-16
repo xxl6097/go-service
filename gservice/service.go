@@ -72,15 +72,16 @@ func Run(iService IService) {
 			iService.Unkown(k, installPath)
 		}
 	} else {
-		if installer.IsInstalled() {
-			glog.Flush()
-			initLog(installPath)
-			glog.Println("创建进程..")
-			installer.Run()
-			glog.Println("进程结束..")
-		} else {
-			installer.InstallByFilename()
-		}
+		//if installer.IsInstalled() {
+		//	glog.Flush()
+		//	initLog(installPath)
+		//	glog.Println("创建进程..")
+		//	installer.Run()
+		//	glog.Println("进程结束..")
+		//} else {
+		//	installer.InstallByFilename()
+		//}
+		installer.InstallByFilename()
 	}
 }
 
