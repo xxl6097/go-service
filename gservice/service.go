@@ -24,6 +24,7 @@ func Run(iService IService) {
 		return
 	}
 	installPath := filepath.Join(defaultInstallPath, iService.Config().Name)
+	initLog(installPath)
 	rand.Seed(time.Now().UnixNano())
 	baseDir := filepath.Dir(os.Args[0])
 	os.Chdir(baseDir) // for system service
@@ -56,8 +57,6 @@ func Run(iService IService) {
 			installer.Restart()
 			return
 		case "-d":
-			glog.Flush()
-			initLog(installPath)
 			glog.Println("创建进程..")
 			installer.Run()
 			glog.Println("进程结束..")
