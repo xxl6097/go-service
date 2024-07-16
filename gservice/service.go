@@ -35,7 +35,8 @@ func Run(iService IService) {
 		return
 	}
 	if len(os.Args) > 1 {
-		switch os.Args[1] {
+		k := os.Args[1]
+		switch k {
 		case "version", "-v", "--version":
 			glog.Println(iService.Version())
 			return
@@ -62,6 +63,8 @@ func Run(iService IService) {
 			installer.Run()
 			glog.Println("进程结束..")
 			return
+		default:
+			iService.Unkown(k, installPath)
 		}
 	} else {
 		installer.InstallByFilename()

@@ -10,6 +10,9 @@ import (
 
 type Main struct{}
 
+func (i *Main) Unkown(s string, s2 string) {
+}
+
 func (i *Main) OnInstall(installDir string) []string {
 	return nil
 }

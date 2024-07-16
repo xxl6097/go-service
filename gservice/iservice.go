@@ -7,4 +7,5 @@ type IService interface {
 	Config() *service.Config
 	Version() string
 	OnInstall(string) []string
+	Unkown(string, string)
 }
