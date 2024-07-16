@@ -23,6 +23,7 @@ func NewDaemon(shut service.Interface, conf *service.Config) *Daemon {
 	}
 	this.conf = conf
 	this.svr = &s
+	service.Interactive()
 	return this
 }
 

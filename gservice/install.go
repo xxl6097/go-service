@@ -2,6 +2,7 @@ package gservice
 
 import (
 	"fmt"
+	"github.com/kardianos/service"
 	"github.com/xxl6097/go-glog/glog"
 	"io"
 	"net/http"
@@ -54,6 +55,17 @@ func NewInstaller(iservice IService, installPath string) *Installer {
 		return nil
 	}
 	return &this
+}
+
+func (this *Installer) IsInstalled() bool {
+	status, err2 := this.daemon.Status()
+	if err2 != nil {
+		if status == service.StatusUnknown {
+			return false
+		}
+		return true
+	}
+	return false
 }
 
 func (this *Installer) Install() {

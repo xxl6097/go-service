@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -23,7 +24,11 @@ func Run(iService IService) {
 		glog.Error("config is nil")
 		return
 	}
-	installPath := filepath.Join(defaultInstallPath, iService.Config().Name)
+	binDir := iService.Config().Name
+	if !IsWindows() {
+		binDir = strings.ToLower(binDir)
+	}
+	installPath := filepath.Join(defaultInstallPath, binDir)
 	rand.Seed(time.Now().UnixNano())
 	baseDir := filepath.Dir(os.Args[0])
 	os.Chdir(baseDir) // for system service
@@ -67,7 +72,15 @@ func Run(iService IService) {
 			iService.Unkown(k, installPath)
 		}
 	} else {
-		installer.InstallByFilename()
+		if installer.IsInstalled() {
+			glog.Flush()
+			initLog(installPath)
+			glog.Println("创建进程..")
+			installer.Run()
+			glog.Println("进程结束..")
+		} else {
+			installer.InstallByFilename()
+		}
 	}
 }
 
