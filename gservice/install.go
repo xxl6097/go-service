@@ -63,6 +63,9 @@ func (this *Installer) IsInstalled() bool {
 		if status == service.StatusUnknown {
 			return false
 		}
+		if _, err := os.Stat(this.binPath); os.IsNotExist(err) {
+			return false
+		}
 		return true
 	}
 	return false
