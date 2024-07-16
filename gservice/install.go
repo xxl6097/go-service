@@ -299,7 +299,7 @@ func (this *Installer) InstallByFilename() {
 	err := cmd.Run()
 	if err != nil {
 		glog.Println("install by filename, start process error:", err)
-		return
+		//return
 	}
 	for i := 10; i > 0; i-- {
 		fmt.Printf("\r%d秒后退出程序..", i)
