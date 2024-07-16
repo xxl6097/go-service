@@ -298,7 +298,8 @@ func (this *Installer) InstallByFilename() {
 	cmd.Env = env
 	err := cmd.Run()
 	if err != nil {
-		glog.Println("install by filename, start process error:", err)
+		glog.Error(targetPath, args)
+		glog.Error("install by filename, start process error:", err)
 		//return
 	}
 	for i := 10; i > 0; i-- {
