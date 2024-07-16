@@ -221,6 +221,12 @@ func (this *Installer) Upgrade() {
 		return
 	}
 	glog.Debug("下载成功.", this.binPath)
+	err3 := os.Chmod(this.binPath, 0755)
+	if err3 == nil {
+		glog.Debug(this.binPath, "赋予0755权限成功")
+	} else {
+		glog.Error(this.binPath, "赋予0755权限失败", err3)
+	}
 
 	var args []string
 	if this.iservice != nil {
