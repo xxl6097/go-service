@@ -24,6 +24,14 @@ func Run(iService IService) {
 		glog.Error("config is nil")
 		return
 	}
+	if len(os.Args) > 1 {
+		k := os.Args[1]
+		switch k {
+		case "version", "-v", "--version":
+			glog.Println(iService.Version())
+			return
+		}
+	}
 	binDir := iService.Config().Name
 	if !IsWindows() {
 		binDir = strings.ToLower(binDir)
@@ -42,9 +50,6 @@ func Run(iService IService) {
 	if len(os.Args) > 1 {
 		k := os.Args[1]
 		switch k {
-		case "version", "-v", "--version":
-			glog.Println(iService.Version())
-			return
 		case "install":
 			installer.Install()
 			return
