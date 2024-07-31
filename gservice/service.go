@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -33,9 +32,9 @@ func Run(iService IService) {
 		}
 	}
 	binDir := iService.Config().Name
-	if !IsWindows() {
-		binDir = strings.ToLower(binDir)
-	}
+	//if !IsWindows() {
+	//	binDir = strings.ToLower(binDir)
+	//}
 	installPath := filepath.Join(defaultInstallPath, binDir)
 	rand.Seed(time.Now().UnixNano())
 	baseDir := filepath.Dir(os.Args[0])
