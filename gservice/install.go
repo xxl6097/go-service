@@ -1,6 +1,7 @@
 package gservice
 
 import (
+	"errors"
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/go-glog/glog"
@@ -71,10 +72,10 @@ func (this *Installer) IsInstalled() bool {
 	return false
 }
 
-func (this *Installer) Install() {
+func (this *Installer) Install() error {
 	defer glog.Flush()
-	_, err2 := this.daemon.Status()
-	if err2 == nil {
+	_, err := this.daemon.Status()
+	if err == nil {
 		glog.Print("检测到", this.binName, "程序已经安装，需要卸载吗?(y/n):")
 		var yes string
 		fmt.Scanln(&yes)
@@ -83,7 +84,7 @@ func (this *Installer) Install() {
 		} else {
 			glog.Debug("结束安装.")
 			os.Exit(0)
-			return
+			return err
 		}
 	}
 
@@ -96,10 +97,10 @@ func (this *Installer) Install() {
 		}
 	}
 
-	err := os.MkdirAll(this.binDir, 0775)
+	err = os.MkdirAll(this.binDir, 0775)
 	if err != nil {
 		glog.Printf("MkdirAll %s error:%s", this.binDir, err)
-		return
+		return err
 	}
 	var args []string
 	if this.iservice != nil {
@@ -109,32 +110,32 @@ func (this *Installer) Install() {
 	err = os.Chdir(this.binDir)
 	if err != nil {
 		glog.Println("cd error:", err)
-		return
+		return err
 	}
 
 	//这个地方是取的当前运行的执行文件
-	currentBinPath, err1 := os.Executable()
-	if err1 != nil {
-		glog.Fatal("os.Executable() error", err1)
-		return
+	currentBinPath, err := os.Executable()
+	if err != nil {
+		glog.Fatal("os.Executable() error", err)
+		return err
 	}
 	//glog.Println("可执行程序位置：", binPath)
-	src, errFiles := os.Open(currentBinPath) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
-	if errFiles != nil {
-		glog.Printf("os.OpenFile %s error:%s", os.Args[0], errFiles)
-		return
+	src, err := os.Open(currentBinPath) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
+	if err != nil {
+		glog.Printf("os.OpenFile %s error:%s", os.Args[0], err)
+		return err
 	}
 	//将本程序复制到目标为止，目标文件名称为配置文件的名称
-	dst, errFiles := os.OpenFile(this.binPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
-	if errFiles != nil {
-		glog.Printf("os.OpenFile %s error:%s", this.binPath, errFiles)
-		return
+	dst, err := os.OpenFile(this.binPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
+	if err != nil {
+		glog.Printf("os.OpenFile %s error:%s", this.binPath, err)
+		return err
 	}
 
-	_, errFiles = io.Copy(dst, src)
-	if errFiles != nil {
-		glog.Printf("文件拷贝失败，错误信息：%s", errFiles)
-		return
+	_, err = io.Copy(dst, src)
+	if err != nil {
+		glog.Printf("文件拷贝失败，错误信息：%s", err)
+		return err
 	}
 	src.Close()
 	dst.Close()
@@ -153,23 +154,24 @@ func (this *Installer) Install() {
 	} else {
 		glog.Println("服务启动成功！")
 	}
+	return err
 }
 
-func (this *Installer) Uninstall() {
+func (this *Installer) Uninstall() error {
 	defer glog.Flush()
 	if this.daemon.IsRunning() {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
 			glog.Println("卸载失败，错误信息：", this.binName, err)
-			return
+			return err
 		}
 	}
-	_, err2 := this.daemon.Status()
-	if err2 != nil {
-		glog.Println(this.binName, "程序未安装", err2)
-		return
+	_, err := this.daemon.Status()
+	if err != nil {
+		glog.Println(this.binName, "程序未安装", err)
+		return err
 	}
-	err := this.daemon.Uninstall() //Control("uninstall", "", nil)
+	err = this.daemon.Uninstall() //Control("uninstall", "", nil)
 	if err != nil {
 		glog.Println("服务卸载失败，错误信息：", err)
 	} else {
@@ -186,22 +188,24 @@ func (this *Installer) Uninstall() {
 	} else {
 		glog.Println("尝试删除成功")
 	}
+
+	return err
 }
 
-func (this *Installer) Upgrade() {
+func (this *Installer) Upgrade() error {
 	if this.daemon.IsRunning() {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
 			glog.Println("服务停止失败，错误信息：", err)
-			return
+			return err
 		}
 	}
-	_, err2 := this.daemon.Status()
-	if err2 == nil {
+	_, err := this.daemon.Status()
+	if err == nil {
 		err := this.daemon.Uninstall()
 		if err != nil {
 			glog.Println("服务卸载失败，错误信息：", err)
-			return
+			return err
 		} else {
 			glog.Println("服务成功卸载！")
 		}
@@ -209,38 +213,38 @@ func (this *Installer) Upgrade() {
 
 	if len(os.Args) <= 2 {
 		glog.Error("参数错误，请重新配置参数")
-		return
+		return errors.New("参数错误，请重新配置参数")
 	}
 	if strings.Compare(os.Args[1], "upgrade") != 0 {
 		glog.Error("参数错误，请重新配置参数")
-		return
+		return errors.New("参数错误，请重新配置参数")
 	}
 	binUrl := os.Args[2]
 	if !IsURL(binUrl) {
 		glog.Error("参数错误，请输入正确的URL", binUrl)
-		return
+		return errors.New("参数错误，请输入正确的URL")
 	}
 	//删除可执行文件
 	if _, err := os.Stat(this.binPath); !os.IsNotExist(err) {
-		errs := os.Remove(this.binPath)
-		if errs != nil {
+		err := os.Remove(this.binPath)
+		if err != nil {
 			glog.Error("删除失败L", this.binPath)
-			return
+			return err
 		}
 	}
 
 	glog.Debug("下载文件", binUrl)
-	err1 := download(binUrl, this.binPath)
-	if err1 != nil {
-		glog.Error("下载失败", err1)
-		return
+	err = download(binUrl, this.binPath)
+	if err != nil {
+		glog.Error("下载失败", err)
+		return err
 	}
 	glog.Debug("下载成功.", this.binPath)
-	err3 := os.Chmod(this.binPath, 0755)
-	if err3 == nil {
+	err = os.Chmod(this.binPath, 0755)
+	if err == nil {
 		glog.Debug(this.binPath, "赋予0755权限成功")
 	} else {
-		glog.Error(this.binPath, "赋予0755权限失败", err3)
+		glog.Error(this.binPath, "赋予0755权限失败", err)
 	}
 
 	var args []string
@@ -248,19 +252,20 @@ func (this *Installer) Upgrade() {
 		args = this.iservice.OnInstall(this.binDir)
 	}
 
-	err0 := this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
-	if err0 == nil {
+	err = this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
+	if err == nil {
 		glog.Println("服务升级成功!")
 	} else {
-		glog.Println("服务升级失败，错误信息:", err0)
+		glog.Println("服务升级失败，错误信息:", err)
 	}
 	time.Sleep(time.Second * 2)
-	err := this.daemon.Start()
+	err = this.daemon.Start()
 	if err != nil {
 		glog.Println("服务启动失败，错误信息:", err)
 	} else {
 		glog.Println("服务启动成功！")
 	}
+	return err
 }
 
 func (this *Installer) Upgradebak() {
@@ -330,7 +335,7 @@ func (this *Installer) InstallByFilename() {
 	os.Exit(0)
 }
 
-func (this *Installer) Restart() {
+func (this *Installer) Restart() error {
 	defer glog.Flush()
 	defer glog.Println("restart end")
 	glog.Println("重启...")
@@ -341,9 +346,10 @@ func (this *Installer) Restart() {
 		glog.Println("服务重启成功!")
 	}
 
+	return err
 }
 
-func (this *Installer) StartService() {
+func (this *Installer) StartService() error {
 	defer glog.Flush()
 	glog.Println("start")
 	defer glog.Println("start end")
@@ -353,8 +359,9 @@ func (this *Installer) StartService() {
 	} else {
 		glog.Println("start system service ok.")
 	}
+	return err
 }
-func (this *Installer) StopService() {
+func (this *Installer) StopService() error {
 	defer glog.Flush()
 	glog.Println("stop")
 	defer glog.Println("stop end")
@@ -364,6 +371,7 @@ func (this *Installer) StopService() {
 	} else {
 		glog.Println("stop system service ok.")
 	}
+	return err
 }
 func (this *Installer) Run() error {
 	return this.daemon.Run()
