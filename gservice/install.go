@@ -159,13 +159,13 @@ func (this *Installer) Install() error {
 
 func (this *Installer) Uninstall() error {
 	defer glog.Flush()
-	if this.daemon.IsRunning() {
-		err := this.daemon.Stop() //.Control("stop", "", nil)
-		if err != nil {           // service maybe not install
-			glog.Println("卸载失败，错误信息：", this.binName, err)
-			return err
-		}
-	}
+	//if this.daemon.IsRunning() {
+	//	err := this.daemon.Stop() //.Control("stop", "", nil)
+	//	if err != nil {           // service maybe not install
+	//		glog.Println("卸载失败，错误信息：", this.binName, err)
+	//		return err
+	//	}
+	//}
 	_, err := this.daemon.Status()
 	if err != nil {
 		glog.Println(this.binName, "程序未安装", err)
