@@ -96,3 +96,7 @@ func Uninstall() {
 		installer.Uninstall()
 	}
 }
+
+func GetInstaller() *Installer {
+	return installer
+}

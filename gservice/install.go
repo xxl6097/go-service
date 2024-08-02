@@ -160,7 +160,7 @@ func (this *Installer) Uninstall() {
 	if this.daemon.IsRunning() {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
-			glog.Println("卸载失败，错误信息：", err)
+			glog.Println("卸载失败，错误信息：", this.binName, err)
 			return
 		}
 	}
