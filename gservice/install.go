@@ -211,7 +211,7 @@ func (this *Installer) Upgrade() error {
 		}
 	}
 
-	if len(os.Args) <= 2 {
+	if len(os.Args) <= 1 {
 		glog.Error("参数错误，请重新配置参数")
 		return errors.New("参数错误，请重新配置参数")
 	}
@@ -219,7 +219,20 @@ func (this *Installer) Upgrade() error {
 		glog.Error("参数错误，请重新配置参数")
 		return errors.New("参数错误，请重新配置参数")
 	}
-	binUrl := os.Args[2]
+
+	var binUrl string
+	if this.iservice != nil {
+		binUrl = this.iservice.OnUpgrade()
+	}
+
+	if binUrl == "" {
+		if len(os.Args) <= 2 {
+			glog.Error("参数错误，请重新配置参数")
+			return errors.New("参数错误，请重新配置参数")
+		}
+		binUrl = os.Args[2]
+	}
+
 	if !IsURL(binUrl) {
 		glog.Error("参数错误，请输入正确的URL", binUrl)
 		return errors.New("参数错误，请输入正确的URL")
