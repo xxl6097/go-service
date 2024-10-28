@@ -1,13 +1,16 @@
 #!/bin/bash
-function getversion() {
-  appversion=$(cat version.txt)
-  if [ "$appversion" = "" ]; then
-    appversion="0.0.0"
-    echo $appversion
+
+function upgradeVersion() {
+  if [ ! -e version.txt ]; then
+      echo "0.0.0" > version.txt
+  fi
+  version=$(cat version.txt)
+  if [ "$version" = "" ]; then
+    version="0.0.0"
   else
-    v3=$(echo $appversion | awk -F'.' '{print($3);}')
-    v2=$(echo $appversion | awk -F'.' '{print($2);}')
-    v1=$(echo $appversion | awk -F'.' '{print($1);}')
+    v3=$(echo $version | awk -F'.' '{print($3);}')
+    v2=$(echo $version | awk -F'.' '{print($2);}')
+    v1=$(echo $version | awk -F'.' '{print($1);}')
     if [[ $(expr $v3 \>= 99) == 1 ]]; then
       v3=0
       if [[ $(expr $v2 \>= 99) == 1 ]]; then
@@ -19,9 +22,9 @@ function getversion() {
     else
       v3=$(expr $v3 + 1)
     fi
-    ver="$v1.$v2.$v3"
-    echo $ver
+    version="$v1.$v2.$v3"
   fi
+    echo $version > version.txt
 }
 
 function todir() {
@@ -36,66 +39,63 @@ function pull() {
 
 function forcepull() {
   todir
-  echo "git fetch --all && git reset --hard origin/main && git pull"
-  git fetch --all && git reset --hard origin/main && git pull
+  echo "git fetch --all && git reset --hard origin/master && git pull"
+  git fetch --all && git reset --hard origin/master && git pull
 }
 
 function tag() {
-    version=$(getversion)
-    echo "current version:${version}"
-    git add .
-    git commit -m "release v${version}"
-    git tag -a v$version -m "release v${version}"
-    git push origin v$version
-    echo $version >version.txt
+  git add .
+  git commit -m "release v${version}"
+  git tag -a v$version -m "release v${version}"
+  git push origin v$version
 }
-#  shellcheck disable=SC2120
-function gitpush() {
+
+function push() {
   commit=""
   if [ ! -n "$1" ]; then
     commit="$(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
   else
     commit="$1 by ${USER}"
   fi
-
   echo $commit
   git add .
-  git commit -m "$commit"
+  git commit -m "${version} $commit"
   #  git push -u origin main
+  echo "提交代码"
   git push
+  echo "打tag标签"
   tag
 }
 
-function test() {
-    version=$(getversion)
-    echo "current version:${version}"
-    echo $version >version.txt
+function main_pre() {
+  #1. 更新版本号
+  upgradeVersion
 }
 
 function m() {
     echo "1. 强制更新"
     echo "2. 普通更新"
     echo "3. 提交项目"
-    echo "4. 测试"
     echo "请输入编号:"
     read index
 
     case "$index" in
     [1]) (forcepull);;
     [2]) (pull);;
-    [3]) (gitpush);;
-    [4]) (test);;
+    [3]) (push);;
     *) echo "exit" ;;
   esac
 }
 
-function bootstrap() {
+function main() {
+  main_pre
     case $1 in
     pull) (pull) ;;
-    m) (m) ;;
+       m) (m) ;;
       -f) (forcepull) ;;
-       *) ( gitpush $1)  ;;
+       *) (push $1)  ;;
     esac
 }
 
-bootstrap m
+main m
+#upgradeVersion
