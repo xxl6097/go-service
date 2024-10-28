@@ -10,9 +10,8 @@ import (
 
 type Main struct{}
 
-func (i *Main) OnUpgrade() []string {
-	//TODO implement me
-	panic("implement me")
+func (i *Main) OnUpgrade() string {
+	return ""
 }
 
 func (i *Main) Unkown(s string, s2 string) {
