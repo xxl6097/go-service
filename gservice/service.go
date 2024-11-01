@@ -54,6 +54,7 @@ func Run(iService IService) {
 			glog.Flush()
 			initLog(installPath)
 			glog.Println("创建进程..")
+			os.Args = os.Args[1:]
 			installer.Run()
 			glog.Println("进程结束..")
 			return
