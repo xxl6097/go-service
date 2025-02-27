@@ -1,4 +1,4 @@
-package gservice
+package gore
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultInstallPath = "/usr/local"
+	DefaultInstallPath = "/usr/local"
 	// defaultBinName     = "AAServiceApp"
 )
 

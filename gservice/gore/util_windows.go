@@ -1,4 +1,4 @@
-package gservice
+package gore
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultInstallPath = "C:\\Program Files"
+	DefaultInstallPath = "C:\\Program Files"
 	//	defaultBinName     = "AAServiceApp.exe"
 )
 

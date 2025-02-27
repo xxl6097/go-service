@@ -1,4 +1,4 @@
-package gservice
+package gore
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultInstallPath = "/usr/local"
+	DefaultInstallPath = "/usr/local"
 )
 
 func getOsName() (osName string) {

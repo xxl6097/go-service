@@ -1,34 +1,36 @@
-package gservice
+package gore
 
 import (
 	"fmt"
 	"github.com/kardianos/service"
-	"github.com/xxl6097/go-glog/glog"
+	"github.com/xxl6097/glog/glog"
 )
 
 type Daemon struct {
 	conf *service.Config
-	svr  *service.Service
+	svr  service.Service
 	shut service.Interface
 }
 
-func NewDaemon(shut service.Interface, conf *service.Config) *Daemon {
+func NewDaemon(shut service.Shutdowner, conf *service.Config) (*Daemon, error) {
 	this := &Daemon{
 		shut: shut,
 	}
 	s, e := service.New(shut, conf)
 	if e != nil {
-		glog.Error("service new failed ", e)
-		return nil
+		return nil, fmt.Errorf("service new err", e)
+	}
+	if s == nil {
+		return nil, fmt.Errorf("create service is nil")
 	}
 	this.conf = conf
-	this.svr = &s
+	this.svr = s
 	service.Interactive()
-	return this
+	return this, nil
 }
 
 func (d *Daemon) control(cmd string) error {
-	e := service.Control(*d.svr, cmd)
+	e := service.Control(d.svr, cmd)
 	if e != nil {
 		fmt.Println(cmd, e)
 		return e
@@ -37,7 +39,7 @@ func (d *Daemon) control(cmd string) error {
 }
 
 func (d *Daemon) Status() (service.Status, error) {
-	return (*d.svr).Status()
+	return d.svr.Status()
 }
 func (d *Daemon) IsRunning() bool {
 	if d.svr == nil {
@@ -48,7 +50,6 @@ func (d *Daemon) IsRunning() bool {
 		//glog.Println(err)
 		return false
 	}
-	//glog.Println("status", status)
 	if status == service.StatusRunning {
 		//glog.Println(d.conf.Name, "is running")
 		return true
@@ -64,14 +65,19 @@ func (d *Daemon) Uninstall() error {
 	return d.control(service.ControlAction[4])
 }
 func (d *Daemon) Install(args []string) error {
+	if d.conf.Option == nil {
+		d.conf.Option = make(map[string]interface{})
+	}
+	d.conf.Option["Interactive"] = true
 	if args != nil && len(args) > 0 {
 		d.conf.Arguments = append(d.conf.Arguments, args...)
+		glog.Flush()
 		s, e := service.New(d.shut, d.conf)
 		if e != nil {
 			glog.Error("service new failed ", e)
 			return nil
 		}
-		d.svr = &s
+		d.svr = s
 	}
 	return d.control(service.ControlAction[3])
 }
@@ -85,5 +91,8 @@ func (d *Daemon) Start() error {
 	return d.control(service.ControlAction[0])
 }
 func (d *Daemon) Run() error {
-	return (*d.svr).Run()
+	return d.svr.Run()
+}
+func (d *Daemon) GetService() service.Service {
+	return d.svr
 }

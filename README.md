@@ -1,7 +1,13 @@
 go get github.com/kardianos/service
-go get -u github.com/xxl6097/go-glog@v0.0.19
+go get -u github.com/xxl6097/glog@v0.0.19
 go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
 
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-linkmode internal" -o AAServiceApp.exe main.go
 
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o AAATest1.exe main.go
+
+## 测试截图
+
+go get github.com/kbinani/screenshot
+
+go get -u github.com/inconshreveable/go-update
