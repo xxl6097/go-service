@@ -354,6 +354,12 @@ func (this *gservice) install() error {
 			err5 := os.RemoveAll(this.workDir)
 			if err5 != nil {
 				glog.Error("删除失败", this.workDir)
+			} else {
+				err = os.MkdirAll(this.workDir, 0775)
+				if err != nil {
+					glog.Printf("MkdirAll %s error:%s", this.workDir, err)
+					return err
+				}
 			}
 		}
 
