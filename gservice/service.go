@@ -231,15 +231,15 @@ func (this *gservice) upgrade() error {
 		glog.Flush()
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
-			glog.Println("服务停止失败，错误信息：", err)
-			return err
+			glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
+			//return err
 		}
 	}
 	_, err := this.daemon.Status()
 	if err == nil {
 		err := this.daemon.Uninstall()
 		if err != nil {
-			glog.Println("服务卸载失败，错误信息：", err)
+			glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
 			return err
 		} else {
 			glog.Println("服务成功卸载！")
@@ -414,18 +414,18 @@ func (this *gservice) uninstall() error {
 	if this.daemon.IsRunning() {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
-			glog.Println("卸载失败，错误信息：", this.conf.Name, err)
+			glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
 			//return err
 		}
 	}
 	_, err := this.daemon.Status()
 	if err != nil {
-		glog.Printf("服务【%s】未安装!\n", this.conf.DisplayName)
+		glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
 		//return err
 	}
 	err = this.daemon.Uninstall() //Control("uninstall", "", nil)
 	if err != nil {
-		glog.Printf("服务【%s】卸载失败，错误信息：%v\n", this.conf.DisplayName, err)
+		glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
 	} else {
 		glog.Printf("服务【%s】成功卸载\n", this.conf.DisplayName)
 	}
