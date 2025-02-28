@@ -342,6 +342,13 @@ func (this *gservice) install() error {
 			os.Exit(0)
 			return err
 		}
+	} else {
+		err := this.daemon.Uninstall()
+		if err != nil {
+			glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
+		} else {
+			glog.Println("服务成功卸载！")
+		}
 	}
 	gore.SetFirewall(this.conf.Name, this.conf.Executable)
 	err = gore.SetRLimit()
