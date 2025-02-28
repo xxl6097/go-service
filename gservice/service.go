@@ -235,15 +235,12 @@ func (this *gservice) upgrade() error {
 			//return err
 		}
 	}
-	_, err := this.daemon.Status()
-	if err == nil {
-		err := this.daemon.Uninstall()
-		if err != nil {
-			glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
-			return err
-		} else {
-			glog.Println("服务成功卸载！")
-		}
+	err := this.daemon.Uninstall()
+	if err != nil {
+		glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
+		//return err
+	} else {
+		glog.Println("服务成功卸载！")
 	}
 
 	if len(os.Args) <= 1 {
