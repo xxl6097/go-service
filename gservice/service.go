@@ -163,17 +163,16 @@ func (this *gservice) update(upgradeBinPath string) error {
 	return fmt.Errorf("位置文件路径:%s", upgradeBinPath)
 }
 
-func (this *gservice) Upgrade(upgradeBinPath string, doFinish func(err error) bool) error {
+func (this *gservice) Upgrade(upgradeBinPath string) error {
 	var err error
-	err = this.update(upgradeBinPath)
-	if doFinish != nil {
-		if doFinish(err) {
-			err = this.Restart()
-			if err != nil {
-				glog.Errorf("Error restarting: %v\n", err)
-			}
+	defer func() {
+		time.Sleep(200 * time.Millisecond)
+		err = this.Restart()
+		if err != nil {
+			glog.Errorf("Error restarting: %v\n", err)
 		}
-	}
+	}()
+	err = this.update(upgradeBinPath)
 	return err
 }
 
