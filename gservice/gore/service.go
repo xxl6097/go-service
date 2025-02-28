@@ -15,7 +15,7 @@ type IService interface {
 
 type Install interface {
 	Restart() error
-	Upgrade(string) error
+	Upgrade(string, func(error) bool) error
 }
 
 type coreService struct {
