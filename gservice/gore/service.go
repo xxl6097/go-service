@@ -15,7 +15,7 @@ type IService interface {
 
 type Install interface {
 	Restart() error
-	Upgrade(upgradeBinPath string) error
+	Upgrade(string) error
 }
 
 type coreService struct {
