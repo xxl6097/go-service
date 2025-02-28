@@ -415,13 +415,13 @@ func (this *gservice) uninstall() error {
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
 			glog.Println("卸载失败，错误信息：", this.conf.Name, err)
-			return err
+			//return err
 		}
 	}
 	_, err := this.daemon.Status()
 	if err != nil {
 		glog.Printf("服务【%s】未安装!\n", this.conf.DisplayName)
-		return err
+		//return err
 	}
 	err = this.daemon.Uninstall() //Control("uninstall", "", nil)
 	if err != nil {
