@@ -168,7 +168,7 @@ func (this *gservice) Upgrade(upgradeBinPath string) error {
 	defer func() {
 		if err == nil {
 			go func() {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(time.Second)
 				err = this.Restart()
 				if err != nil {
 					glog.Errorf("Error restarting: %v\n", err)
