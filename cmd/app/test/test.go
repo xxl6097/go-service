@@ -20,6 +20,11 @@ type Test struct {
 	ins gore.Install
 }
 
+func (t Test) OnUpgrade(s string, s2 string) (bool, []string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (t Test) OnVersion() string {
 	pkg.Version()
 	return pkg.AppVersion

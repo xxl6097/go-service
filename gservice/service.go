@@ -252,41 +252,44 @@ func (this *gservice) upgrade() error {
 		return errors.New("参数错误，请重新配置参数")
 	}
 
-	if gore.FileExists(fileUrlOrLocalPath) {
-		newPath := fileUrlOrLocalPath
+	isValid, args := this.srv.OnUpgrade(this.conf.Executable, fileUrlOrLocalPath)
+	if !isValid {
+		if gore.FileExists(fileUrlOrLocalPath) {
+			newPath := fileUrlOrLocalPath
 
-		if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
-			err := os.Remove(this.conf.Executable)
+			if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
+				err := os.Remove(this.conf.Executable)
+				if err != nil {
+					glog.Error("删除失败", this.conf.Executable)
+					return err
+				}
+			}
+
+			err = gore.Copy(newPath, this.conf.Executable)
 			if err != nil {
-				glog.Error("删除失败", this.conf.Executable)
+				glog.Error("拷贝失败", err)
 				return err
 			}
-		}
 
-		err = gore.Copy(newPath, this.conf.Executable)
-		if err != nil {
-			glog.Error("拷贝失败", err)
-			return err
-		}
-
-	} else if gore.IsURL(fileUrlOrLocalPath) {
-		if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
-			err := os.Remove(this.conf.Executable)
+		} else if gore.IsURL(fileUrlOrLocalPath) {
+			if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
+				err := os.Remove(this.conf.Executable)
+				if err != nil {
+					glog.Error("删除失败", this.conf.Executable)
+					return err
+				}
+			}
+			glog.Debug("下载文件", fileUrlOrLocalPath)
+			err = gore.Download(fileUrlOrLocalPath, this.conf.Executable)
 			if err != nil {
-				glog.Error("删除失败", this.conf.Executable)
+				glog.Error("下载失败", err)
 				return err
 			}
+			glog.Debug("下载成功.", this.conf.Executable)
+		} else {
+			glog.Error("参数错误，请输入正确的URL", fileUrlOrLocalPath)
+			return errors.New("参数错误，请输入正确的URL")
 		}
-		glog.Debug("下载文件", fileUrlOrLocalPath)
-		err = gore.Download(fileUrlOrLocalPath, this.conf.Executable)
-		if err != nil {
-			glog.Error("下载失败", err)
-			return err
-		}
-		glog.Debug("下载成功.", this.conf.Executable)
-	} else {
-		glog.Error("参数错误，请输入正确的URL", fileUrlOrLocalPath)
-		return errors.New("参数错误，请输入正确的URL")
 	}
 
 	err = os.Chmod(this.conf.Executable, 0755)
@@ -296,7 +299,6 @@ func (this *gservice) upgrade() error {
 		glog.Error(this.conf.Executable, "赋予0755权限失败", err)
 	}
 
-	_, args := this.srv.OnInstall(this.conf.Executable)
 	err = this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Println("服务升级成功!")
