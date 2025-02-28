@@ -299,7 +299,7 @@ func (this *gservice) upgrade() error {
 		glog.Error(this.conf.Executable, "赋予0755权限失败", err)
 	}
 
-	_, args := this.srv.OnInstall(this.workDir)
+	_, args := this.srv.OnInstall(this.conf.Executable)
 	err = this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Println("服务升级成功!")
