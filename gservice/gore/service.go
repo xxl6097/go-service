@@ -7,10 +7,13 @@ import (
 )
 
 type IService interface {
+	//OnVersion() string
+	//OnConfig() *service.Config
+	//OnInstall(string) (bool, []string)
+	//OnUpgrade(string, string) (bool, []string)
+	//OnRun(Install) error
 	OnVersion() string
 	OnConfig() *service.Config
-	OnInstall(string) (bool, []string)
-	OnUpgrade(string, string) (bool, []string)
 	OnRun(Install) error
 }
 

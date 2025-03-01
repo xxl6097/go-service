@@ -229,7 +229,6 @@ func (this *gservice) Upgrade(destFilePath string) error {
 	return err
 }
 func (this *gservice) upgrade() error {
-	//fileUrlOrLocalPath := this.srv.OnUpgrade()
 	defer glog.Flush()
 	glog.Debugf("进入升级流程[%d] %v\n", os.Getpid(), os.Args)
 	if len(os.Args) <= 2 {
@@ -239,17 +238,6 @@ func (this *gservice) upgrade() error {
 	fileUrlOrLocalPath := os.Args[2]
 	glog.Debug("升级文件地址", fileUrlOrLocalPath)
 
-	//return nil
-
-	//if this.daemon.IsRunning() {
-	//	glog.Debug("停止主进程", os.Args)
-	//	glog.Flush()
-	//	err := this.daemon.Stop() //.Control("stop", "", nil)
-	//	if err != nil {           // service maybe not install
-	//		glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
-	//		//return err
-	//	}
-	//}
 	if gore.IsWindows() {
 		glog.Printf("停止服务【%s】\n", this.conf.DisplayName)
 		err := this.daemon.Stop() //.Control("stop", "", nil)
@@ -273,55 +261,56 @@ func (this *gservice) upgrade() error {
 		glog.Error("参数错误，请重新配置参数")
 		return errors.New("参数错误，请重新配置参数")
 	}
-	isValid, args := this.srv.OnUpgrade(this.conf.Executable, fileUrlOrLocalPath)
-	if !isValid {
-		if gore.FileExists(fileUrlOrLocalPath) {
-			newPath := fileUrlOrLocalPath
-			time.Sleep(100 * time.Millisecond)
-			if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
-				err := os.Remove(this.conf.Executable)
-				if err != nil {
-					glog.Errorf("旧版删除失败 %s\n", this.conf.Executable)
-					return err
-				} else {
-					glog.Debugf("旧版删除成功 %s\n", this.conf.Executable)
-				}
-			}
-
-			glog.Debugf("拷贝新版 %s==>%s\n", newPath, this.conf.Executable)
-			err = gore.Copy(newPath, this.conf.Executable)
-			if err != nil {
-				glog.Error("拷贝失败", err)
-				return err
-			} else {
-				glog.Debugf("新版拷贝成功 %s==>%s\n", newPath, this.conf.Executable)
-				err = os.Remove(newPath)
-				if err != nil {
-					glog.Error("删除安装文件失败", err)
-				}
-			}
-
-		} else if gore.IsURL(fileUrlOrLocalPath) {
-			if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
-				err := os.Remove(this.conf.Executable)
-				if err != nil {
-					glog.Error("删除失败", this.conf.Executable)
-					return err
-				}
-			}
-			glog.Debug("下载文件", fileUrlOrLocalPath)
-			err = gore.Download(fileUrlOrLocalPath, this.conf.Executable)
-			if err != nil {
-				glog.Error("下载失败", err)
-				return err
-			}
-			glog.Debug("下载成功.", this.conf.Executable)
-		} else {
-			msg := fmt.Sprintf("参数错误，请输入正确的URL %s", fileUrlOrLocalPath)
-			glog.Error(msg)
-			return errors.New(msg)
-		}
-	}
+	args := gore.Upgrade(this.srv, this.conf.Executable, fileUrlOrLocalPath)
+	//isValid, args := this.srv.OnUpgrade(this.conf.Executable, fileUrlOrLocalPath)
+	//if !isValid {
+	//	if gore.FileExists(fileUrlOrLocalPath) {
+	//		newPath := fileUrlOrLocalPath
+	//		time.Sleep(100 * time.Millisecond)
+	//		if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
+	//			err := os.Remove(this.conf.Executable)
+	//			if err != nil {
+	//				glog.Errorf("旧版删除失败 %s\n", this.conf.Executable)
+	//				return err
+	//			} else {
+	//				glog.Debugf("旧版删除成功 %s\n", this.conf.Executable)
+	//			}
+	//		}
+	//
+	//		glog.Debugf("拷贝新版 %s==>%s\n", newPath, this.conf.Executable)
+	//		err = gore.Copy(newPath, this.conf.Executable)
+	//		if err != nil {
+	//			glog.Error("拷贝失败", err)
+	//			return err
+	//		} else {
+	//			glog.Debugf("新版拷贝成功 %s==>%s\n", newPath, this.conf.Executable)
+	//			err = os.Remove(newPath)
+	//			if err != nil {
+	//				glog.Error("删除安装文件失败", err)
+	//			}
+	//		}
+	//
+	//	} else if gore.IsURL(fileUrlOrLocalPath) {
+	//		if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
+	//			err := os.Remove(this.conf.Executable)
+	//			if err != nil {
+	//				glog.Error("删除失败", this.conf.Executable)
+	//				return err
+	//			}
+	//		}
+	//		glog.Debug("下载文件", fileUrlOrLocalPath)
+	//		err = gore.Download(fileUrlOrLocalPath, this.conf.Executable)
+	//		if err != nil {
+	//			glog.Error("下载失败", err)
+	//			return err
+	//		}
+	//		glog.Debug("下载成功.", this.conf.Executable)
+	//	} else {
+	//		msg := fmt.Sprintf("参数错误，请输入正确的URL %s", fileUrlOrLocalPath)
+	//		glog.Error(msg)
+	//		return errors.New(msg)
+	//	}
+	//}
 
 	err = os.Chmod(this.conf.Executable, 0755)
 	if err == nil {
@@ -426,16 +415,17 @@ func (this *gservice) install() error {
 		return err
 	}
 
-	isCopy, args := this.srv.OnInstall(this.conf.Executable)
-	//
-	if isCopy {
-		err = gore.Copy(currentBinPath, this.conf.Executable)
-		//err = utils.GenerateBin(currentBinPath, this.binPath, cfg.B, cfg.Size, cfg.CfgBytes)
-		if err != nil {
-			glog.Printf("文件拷贝失败，错误信息：%s", err)
-			return err
-		}
-	}
+	args := gore.Installs(this.srv, currentBinPath, this.conf.Executable)
+	//isCopy, args := this.srv.OnInstall(this.conf.Executable)
+	//if isCopy {
+	//	err = gore.Copy(currentBinPath, this.conf.Executable)
+	//	//err = utils.GenerateBin(currentBinPath, this.binPath, cfg.B, cfg.Size, cfg.CfgBytes)
+	//	if err != nil {
+	//		glog.Printf("文件拷贝失败，错误信息：%s", err)
+	//		return err
+	//	}
+	//}
+
 	err = this.daemon.Install(args) //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Printf("服务【%s】安装成功!\n", this.conf.DisplayName)
