@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 	"syscall"
@@ -13,6 +14,21 @@ import (
 const (
 	DefaultInstallPath = "/usr/local"
 )
+
+func SetPlatformSpecificAttrs(cmd *exec.Cmd) {
+	if runtime.GOOS == "linux" {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Setsid: true, // 创建新会话，脱离终端
+			//Setpgid: true, // 创建新的进程组
+			//Pgid:    0,    // 子进程成为进程组领导者
+			// 或者使用 Setsid: true 创建新会话（类似 nohup）
+		}
+		// 重定向输入输出（避免挂起）
+		//cmd.Stdout = nil
+		//cmd.Stderr = nil
+		//cmd.Stdin = nil
+	}
+}
 
 func getOsName() (osName string) {
 	if runtime.GOOS == "android" {

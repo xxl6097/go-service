@@ -25,17 +25,6 @@ type gservice struct {
 }
 
 func Run(srv gore.IService) error {
-	bpath, err := os.Executable()
-	if err == nil {
-		workDir := filepath.Dir(bpath)
-		binName := filepath.Base(bpath)
-		glog.SetLogFile(workDir, "install.log")
-		glog.SetNoHeader(true)
-		oldFileBinName := fmt.Sprintf(".%s.old", binName)
-		if err = os.Remove(oldFileBinName); err != nil {
-			//fmt.Printf("remove old file bin err: %s\n", oldFileBinName)
-		}
-	}
 	bconfig := srv.OnConfig()
 	if bconfig == nil {
 		return fmt.Errorf("请实现OnConfig() *service.Config方法")
@@ -43,6 +32,8 @@ func Run(srv gore.IService) error {
 	if bconfig.Name == "" {
 		return fmt.Errorf("应用名不能为空")
 	}
+	glog.SetLogFile(filepath.Join(os.TempDir(), bconfig.Name), "install.log")
+	glog.SetNoHeader(true)
 	if bconfig.DisplayName == "" {
 		return fmt.Errorf("服务显示名不能为空")
 	}
@@ -90,7 +81,7 @@ func (this *gservice) run() error {
 			return this.install()
 		case "uninstall":
 			return this.uninstall()
-		case "upgrade":
+		case "upgrade", "update":
 			return this.upgrade()
 		case "start":
 			return this.startService()
@@ -132,6 +123,16 @@ func (this *gservice) Restart() error {
 	return this.daemon.GetService().Restart()
 }
 
+func (this *gservice) Uninstall() error {
+	if this.daemon == nil {
+		return errors.New("daemon is nil")
+	}
+	if this.daemon.GetService() == nil {
+		return errors.New("service is nil")
+	}
+	return this.daemon.GetService().Uninstall()
+}
+
 func (this *gservice) update(upgradeBinPath string) error {
 	if gore.IsURL(upgradeBinPath) {
 		resp, err := http.Get(upgradeBinPath)
@@ -163,7 +164,7 @@ func (this *gservice) update(upgradeBinPath string) error {
 	return fmt.Errorf("位置文件路径:%s", upgradeBinPath)
 }
 
-func (this *gservice) Upgrade(upgradeBinPath string) error {
+func (this *gservice) Upgrade1(upgradeBinPath string) error {
 	var err error
 	defer func() {
 		if err == nil {
@@ -180,39 +181,53 @@ func (this *gservice) Upgrade(upgradeBinPath string) error {
 	return err
 }
 
-//	func Upgrade(upgradeBinPath string, args ...string) error {
-//		//删除可执行文件
-//		if _, err := os.Stat(upgradeBinPath); !os.IsNotExist(err) {
-//			if err != nil {
-//				glog.Error("文件不存在", upgradeBinPath)
-//				return err
-//			}
-//		}
-//		err := os.Chmod(upgradeBinPath, 0755)
-//		if err != nil {
-//			return fmt.Errorf("赋权限错误: %v\n", err)
-//		}
-//		a := []string{"upgrade", upgradeBinPath}
-//		a = append(a, args...)
-//		glog.Println("当前进程ID:", os.Getpid())
-//
-//		// 启动子进程
-//		cmd := exec.Command(upgradeBinPath, a...)
-//		// 设置进程属性，创建新会话
-//		if !gore.IsWindows() {
-//			//cmd.SysProcAttr = &syscall.SysProcAttr{
-//			//	Setsid: true,
-//			//}
-//		}
-//		err = cmd.Start()
-//		if err != nil {
-//			return fmt.Errorf("Error starting update process: %v\n", err)
-//		}
-//		glog.Println("升级进程启动成功", upgradeBinPath)
-//		// 主进程退出
-//		defer os.Exit(0)
-//		return nil
-//	}
+func RunChildProcess(executable string, args ...string) error {
+	cmd := exec.Command(executable, args...)
+	gore.SetPlatformSpecificAttrs(cmd)
+	return cmd.Start()
+}
+
+func (this *gservice) Upgrade(destFilePath string) error {
+	var newFilePath string
+	if gore.IsURL(destFilePath) {
+		filePath, err := gore.DownLoad1(destFilePath)
+		if err != nil {
+			glog.Error("下载失败", err)
+			return err
+		}
+		glog.Debug("下载成功.", newFilePath)
+		newFilePath = filePath
+	} else if gore.FileExists(destFilePath) {
+		newFilePath = destFilePath
+	} else {
+		glog.Error("无法识别的文件", newFilePath)
+		return errors.New("无法识别的文件" + newFilePath)
+	}
+
+	err := os.Chmod(newFilePath, 0755)
+	if err != nil {
+		glog.Errorf("赋权限错误: %v %s %v\n", gore.FileExists(newFilePath), newFilePath, err)
+		return fmt.Errorf("赋权限错误: %v\n", err)
+	}
+	glog.Println("当前进程ID:", os.Getpid())
+	err = RunChildProcess(newFilePath, []string{"upgrade", newFilePath}...)
+	if err != nil {
+		glog.Errorf("RunChildProcess错误: %v\n", err)
+		return fmt.Errorf("Error starting update process: %v\n", err)
+	}
+	glog.Println("升级进程启动成功", newFilePath)
+	//defer func() {
+	//	if err == nil {
+	//		go func() {
+	//			time.Sleep(100 * time.Millisecond)
+	//			// 主进程退出
+	//			glog.Println("主进程退出")
+	//			defer os.Exit(0)
+	//		}()
+	//	}
+	//}()
+	return err
+}
 func (this *gservice) upgrade() error {
 	//fileUrlOrLocalPath := this.srv.OnUpgrade()
 	defer glog.Flush()
@@ -226,19 +241,26 @@ func (this *gservice) upgrade() error {
 
 	//return nil
 
-	if this.daemon.IsRunning() {
-		glog.Debug("停止主进程", os.Args)
-		glog.Flush()
+	//if this.daemon.IsRunning() {
+	//	glog.Debug("停止主进程", os.Args)
+	//	glog.Flush()
+	//	err := this.daemon.Stop() //.Control("stop", "", nil)
+	//	if err != nil {           // service maybe not install
+	//		glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
+	//		//return err
+	//	}
+	//}
+	if gore.IsWindows() {
+		glog.Printf("停止服务【%s】\n", this.conf.DisplayName)
 		err := this.daemon.Stop() //.Control("stop", "", nil)
 		if err != nil {           // service maybe not install
 			glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
-			//return err
 		}
 	}
+	glog.Debug("开始卸载")
 	err := this.daemon.Uninstall()
 	if err != nil {
 		glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
-		//return err
 	} else {
 		glog.Println("服务成功卸载！")
 	}
@@ -251,24 +273,32 @@ func (this *gservice) upgrade() error {
 		glog.Error("参数错误，请重新配置参数")
 		return errors.New("参数错误，请重新配置参数")
 	}
-
 	isValid, args := this.srv.OnUpgrade(this.conf.Executable, fileUrlOrLocalPath)
 	if !isValid {
 		if gore.FileExists(fileUrlOrLocalPath) {
 			newPath := fileUrlOrLocalPath
-
+			time.Sleep(100 * time.Millisecond)
 			if _, err := os.Stat(this.conf.Executable); !os.IsNotExist(err) {
 				err := os.Remove(this.conf.Executable)
 				if err != nil {
-					glog.Error("删除失败", this.conf.Executable)
+					glog.Errorf("旧版删除失败 %s\n", this.conf.Executable)
 					return err
+				} else {
+					glog.Debugf("旧版删除成功 %s\n", this.conf.Executable)
 				}
 			}
 
+			glog.Debugf("拷贝新版 %s==>%s\n", newPath, this.conf.Executable)
 			err = gore.Copy(newPath, this.conf.Executable)
 			if err != nil {
 				glog.Error("拷贝失败", err)
 				return err
+			} else {
+				glog.Debugf("新版拷贝成功 %s==>%s\n", newPath, this.conf.Executable)
+				err = os.Remove(newPath)
+				if err != nil {
+					glog.Error("删除安装文件失败", err)
+				}
 			}
 
 		} else if gore.IsURL(fileUrlOrLocalPath) {
@@ -287,8 +317,9 @@ func (this *gservice) upgrade() error {
 			}
 			glog.Debug("下载成功.", this.conf.Executable)
 		} else {
-			glog.Error("参数错误，请输入正确的URL", fileUrlOrLocalPath)
-			return errors.New("参数错误，请输入正确的URL")
+			msg := fmt.Sprintf("参数错误，请输入正确的URL %s", fileUrlOrLocalPath)
+			glog.Error(msg)
+			return errors.New(msg)
 		}
 	}
 
@@ -306,7 +337,11 @@ func (this *gservice) upgrade() error {
 		glog.Println("服务升级失败，错误信息:", err)
 	}
 	time.Sleep(time.Second * 1)
-	err = this.daemon.Start()
+	if gore.IsWindows() {
+		err = this.daemon.Start()
+	} else {
+		err = this.daemon.Restart()
+	}
 	if err != nil {
 		glog.Println("服务启动失败，错误信息:", err)
 	} else {
@@ -325,14 +360,15 @@ func (this *gservice) install() error {
 			isRemoved = true
 			err = this.uninstall()
 			if err != nil {
-				return err
+				//return err
+				glog.Error(err)
 			}
 			break
 		case "u", "U", "Update", "UPDATE":
 			isRemoved = false
 			err = this.stopService()
 			if err != nil {
-				return err
+				//return err
 			}
 			break
 		default:

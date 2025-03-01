@@ -5,12 +5,20 @@ import (
 	"golang.org/x/sys/windows/registry"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 const (
 	DefaultInstallPath = "C:\\Program Files"
 	//	defaultBinName     = "AAServiceApp.exe"
 )
+
+func SetPlatformSpecificAttrs(cmd *exec.Cmd) {
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP, // 新建进程组
+		HideWindow:    true,                             // 隐藏窗口（后台运行）
+	}
+}
 
 func getOsName() (osName string) {
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE|registry.WOW64_64KEY)

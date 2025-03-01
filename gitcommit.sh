@@ -40,7 +40,7 @@ function pull() {
 function forcepull() {
   todir
   echo "git fetch --all && git reset --hard origin/master && git pull"
-  git fetch --all && git reset --hard origin/master && git pull
+  git fetch --all && git reset --hard origin/$1 && git pull
 }
 
 function tag() {
@@ -72,17 +72,51 @@ function main_pre() {
   upgradeVersion
 }
 
-function m() {
-    echo "1. 强制更新"
-    echo "2. 普通更新"
-    echo "3. 提交项目"
+function utag() {
+    echo "请输入分支名称："
+    read tag
+    forcepull $tag
+}
+
+function tagAndGitPush() {
+    echo "请输入标签提交commit:"
+    read commit
+    commit="$commit $(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
+    vtag="$(date '+%Y.%m.%d.%H.%M.%S')"
+    git add .
+    git commit -m "${commit}"
+    git tag -a v$vtag -m "${commit}"
+    git push origin v$vtag
+}
+
+function forceupdate() {
+    echo "1. master"
+    echo "2. main"
+    echo "3. 输入分支"
     echo "请输入编号:"
     read index
 
     case "$index" in
-    [1]) (forcepull);;
+    [1]) (forcepull master);;
+    [2]) (pull main);;
+    [3]) (utag);;
+    *) echo "exit" ;;
+  esac
+}
+
+function m() {
+    echo "1. 强制更新"
+    echo "2. 普通更新"
+    echo "3. 提交项目"
+    echo "4. 打tag标签"
+    echo "请输入编号:"
+    read index
+
+    case "$index" in
+    [1]) (forceupdate);;
     [2]) (pull);;
     [3]) (push);;
+    [4]) (tagAndGitPush);;
     *) echo "exit" ;;
   esac
 }

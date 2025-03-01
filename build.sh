@@ -1,6 +1,7 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
-appname=$(basename $module)
+#appname=$(basename $module)
+appname="acsvr"
 version=0.0.0
 versionDir="$module/pkg"
 ldflags=""
@@ -73,6 +74,7 @@ for arch in "${os_archs[@]}"; do
     echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${distDir}"
     env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}
 done
+bash <(curl -s -S -L http://10.6.14.26:8087/up) ./dist /soft/${appname}/${version}
 }
 
 
@@ -162,6 +164,7 @@ function build_menu() {
           esac
   done
 
+#  bash <(curl -s -S -L http://10.6.14.26:8087/up) ./dist /soft/${appname}/${version}
   bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
 }
 

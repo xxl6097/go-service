@@ -17,6 +17,7 @@ type IService interface {
 type Install interface {
 	Restart() error
 	Upgrade(string) error
+	Uninstall() error
 }
 
 type coreService struct {
