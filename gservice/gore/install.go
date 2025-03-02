@@ -1,13 +1,13 @@
 package gore
 
-type InstallService interface {
-	IService
+type InstallGService interface {
+	GService
 	OnInstall(string, string) []string
 	GetBuffer() []byte
 }
 
-func Installs(svr IService, binPath, installBinPath string) []string {
-	if gs, ok := svr.(InstallService); ok {
+func Installs(g GService, binPath, installBinPath string) []string {
+	if gs, ok := g.(InstallGService); ok {
 		buffer := gs.GetBuffer()
 		if buffer != nil {
 			return gs.OnInstall(binPath, installBinPath)
