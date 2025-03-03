@@ -333,6 +333,7 @@ func (this *gservice) uninstall() error {
 	} else {
 		glog.Printf("服务【%s】成功卸载\n", this.conf.DisplayName)
 	}
+	time.Sleep(time.Second)
 	//os.Remove(this.binPath + "0")
 	//os.Remove(this.binPath)
 	// 尝试删除自身
