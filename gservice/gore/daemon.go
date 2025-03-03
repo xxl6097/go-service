@@ -64,21 +64,30 @@ func (d *Daemon) IsRunning() bool {
 func (d *Daemon) Uninstall() error {
 	return d.control(service.ControlAction[4])
 }
-func (d *Daemon) Install(args []string) error {
+
+//	func (d *Daemon) Install(args []string) error {
+//		if d.conf.Option == nil {
+//			d.conf.Option = make(map[string]interface{})
+//		}
+//		d.conf.Option["Interactive"] = true
+//		if args != nil && len(args) > 0 {
+//			d.conf.Arguments = append(d.conf.Arguments, args...)
+//			glog.Flush()
+//			s, e := service.New(d.shut, d.conf)
+//			if e != nil {
+//				glog.Error("service new failed ", e)
+//				return nil
+//			}
+//			d.svr = s
+//		}
+//		return d.control(service.ControlAction[3])
+//	}
+func (d *Daemon) Install() error {
+	defer glog.Flush()
 	if d.conf.Option == nil {
 		d.conf.Option = make(map[string]interface{})
 	}
 	d.conf.Option["Interactive"] = true
-	if args != nil && len(args) > 0 {
-		d.conf.Arguments = append(d.conf.Arguments, args...)
-		glog.Flush()
-		s, e := service.New(d.shut, d.conf)
-		if e != nil {
-			glog.Error("service new failed ", e)
-			return nil
-		}
-		d.svr = s
-	}
 	return d.control(service.ControlAction[3])
 }
 func (d *Daemon) Restart() error {
@@ -93,6 +102,7 @@ func (d *Daemon) Start() error {
 func (d *Daemon) Run() error {
 	return d.svr.Run()
 }
-func (d *Daemon) GetService() service.Service {
-	return d.svr
-}
+
+//func (d *Daemon) GetService() service.Service {
+//	return d.svr
+//}

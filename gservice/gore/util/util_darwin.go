@@ -1,4 +1,4 @@
-package gore
+package util
 
 import (
 	"bytes"

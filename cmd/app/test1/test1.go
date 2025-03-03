@@ -1,32 +1,26 @@
-package test
+package test1
 
 import (
 	"fmt"
-	"github.com/inconshreveable/go-update"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/ukey"
 	"github.com/xxl6097/go-service/pkg"
 	"log"
 	"net/http"
 	"time"
 )
 
-type Test struct {
-	ins gore.Install
+type Test1 struct {
+	service gore.IGService
 }
 
-func (t Test) OnUpgrade(s string, s2 string) (bool, []string) {
-	//TODO implement me
-	return false, nil
+func (t Test1) GetAny() any {
+	return "this is test1"
 }
 
-func (t Test) OnVersion() string {
-	pkg.Version()
-	return pkg.AppVersion
-}
-
-func (t Test) OnConfig() *service.Config {
+func (t Test1) OnInit() *service.Config {
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: fmt.Sprintf("A AAATest1 Service %s", pkg.AppVersion),
@@ -34,13 +28,14 @@ func (t Test) OnConfig() *service.Config {
 	}
 }
 
-func (t Test) OnInstall(s string) (bool, []string) {
-	return true, []string{}
+func (t Test1) OnVersion() string {
+	pkg.Version()
+	fmt.Println(ukey.GetBuffer())
+	return pkg.AppVersion
 }
 
-func (t Test) OnRun(i gore.Install) error {
-	glog.Println("--->OnRun", i)
-	t.ins = i
+func (t Test1) OnRun(service gore.IGService) error {
+	t.service = service
 	glog.SetLogFile("./logs", "app.log")
 	go Serve(t)
 	for {
@@ -49,23 +44,8 @@ func (t Test) OnRun(i gore.Install) error {
 	}
 }
 
-func (t Test) doUpdate(url string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	err = update.Apply(resp.Body, update.Options{})
-	if err != nil {
-		// error handlingg
-		glog.Error(err)
-	}
-
-	return err
-}
-
 // 处理 GET 请求
-func (t Test) updateHandler(w http.ResponseWriter, r *http.Request) {
+func (t Test1) updateHandler(w http.ResponseWriter, r *http.Request) {
 	// 确保只处理 GET 请求
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -81,45 +61,46 @@ func (t Test) updateHandler(w http.ResponseWriter, r *http.Request) {
 	// 返回响应
 	response := fmt.Sprintf("Hello, %s", binurl)
 	glog.Println("update", response)
-	err := t.ins.Upgrade(binurl)
+	err := t.service.Upgrade(binurl)
 	glog.Println("update", err)
 	fmt.Fprintln(w, pkg.Version())
 }
 
 // 处理 GET 请求
-func (t Test) versionHandler(w http.ResponseWriter, r *http.Request) {
+func (t Test1) versionHandler(w http.ResponseWriter, r *http.Request) {
 	// 确保只处理 GET 请求
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	pkg.Version()
+	fmt.Println(ukey.GetBuffer())
 	fmt.Fprintln(w, pkg.Version())
 }
 
 // 处理 GET 请求
-func (t Test) restartHandler(w http.ResponseWriter, r *http.Request) {
+func (t Test1) restartHandler(w http.ResponseWriter, r *http.Request) {
 	// 确保只处理 GET 请求
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	fmt.Fprintln(w, pkg.Version())
-	t.ins.Restart()
+	t.service.Restart()
 }
 
 // 处理 GET 请求
-func (t Test) uninstallHandler(w http.ResponseWriter, r *http.Request) {
+func (t Test1) uninstallHandler(w http.ResponseWriter, r *http.Request) {
 	// 确保只处理 GET 请求
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	fmt.Fprintln(w, pkg.Version())
-	t.ins.Uninstall()
+	t.service.Uninstall()
 }
 
-func Serve(t Test) {
+func Serve(t Test1) {
 	// 注册路由
 	http.HandleFunc("/update", t.updateHandler)
 	http.HandleFunc("/version", t.versionHandler)

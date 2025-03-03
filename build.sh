@@ -79,7 +79,7 @@ bash <(curl -s -S -L http://10.6.14.26:8087/up) ./dist /soft/${appname}/${versio
 
 
 function upgradeVersion() {
-  version=$(cat version.txt)
+  version=$(cat .version)
   if [ "$version" = "" ]; then
     version="0.0.0"
   else
@@ -98,7 +98,7 @@ function upgradeVersion() {
       v3=$(expr $v3 + 1)
     fi
     version="$v1.$v2.$v3"
-    echo $version > version.txt
+    echo $version > .version
   fi
 }
 
