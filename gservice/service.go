@@ -334,8 +334,8 @@ func (this *gservice) uninstall() error {
 	//os.Remove(this.binPath + "0")
 	//os.Remove(this.binPath)
 	// 尝试删除自身
-	utils.Delete(this.tempDir, "临时文件夹")
-	utils.DeleteUpgradeDir()
+	utils.DeleteAll(this.tempDir, "临时文件夹")
+	utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
 	glog.Println("尝试删除自身:", this.workDir)
 	if err := os.RemoveAll(this.workDir); err != nil {
 		fmt.Printf("Error removing executable: %v\n", err)

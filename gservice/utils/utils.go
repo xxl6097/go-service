@@ -328,6 +328,20 @@ func Delete(filePath string, args ...string) error {
 	return nil
 }
 
+func DeleteAll(filePath string, args ...string) error {
+	var title string
+	if args != nil && len(args) > 0 {
+		title = args[0]
+	}
+	if err := os.RemoveAll(filePath); err != nil {
+		msg := fmt.Errorf("%s 删除失败: %s,%v\n", title, filePath, err)
+		glog.Error(msg)
+		return msg
+	}
+	glog.Infof("%s 删除成功: %s\n", title, filePath)
+	return nil
+}
+
 func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) error {
 	// 打开原文件
 	srcFile, err := os.Open(scrFilePath)
@@ -439,17 +453,6 @@ func RestartForWindows() error {
 		return fmt.Errorf("Error starting update process: %v\n", err)
 	}
 	return nil
-}
-
-func DeleteUpgradeDir() {
-	upDir := GetUpgradeDir()
-	if _, err := os.Stat(upDir); err == nil {
-		// 存在，删除
-		err = os.RemoveAll(upDir)
-		if err != nil {
-			glog.Error("upgrade dir remove error:", err)
-		}
-	}
 }
 
 func EnsureDir(path string) error {
