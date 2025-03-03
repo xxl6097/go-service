@@ -149,6 +149,7 @@ func (this *gservice) upgrade() error {
 	}
 	fileUrlOrLocalPath := os.Args[2]
 	glog.Debug("升级文件地址", fileUrlOrLocalPath)
+	defer utils.Delete(fileUrlOrLocalPath, "升级文件")
 
 	if utils.IsWindows() {
 		glog.Printf("停止服务【%s】\n", this.conf.DisplayName)
