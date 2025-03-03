@@ -15,10 +15,10 @@ import (
 )
 
 type gservice struct {
-	daemon  *gore.Daemon
-	srv     gore.GService
-	conf    *service.Config
-	workDir string
+	daemon           *gore.Daemon
+	srv              gore.GService
+	conf             *service.Config
+	workDir, tempDir string
 }
 
 func Run(srv gore.GService) error {
@@ -42,6 +42,7 @@ func Run(srv gore.GService) error {
 		srv:     srv,
 		conf:    bconfig,
 		workDir: filepath.Join(util.DefaultInstallPath, bconfig.Name),
+		tempDir: filepath.Join(os.TempDir(), bconfig.Name),
 	}
 	if utils.IsWindows() {
 		bconfig.Name = bconfig.Name + ".exe"
@@ -334,8 +335,7 @@ func (this *gservice) uninstall() error {
 	//os.Remove(this.binPath + "0")
 	//os.Remove(this.binPath)
 	// 尝试删除自身
-	tempDir := filepath.Join(os.TempDir(), this.conf.Name)
-	utils.Delete(tempDir, "临时文件夹")
+	utils.Delete(this.tempDir, "临时文件夹")
 	utils.DeleteUpgradeDir()
 	glog.Println("尝试删除自身:", this.workDir)
 	if err := os.RemoveAll(this.workDir); err != nil {
