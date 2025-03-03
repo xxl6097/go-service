@@ -42,6 +42,7 @@ func (c coreService) Stop(s service.Service) error {
 	defer glog.Flush()
 	glog.Println("停止服务")
 
+	Stop(c.svr, s)
 	if service.Interactive() {
 		glog.Println("停止deamon")
 		os.Exit(0)
@@ -52,6 +53,7 @@ func (c coreService) Stop(s service.Service) error {
 func (c coreService) Shutdown(s service.Service) error {
 	defer glog.Flush()
 	status, err := s.Status()
+	ShutDown(c.svr, s)
 	glog.Println("Shutdown")
 	glog.Println("Status", status, err)
 	glog.Println("Platform", s.Platform())
