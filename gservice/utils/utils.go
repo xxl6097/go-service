@@ -473,12 +473,7 @@ func EnsureDir(path string) error {
 }
 
 func GetUpgradeDir() string {
-	cache, err := os.UserCacheDir()
 	dir := filepath.Join(os.TempDir(), "upgrade")
-	if err == nil {
-		dir = filepath.Join(cache, "Temp", "upgrade")
-	}
-
 	EnsureDir(dir)
 	return dir
 }
