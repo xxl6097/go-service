@@ -180,6 +180,7 @@ func (this *gservice) upgrade() error {
 		glog.Error(err)
 	}
 
+	glog.Debug("准备升级...")
 	err = gore.Update(this.srv, this.conf.Executable, fileUrlOrLocalPath)
 	if err != nil {
 		glog.Error(err)
