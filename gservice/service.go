@@ -145,7 +145,7 @@ func (this *gservice) update(upgradeBinPath string) error {
 
 func (this *gservice) upgrade() error {
 	defer glog.Flush()
-	glog.Debugf("进入升级流程[%d] %v\n", os.Getpid(), os.Args)
+	glog.Debugf("\n>>>>>>>进入升级流程[%d] %v\n", os.Getpid(), os.Args)
 	if len(os.Args) <= 2 {
 		glog.Error("参数错误，请重新配置参数")
 		return errors.New("参数错误，请重新配置参数")

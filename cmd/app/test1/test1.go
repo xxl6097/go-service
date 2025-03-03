@@ -17,7 +17,7 @@ type Test1 struct {
 }
 
 func (t Test1) GetAny() any {
-	return "this is test1"
+	return "这是一段测试数据..."
 }
 
 func (t Test1) OnInit() *service.Config {

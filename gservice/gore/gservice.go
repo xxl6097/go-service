@@ -23,6 +23,7 @@ func NewGoreService(s service.Service) IGService {
 func (this *goreservice) runChildProcess(executable string, args ...string) error {
 	cmd := exec.Command(executable, args...)
 	util.SetPlatformSpecificAttrs(cmd)
+	glog.Printf("运行子进程 %s %v\n", executable, args)
 	return cmd.Start()
 }
 func (this *goreservice) Upgrade(destFilePath string) error {
@@ -33,8 +34,8 @@ func (this *goreservice) Upgrade(destFilePath string) error {
 			glog.Error("下载失败", err)
 			return err
 		}
-		glog.Debug("下载成功.", newFilePath)
 		newFilePath = filePath
+		glog.Debug("下载成功.", newFilePath)
 	} else if utils.FileExists(destFilePath) {
 		newFilePath = destFilePath
 	} else {

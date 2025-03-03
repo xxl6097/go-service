@@ -22,17 +22,21 @@ type DefaultUpgrade interface {
 
 func Update(g GService, installBinPath, fileUrlOrLocalPath string) error {
 	if gs, ok := g.(Upgrade); ok {
+		glog.Printf("自定义升级\n")
 		return gs.OnUpgrade(installBinPath, fileUrlOrLocalPath)
 	} else if gss, okk := g.(DefaultUpgrade); okk {
 		cfg := gss.GetAny()
+		glog.Printf("配置参数：%v\n", cfg)
 		if cfg != nil {
-			return signUpdate(installBinPath, installBinPath)
+			return signUpdate(installBinPath, fileUrlOrLocalPath)
 		}
 	}
+	glog.Printf("默认升级\n")
 	return manualUpgrade(installBinPath, fileUrlOrLocalPath)
 }
 
 func signUpdate(binPath, newFileUrlOrLocalPath string) error {
+	glog.Debugf("\n旧文件：%s\n新文件：%s\n", binPath, newFileUrlOrLocalPath)
 	//1、读取老文件特征数据；
 	//2、下载新文件
 	//3、替换新文件特征数据
@@ -45,7 +49,8 @@ func signUpdate(binPath, newFileUrlOrLocalPath string) error {
 	}
 	glog.Debug("获取配置数据成功", len(cfgBufferBytes))
 
-	err := utils.Delete(binPath, "旧运行文件")
+	//从旧文件读取到配置后，就没用了，删除
+	err := utils.Delete(binPath, "旧文件")
 	if err != nil {
 		return err
 	}
@@ -61,8 +66,11 @@ func signUpdate(binPath, newFileUrlOrLocalPath string) error {
 		}
 		glog.Debug("下载成功.", temp)
 		newFilePath = temp
+	} else {
+		return fmt.Errorf("未知类型升级文件～ %s", newFilePath)
 	}
 	if newFilePath != "" {
+		//因为是新文件，所以配置内存块还未初始化，依然是原始状态(0x18)
 		oldBuffer := ukey.GetBuffer()
 		err := utils.GenerateBin(newFilePath, binPath, oldBuffer, cfgBufferBytes)
 		if err != nil {
@@ -71,7 +79,7 @@ func signUpdate(binPath, newFileUrlOrLocalPath string) error {
 		}
 		return nil
 	} else {
-		return fmt.Errorf("新文件错误～❌")
+		return fmt.Errorf("新文件错误～ %s", newFilePath)
 	}
 }
 
