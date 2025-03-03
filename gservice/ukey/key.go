@@ -66,7 +66,7 @@ func GetCfgBufferFromFile(filePath string) []byte {
 		tempBuffer := append(prevBuffer, thisBuffer...)
 		index := bytes.Index(tempBuffer, rawKey)
 		if index > -1 {
-			glog.Printf("找到位置[%d]了，签名...\n", index)
+			glog.Printf("找到位置[%d]了，签名 %s \n", index, filePath)
 			tempBuffer1 := tempBuffer[index:]
 			if len(tempBuffer1) >= cfgBufferSize {
 				return tempBuffer[index : index+cfgBufferSize]
