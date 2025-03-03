@@ -223,11 +223,12 @@ func (this *gservice) install() error {
 		switch no {
 		case "y", "Y", "Yes", "YES":
 			isRemoved = true
-			err = this.uninstall()
-			if err != nil {
-				//return err
-				glog.Error(err)
-			}
+			this.daemon.Uninstall()
+			//err = this.uninstall()
+			//if err != nil {
+			//	//return err
+			//	glog.Error(err)
+			//}
 			break
 		case "u", "U", "Update", "UPDATE":
 			isRemoved = false
@@ -243,12 +244,13 @@ func (this *gservice) install() error {
 			return err
 		}
 	} else {
-		err := this.daemon.Uninstall()
-		if err != nil {
-			glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
-		} else {
-			glog.Println("服务成功卸载！")
-		}
+		this.daemon.Uninstall()
+		//err := this.daemon.Uninstall()
+		//if err != nil {
+		//	glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
+		//} else {
+		//	glog.Println("服务成功卸载！")
+		//}
 	}
 	util.SetFirewall(this.conf.Name, this.conf.Executable)
 	err = util.SetRLimit()

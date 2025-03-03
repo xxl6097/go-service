@@ -33,7 +33,7 @@ func (c coreService) Start(s service.Service) error {
 	glog.Printf("启动服务【%s】\r\n", s.String())
 	glog.Println("StatusUnknown=0；StatusRunning=1；StatusStopped=2；status", status, err)
 	glog.Println("Platform", s.Platform())
-	utils.DeleteUpgradeDir()
+	utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
 	go c.svr.OnRun(NewGoreService(s))
 	return err
 }
