@@ -74,6 +74,9 @@ func signUpdate(binPath, newFileUrlOrLocalPath string) error {
 			glog.Error("签名错误：", err)
 			return err
 		}
+		if utils.FileExists(newFilePath) {
+			utils.Delete(newFilePath, "旧文件")
+		}
 		return nil
 	} else {
 		return fmt.Errorf("新文件错误～ %s", newFilePath)

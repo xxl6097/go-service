@@ -121,7 +121,7 @@ func DownLoad(url string, args ...string) (string, error) {
 			dstName = fmt.Sprintf("%d", fileName)
 		}
 		if dstName != "" {
-			dstFile = filepath.Join(os.TempDir(), dstName)
+			dstFile = filepath.Join(GetUpgradeDir(), dstName)
 		}
 	}
 
@@ -439,4 +439,19 @@ func RestartForWindows() error {
 		return fmt.Errorf("Error starting update process: %v\n", err)
 	}
 	return nil
+}
+
+func DeleteUpgradeDir() {
+	upDir := GetUpgradeDir()
+	if _, err := os.Stat(upDir); err == nil {
+		// 存在，删除
+		err = os.RemoveAll(upDir)
+		if err != nil {
+			glog.Error("upgrade dir remove error:", err)
+		}
+	}
+}
+
+func GetUpgradeDir() string {
+	return filepath.Join(os.TempDir(), "upgrade")
 }
