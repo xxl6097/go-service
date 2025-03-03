@@ -25,7 +25,7 @@ func Update(g GService, installBinPath, fileUrlOrLocalPath string) error {
 		glog.Printf("自定义升级\n")
 		return gs.OnUpgrade(installBinPath, fileUrlOrLocalPath)
 	} else if _, okk := g.(DefaultUpgrade); okk {
-		glog.Printf("签名升级~\n")
+		glog.Printf("签名升级~ %v\n", os.Args)
 		return signUpdate(installBinPath, fileUrlOrLocalPath)
 	}
 	glog.Printf("默认升级\n")

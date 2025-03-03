@@ -26,7 +26,7 @@ func (this *goreservice) runChildProcess(executable string, args ...string) erro
 	glog.Printf("运行子进程 %s %v\n", executable, args)
 	return cmd.Start()
 }
-func (this *goreservice) Upgrade(destFilePath string) error {
+func (this *goreservice) Upgrade(destFilePath string, args ...string) error {
 	var newFilePath string
 	if utils.IsURL(destFilePath) {
 		filePath, err := utils.DownLoad(destFilePath)
@@ -49,7 +49,11 @@ func (this *goreservice) Upgrade(destFilePath string) error {
 		return fmt.Errorf("赋权限错误: %v\n", err)
 	}
 	glog.Println("当前进程ID:", os.Getpid())
-	err = this.runChildProcess(newFilePath, []string{"upgrade", newFilePath}...)
+	arg := make([]string, 0)
+	arg = append(arg, "upgrade")
+	arg = append(arg, newFilePath)
+	arg = append(arg, args...)
+	err = this.runChildProcess(newFilePath, arg...)
 	if err != nil {
 		glog.Errorf("RunChildProcess错误: %v\n", err)
 		return fmt.Errorf("Error starting update process: %v\n", err)

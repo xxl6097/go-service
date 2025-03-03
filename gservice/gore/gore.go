@@ -9,7 +9,7 @@ import (
 
 type IGService interface {
 	Restart() error
-	Upgrade(string) error
+	Upgrade(string, ...string) error
 	Uninstall() error
 }
 type GService interface {
