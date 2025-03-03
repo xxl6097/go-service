@@ -61,7 +61,6 @@ func Run(srv gore.GService) error {
 	//} else {
 	//	return srv.OnRun(this)
 	//}
-	utils.DeleteUpgradeDir()
 	return this.run()
 }
 
