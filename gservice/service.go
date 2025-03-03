@@ -1,16 +1,13 @@
 package gservice
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"github.com/inconshreveable/go-update"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,36 +92,36 @@ func (this *gservice) run() error {
 	return this.daemon.Run()
 }
 
-func (this *gservice) update(upgradeBinPath string) error {
-	if utils.IsURL(upgradeBinPath) {
-		resp, err := http.Get(upgradeBinPath)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		err = update.Apply(resp.Body, update.Options{})
-		if err != nil {
-			glog.Error(err)
-			return err
-		}
-		return nil
-	} else if utils.FileExists(upgradeBinPath) {
-		// 打开文件
-		file, err := os.Open(upgradeBinPath)
-		if err != nil {
-			return fmt.Errorf("Error opening file: %v", err)
-		}
-		defer file.Close()
-		// 使用 bufio.NewReader 创建带缓冲的读取器
-		err = update.Apply(bufio.NewReader(file), update.Options{})
-		if err != nil {
-			glog.Error(err)
-			return err
-		}
-		return nil
-	}
-	return fmt.Errorf("位置文件路径:%s", upgradeBinPath)
-}
+//func (this *gservice) update(upgradeBinPath string) error {
+//	if utils.IsURL(upgradeBinPath) {
+//		resp, err := http.Get(upgradeBinPath)
+//		if err != nil {
+//			return err
+//		}
+//		defer resp.Body.Close()
+//		err = update.Apply(resp.Body, update.Options{})
+//		if err != nil {
+//			glog.Error(err)
+//			return err
+//		}
+//		return nil
+//	} else if utils.FileExists(upgradeBinPath) {
+//		// 打开文件
+//		file, err := os.Open(upgradeBinPath)
+//		if err != nil {
+//			return fmt.Errorf("Error opening file: %v", err)
+//		}
+//		defer file.Close()
+//		// 使用 bufio.NewReader 创建带缓冲的读取器
+//		err = update.Apply(bufio.NewReader(file), update.Options{})
+//		if err != nil {
+//			glog.Error(err)
+//			return err
+//		}
+//		return nil
+//	}
+//	return fmt.Errorf("位置文件路径:%s", upgradeBinPath)
+//}
 
 //func (this *gservice) Upgrade1(upgradeBinPath string) error {
 //	var err error
