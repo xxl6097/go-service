@@ -315,15 +315,8 @@ func (this *gservice) install() error {
 
 }
 func (this *gservice) uninstall() error {
-	if this.daemon.IsRunning() {
-		err := this.daemon.Stop() //.Control("stop", "", nil)
-		if err != nil {           // service maybe not install
-			glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
-			//return err
-		}
-	}
-	_, err := this.daemon.Status()
-	if err != nil {
+	err := this.daemon.Stop() //.Control("stop", "", nil)
+	if err != nil {           // service maybe not install
 		glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
 		//return err
 	}
@@ -333,9 +326,7 @@ func (this *gservice) uninstall() error {
 	} else {
 		glog.Printf("服务【%s】成功卸载\n", this.conf.DisplayName)
 	}
-	time.Sleep(time.Second)
-	//os.Remove(this.binPath + "0")
-	//os.Remove(this.binPath)
+	time.Sleep(time.Second * 2)
 	// 尝试删除自身
 	utils.DeleteAll(this.tempDir, "临时文件夹")
 	utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
