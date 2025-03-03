@@ -474,6 +474,10 @@ func EnsureDir(path string) error {
 
 func GetUpgradeDir() string {
 	dir := filepath.Join(os.TempDir(), "upgrade")
+	temp, err := os.MkdirTemp("", "acxxx")
+	if err == nil {
+		dir = temp
+	}
 	EnsureDir(dir)
 	return dir
 }
