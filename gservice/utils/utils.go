@@ -452,6 +452,25 @@ func DeleteUpgradeDir() {
 	}
 }
 
+func EnsureDir(path string) error {
+	// 检查目录是否存在
+	if _, err := os.Stat(path); err == nil {
+		// 存在，删除
+		err = os.RemoveAll(path)
+		if err != nil {
+			return err
+		}
+		return os.MkdirAll(path, 0755)
+	} else if !os.IsNotExist(err) {
+		// 其他错误
+		return err
+	}
+	// 不存在，创建
+	return os.MkdirAll(path, 0755)
+}
+
 func GetUpgradeDir() string {
-	return filepath.Join(os.TempDir(), "upgrade")
+	dir := filepath.Join(os.TempDir(), "upgrade")
+	EnsureDir(dir)
+	return dir
 }
