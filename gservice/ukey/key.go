@@ -70,6 +70,8 @@ func GetCfgBufferFromFile(filePath string) []byte {
 			tempBuffer1 := tempBuffer[index:]
 			if len(tempBuffer1) >= cfgBufferSize {
 				return tempBuffer[index : index+cfgBufferSize]
+			} else {
+				glog.Println("长度缺失，继续...")
 			}
 		}
 
