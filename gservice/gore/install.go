@@ -5,6 +5,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	"github.com/xxl6097/go-service/gservice/utils"
+	"path/filepath"
 )
 
 type Installer interface {
@@ -21,7 +22,7 @@ func Install(g GService, binPath, installBinPath string) error {
 	if gs, ok := g.(Installer); ok {
 		return gs.OnInstall(binPath, installBinPath)
 	} else if gss, okk := g.(DefaultInstaller); okk {
-		cfg := gss.GetAny()
+		cfg := gss.GetAny(filepath.Dir(installBinPath))
 		if cfg != nil {
 			return signInstall(cfg, binPath, installBinPath)
 		}

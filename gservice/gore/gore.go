@@ -20,7 +20,7 @@ type GService interface {
 
 type BaseService interface {
 	GService
-	GetAny() any
+	GetAny(string) any
 }
 
 type coreService struct {
