@@ -11,12 +11,6 @@ import (
 	"os/exec"
 )
 
-type FF interface {
-	Restart() error
-}
-
-var DD FF
-
 type goreservice struct {
 	s service.Service
 }
@@ -68,15 +62,28 @@ func (this *goreservice) Upgrade(destFilePath string, args ...string) error {
 	return err
 }
 
+func (this *goreservice) RunCmd(args ...string) error {
+	binpath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	err = this.runChildProcess(binpath, args...)
+	if err != nil {
+		glog.Errorf("RunChildProcess错误: %v\n", err)
+		return fmt.Errorf("RunChildProcess错误: %v\n", err)
+	}
+	glog.Println("子进程启动成功", binpath)
+	return err
+}
+
 func (this *goreservice) Restart() error {
 	if utils.IsWindows() {
 		return utils.RestartForWindows()
 	}
-	return DD.Restart()
-	//if this.s == nil {
-	//	return errors.New("daemon is nil")
-	//}
-	//return this.s.Restart()
+	if this.s == nil {
+		return errors.New("daemon is nil")
+	}
+	return this.s.Restart()
 }
 
 func (this *goreservice) Uninstall() error {

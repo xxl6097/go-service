@@ -9,6 +9,7 @@ import (
 
 type IGService interface {
 	Restart() error
+	RunCmd(...string) error
 	Upgrade(string, ...string) error
 	Uninstall() error
 }

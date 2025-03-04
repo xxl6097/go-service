@@ -60,7 +60,6 @@ func Run(srv gore.GService) error {
 		return err
 	}
 	this.daemon = d
-	gore.DD = d
 	//if this.daemon.IsRunning() {
 	//	return this.run()
 	//} else {

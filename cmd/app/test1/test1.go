@@ -86,7 +86,8 @@ func (t Test1) restartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintln(w, pkg.Version())
-	t.service.Restart()
+	//t.service.Restart()
+	t.service.RunCmd("restart")
 }
 
 // 处理 GET 请求
