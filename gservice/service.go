@@ -23,6 +23,8 @@ type gservice struct {
 
 func Run(srv gore.GService) error {
 	bconfig := srv.OnInit()
+	ProgramData := filepath.Join(os.Getenv("ProgramData"), "MyApp", "logs")
+	glog.Debug(ProgramData)
 	if bconfig == nil {
 		return fmt.Errorf("请实现OnConfig() *service.Config方法")
 	}
