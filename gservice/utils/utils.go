@@ -172,6 +172,17 @@ func IsWindows() bool {
 	}
 	return false
 }
+func IsOpenWRT() bool {
+	_, err := os.Stat("/etc/openwrt_release")
+	if err == nil {
+		return true
+	}
+	data, err := os.ReadFile("/etc/os-release")
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(data), "OpenWRT")
+}
 
 // FileExists 用于判断文件是否存在
 func FileExists(filePath string) bool {
