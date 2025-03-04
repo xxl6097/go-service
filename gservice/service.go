@@ -23,16 +23,17 @@ type gservice struct {
 
 func Run(srv gore.GService) error {
 	bconfig := srv.OnInit()
-	ProgramData := filepath.Join(os.Getenv("ProgramData"), "MyApp", "logs")
-	glog.Debug(ProgramData)
 	if bconfig == nil {
 		return fmt.Errorf("请实现OnConfig() *service.Config方法")
 	}
 	if bconfig.Name == "" {
 		return fmt.Errorf("应用名不能为空")
 	}
-	//glog.SetLogFile(filepath.Join(os.TempDir(), bconfig.Name), "install.log")
-	//glog.SetNoHeader(true)
+	if len(os.Args) > 1 {
+		glog.LogDefaultLogSetting(bconfig.Name)
+	} else {
+		glog.LogDefaultLogSetting(bconfig.Name, "install.log")
+	}
 	if bconfig.DisplayName == "" {
 		return fmt.Errorf("服务显示名不能为空")
 	}
