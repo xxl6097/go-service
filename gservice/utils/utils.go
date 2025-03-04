@@ -473,7 +473,5 @@ func EnsureDir(path string) error {
 }
 
 func GetUpgradeDir() string {
-	dir := filepath.Join(os.TempDir(), "upgrade")
-	EnsureDir(dir)
-	return dir
+	return glog.GetCrossPlatformDataDir("gore_upgrade")
 }
