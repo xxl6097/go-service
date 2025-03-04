@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice"
 	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"os/exec"
 )
+
+type FF interface {
+	Restart() error
+}
+
+var DD FF
 
 type goreservice struct {
 	s service.Service
@@ -67,7 +72,7 @@ func (this *goreservice) Restart() error {
 	if utils.IsWindows() {
 		return utils.RestartForWindows()
 	}
-	return gservice.DD.Restart()
+	return DD.Restart()
 	//if this.s == nil {
 	//	return errors.New("daemon is nil")
 	//}

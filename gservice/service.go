@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-var DD *gore.Daemon
-
 type gservice struct {
 	daemon           *gore.Daemon
 	srv              gore.GService
@@ -62,7 +60,7 @@ func Run(srv gore.GService) error {
 		return err
 	}
 	this.daemon = d
-	DD = d
+	gore.DD = d
 	//if this.daemon.IsRunning() {
 	//	return this.run()
 	//} else {
