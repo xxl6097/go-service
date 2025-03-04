@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-service/gservice"
 	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
@@ -66,10 +67,11 @@ func (this *goreservice) Restart() error {
 	if utils.IsWindows() {
 		return utils.RestartForWindows()
 	}
-	if this.s == nil {
-		return errors.New("daemon is nil")
-	}
-	return this.s.Restart()
+	return gservice.DD.Restart()
+	//if this.s == nil {
+	//	return errors.New("daemon is nil")
+	//}
+	//return this.s.Restart()
 }
 
 func (this *goreservice) Uninstall() error {

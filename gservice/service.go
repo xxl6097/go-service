@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var DD *gore.Daemon
+
 type gservice struct {
 	daemon           *gore.Daemon
 	srv              gore.GService
@@ -54,11 +56,13 @@ func Run(srv gore.GService) error {
 	bconfig.Executable = filepath.Join(this.workDir, bconfig.Name)
 	binDir := filepath.Dir(os.Args[0])
 	os.Chdir(binDir)
-	d, err := gore.NewDaemon(gore.NewCoreService(srv), bconfig)
+	core := gore.NewCoreService(srv)
+	d, err := gore.NewDaemon(core, bconfig)
 	if err != nil {
 		return err
 	}
 	this.daemon = d
+	DD = d
 	//if this.daemon.IsRunning() {
 	//	return this.run()
 	//} else {
