@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
@@ -485,4 +486,21 @@ func EnsureDir(path string) error {
 
 func GetUpgradeDir() string {
 	return glog.GetCrossPlatformDataDir("gore_upgrade")
+}
+
+func BlockingFunction[T any](c context.Context, timeout time.Duration, callback func() T) (T, error) {
+	ctx, cancel := context.WithTimeout(c, timeout)
+	defer cancel()
+	resultChan := make(chan T)
+	go func() {
+		result := callback()
+		resultChan <- result
+	}()
+	var zero T // 声明 T 的零值
+	select {
+	case res := <-resultChan:
+		return res, nil
+	case <-ctx.Done():
+		return zero, errors.New("timeout")
+	}
 }

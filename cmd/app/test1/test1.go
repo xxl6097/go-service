@@ -1,6 +1,8 @@
 package test1
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
@@ -101,12 +103,71 @@ func (t Test1) uninstallHandler(w http.ResponseWriter, r *http.Request) {
 	t.service.Uninstall()
 }
 
+func blockingOperation() string {
+	count := 0
+	for {
+		count++
+		time.Sleep(time.Second)
+		fmt.Println("hello world..")
+		if count > 2 {
+			return "err"
+		}
+	}
+	return "ok"
+}
+
 func Serve(t Test1) {
 	// 注册路由
 	http.HandleFunc("/update", t.updateHandler)
 	http.HandleFunc("/version", t.versionHandler)
 	http.HandleFunc("/restart", t.restartHandler)
 	http.HandleFunc("/uninstall", t.uninstallHandler)
+
+	// 启动 HTTP 服务器
+	fmt.Println("Starting server at :8080...")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func BlockingFunction[T any](c context.Context, timeout time.Duration, callback func() T) (T, error) {
+	ctx, cancel := context.WithTimeout(c, timeout)
+	defer cancel()
+	resultChan := make(chan T)
+	go func() {
+		result := callback()
+		resultChan <- result
+	}()
+	var zero T // 声明 T 的零值
+	select {
+	case res := <-resultChan:
+		return res, nil
+	case <-ctx.Done():
+		return zero, errors.New("timeout")
+	}
+}
+
+func blockingHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	resultChan := make(chan string)
+	go func() {
+		result := blockingOperation()
+		resultChan <- result
+	}()
+
+	select {
+	case res := <-resultChan:
+		w.Write([]byte(res))
+	case <-ctx.Done():
+		http.Error(w, "处理超时", http.StatusGatewayTimeout)
+	}
+}
+
+func ServeTesting() {
+	// 注册路由
+	http.HandleFunc("/blocking", blockingHandler)
 
 	// 启动 HTTP 服务器
 	fmt.Println("Starting server at :8080...")
