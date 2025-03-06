@@ -217,9 +217,9 @@ func GenSign(raw, key []byte) {
 	glog.Printf("var key-%d = %s\n", len(b1), b1)
 }
 
-type ClientCommonConfig struct {
-	Addr  string `json:"addr"`
-	Port  int    `json:"port"`
-	User  string `json:"user"`
-	Token string `json:"token"`
-}
+//type ClientCommonConfig struct {
+//	Addr  string `json:"addr"`
+//	Port  int    `json:"port"`
+//	User  string `json:"user"`
+//	Token string `json:"token"`
+//}
