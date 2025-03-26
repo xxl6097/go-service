@@ -485,7 +485,7 @@ func EnsureDir(path string) error {
 }
 
 func GetUpgradeDir() string {
-	return glog.GetCrossPlatformDataDir("gore_upgrade")
+	return glog.GetCrossPlatformDataDir("upgrade")
 }
 
 func BlockingFunction[T any](c context.Context, timeout time.Duration, callback func() T) (T, error) {
