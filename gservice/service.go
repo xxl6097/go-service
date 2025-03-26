@@ -30,9 +30,9 @@ func Run(srv gore.GService) error {
 		return fmt.Errorf("应用名不能为空")
 	}
 	if len(os.Args) > 1 {
-		glog.LogDefaultLogSetting(bconfig.Name, "install.log")
+		glog.LogDefaultLogSetting("install.log")
 	} else {
-		glog.LogDefaultLogSetting(bconfig.Name)
+		glog.LogDefaultLogSetting()
 	}
 	if bconfig.DisplayName == "" {
 		return fmt.Errorf("服务显示名不能为空")
