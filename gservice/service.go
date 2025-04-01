@@ -1,6 +1,7 @@
 package gservice
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/kardianos/service"
@@ -187,7 +188,7 @@ func (this *gservice) upgrade() error {
 	}
 
 	glog.Debug("准备升级...")
-	err = gore.Update(this.srv, this.conf.Executable, fileUrlOrLocalPath)
+	err = gore.Update(this.srv, context.Background(), this.conf.Executable, fileUrlOrLocalPath)
 	if err != nil {
 		glog.Error(err)
 		return err
