@@ -1,6 +1,7 @@
 package gore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
@@ -20,7 +21,7 @@ type DefaultUpgrade interface {
 	BaseService
 }
 
-func Update(g GService, installBinPath, fileUrlOrLocalPath string) error {
+func Update(g GService, ctx context.Context, installBinPath, fileUrlOrLocalPath string) error {
 	if gs, ok := g.(Upgrade); ok {
 		glog.Printf("自定义升级\n")
 		return gs.OnUpgrade(installBinPath, fileUrlOrLocalPath)
@@ -28,15 +29,15 @@ func Update(g GService, installBinPath, fileUrlOrLocalPath string) error {
 		glog.Printf("签名升级~ %v\n", os.Args)
 		if len(os.Args) >= 4 && os.Args[3] == "override" {
 			glog.Printf("默认升级\n")
-			return manualUpgrade(installBinPath, fileUrlOrLocalPath)
+			return manualUpgrade(ctx, installBinPath, fileUrlOrLocalPath)
 		}
-		return signUpdate(installBinPath, fileUrlOrLocalPath)
+		return signUpdate(ctx, installBinPath, fileUrlOrLocalPath)
 	}
 	glog.Printf("默认升级\n")
-	return manualUpgrade(installBinPath, fileUrlOrLocalPath)
+	return manualUpgrade(ctx, installBinPath, fileUrlOrLocalPath)
 }
 
-func signUpdate(binPath, newFileUrlOrLocalPath string) error {
+func signUpdate(ctx context.Context, binPath, newFileUrlOrLocalPath string) error {
 	glog.Debugf("\n旧文件：%s\n新文件：%s\n", binPath, newFileUrlOrLocalPath)
 	//1、读取老文件特征数据；
 	//2、下载新文件
@@ -60,7 +61,7 @@ func signUpdate(binPath, newFileUrlOrLocalPath string) error {
 		newFilePath = newFileUrlOrLocalPath
 	} else if utils.IsURL(newFileUrlOrLocalPath) {
 		glog.Debug("下载文件", newFileUrlOrLocalPath)
-		temp, err := utils.DownLoad(newFileUrlOrLocalPath)
+		temp, err := utils.DownloadFileWithCancel(ctx, newFileUrlOrLocalPath)
 		if err != nil {
 			glog.Error("下载失败", err)
 			return err
@@ -87,7 +88,7 @@ func signUpdate(binPath, newFileUrlOrLocalPath string) error {
 	}
 }
 
-func manualUpgrade(installBinPath string, fileUrlOrLocalPath string) error {
+func manualUpgrade(ctx context.Context, installBinPath string, fileUrlOrLocalPath string) error {
 	time.Sleep(100 * time.Millisecond)
 	err := utils.Delete(installBinPath, "删除旧版")
 	if err != nil {
@@ -112,7 +113,7 @@ func manualUpgrade(installBinPath string, fileUrlOrLocalPath string) error {
 
 	} else if utils.IsURL(fileUrlOrLocalPath) {
 		glog.Debug("下载新版本", fileUrlOrLocalPath)
-		_, err = utils.DownLoad(fileUrlOrLocalPath, installBinPath)
+		_, err = utils.DownloadFileWithCancel(ctx, fileUrlOrLocalPath, installBinPath)
 		if err != nil {
 			glog.Error("下载失败", err)
 			return err

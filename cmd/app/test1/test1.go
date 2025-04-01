@@ -63,7 +63,7 @@ func (t Test1) updateHandler(w http.ResponseWriter, r *http.Request) {
 	// 返回响应
 	response := fmt.Sprintf("Hello, %s", binurl)
 	glog.Println("update", response)
-	err := t.service.Upgrade(binurl)
+	err := t.service.Upgrade(r.Context(), binurl)
 	glog.Println("update", err)
 	fmt.Fprintln(w, pkg.Version())
 }

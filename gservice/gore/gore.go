@@ -1,6 +1,7 @@
 package gore
 
 import (
+	"context"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/utils"
@@ -10,7 +11,7 @@ import (
 type IGService interface {
 	Restart() error
 	RunCmd(...string) error
-	Upgrade(string, ...string) error
+	Upgrade(context.Context, string, ...string) error
 	Uninstall() error
 }
 type GService interface {

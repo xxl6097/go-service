@@ -1,6 +1,7 @@
 package gore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/kardianos/service"
@@ -26,10 +27,10 @@ func (this *goreservice) runChildProcess(executable string, args ...string) erro
 	glog.Printf("运行子进程 %s %v\n", executable, args)
 	return cmd.Start()
 }
-func (this *goreservice) Upgrade(destFilePath string, args ...string) error {
+func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
 	var newFilePath string
 	if utils.IsURL(destFilePath) {
-		filePath, err := utils.DownLoad(destFilePath)
+		filePath, err := utils.DownloadFileWithCancel(ctx, destFilePath)
 		if err != nil {
 			glog.Error("下载失败", err)
 			return err
