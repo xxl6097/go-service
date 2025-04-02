@@ -8,6 +8,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/gore/util"
+	"github.com/xxl6097/go-service/gservice/ukey"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
@@ -92,10 +93,52 @@ func (this *gservice) run() error {
 			return this.stopService()
 		case "restart":
 			return this.restart()
+		case "run":
+			glog.Printf("运行服务【%s】%v\n", this.conf.DisplayName, this.daemon.IsRunning())
+			return this.daemon.Run()
 		}
+	}
+	if this.canMenu() {
+		return this.runMenu()
 	}
 	glog.Printf("运行服务【%s】%v\n", this.conf.DisplayName, this.daemon.IsRunning())
 	return this.daemon.Run()
+}
+
+func (this *gservice) runMenu() error {
+	fmt.Println("1. 安装程序")
+	fmt.Println("2. 卸载程序")
+	fmt.Println("3. 升级程序")
+	fmt.Println("4. 重启程序")
+	fmt.Println("5. 停止程序")
+	fmt.Println("6. 查看版本")
+	index := utils.InputInt("请根据菜单选择：")
+	switch index {
+	case 1:
+		return this.install()
+	case 2:
+		return this.uninstall()
+	case 3:
+		return this.upgrade()
+	case 4:
+		return this.restart()
+	case 5:
+		return this.stopService()
+	case 6:
+		this.srv.OnVersion()
+		break
+	default:
+		fmt.Println("未知选项", index)
+		break
+	}
+	return nil
+}
+func (this *gservice) canMenu() bool {
+	_, err := ukey.Load()
+	if err != nil {
+		return true
+	}
+	return false
 }
 
 //func (this *gservice) update(upgradeBinPath string) error {
