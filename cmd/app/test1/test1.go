@@ -81,6 +81,21 @@ func (t Test1) versionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // 处理 GET 请求
+func (t Test1) testHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	select {
+	case <-time.After(10 * time.Second):
+		fmt.Println("Operation completed")
+		w.Write([]byte("Operation completed"))
+	case <-ctx.Done():
+		// 客户端断开或超时
+		if ctx.Err() == context.Canceled {
+			fmt.Println("Client disconnected")
+		}
+	}
+}
+
+// 处理 GET 请求
 func (t Test1) restartHandler(w http.ResponseWriter, r *http.Request) {
 	// 确保只处理 GET 请求
 	if r.Method != http.MethodGet {
@@ -120,6 +135,7 @@ func Serve(t Test1) {
 	// 注册路由
 	http.HandleFunc("/update", t.updateHandler)
 	http.HandleFunc("/version", t.versionHandler)
+	http.HandleFunc("/test", t.testHandler)
 	http.HandleFunc("/restart", t.restartHandler)
 	http.HandleFunc("/uninstall", t.uninstallHandler)
 
@@ -165,9 +181,24 @@ func blockingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 处理 GET 请求
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	select {
+	case <-time.After(10 * time.Second):
+		fmt.Println("Operation completed")
+		w.Write([]byte("Operation completed"))
+	case <-ctx.Done():
+		// 客户端断开或超时
+		//if ctx.Err() == context.Canceled {
+		//}
+		fmt.Println("Client disconnected", ctx.Err())
+	}
+}
 func ServeTesting() {
 	// 注册路由
 	http.HandleFunc("/blocking", blockingHandler)
+	http.HandleFunc("/test", testHandler)
 
 	// 启动 HTTP 服务器
 	fmt.Println("Starting server at :8080...")
