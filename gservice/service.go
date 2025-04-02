@@ -98,9 +98,9 @@ func (this *gservice) run() error {
 			return this.daemon.Run()
 		}
 	}
-	//if this.canMenu() {
-	//	return this.runMenu()
-	//}
+	if this.canMenu() {
+		return this.runMenu()
+	}
 	glog.Printf("运行服务【%s】%v\n", this.conf.DisplayName, this.daemon.IsRunning())
 	return this.daemon.Run()
 }
