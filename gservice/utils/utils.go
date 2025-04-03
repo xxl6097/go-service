@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
@@ -15,9 +17,11 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -504,6 +508,40 @@ func BlockingFunction[T any](c context.Context, timeout time.Duration, callback 
 		return zero, errors.New("timeout")
 	}
 }
+func DynamicSelect[T any](t []T, fun func(context.Context, int, T) T) T {
+	ctx, cancel := context.WithCancel(context.Background())
+	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
+	var wg sync.WaitGroup
+	for i, v := range t {
+		wg.Add(1)
+		go func(ct context.Context, index int, t T, c chan<- T) {
+			defer wg.Done()
+			c <- fun(ct, index, t)
+		}(ctx, i, v, ch)
+	}
+	var x T
+	for i := 0; i < len(t); i++ {
+		_, value, ok := reflect.Select([]reflect.SelectCase{{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		}})
+		r := value.Interface().(T)
+		if ok {
+			cancel()
+			wg.Wait()
+			return r
+		}
+	}
+	cancel()
+	return x
+}
+func SecureRandomID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil { // 线程安全的随机源
+		panic(err)
+	}
+	return base64.URLEncoding.EncodeToString(b)
+}
 
 func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (string, error) {
 	// 创建可取消的 HTTP 请求
@@ -524,7 +562,7 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	if args != nil && len(args) > 0 {
 		dstFile = args[0]
 	}
-	tempFolder := fmt.Sprintf("%d", time.Now().Unix())
+	tempFolder := SecureRandomID() //fmt.Sprintf("%d", time.Now().UnixNano())
 	if dstFile == "" {
 		dstName := GetFileNameFromUrl(url)
 		if dstName == "" {
@@ -542,10 +580,13 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 		dstFile = filepath.Join(dir, tempFolder, f)
 	}
 	dir, _ := filepath.Split(dstFile)
+	goroutineId := GetGoroutineID()
 	EnsureDir(dir)
 	// 创建目标文件
+	fmt.Println("os.Create", dstFile)
 	outFile, err := os.Create(dstFile)
 	if err != nil {
+		DeleteAll(dir, "创建失败，删除")
 		return "", err
 	}
 	defer outFile.Close()
@@ -556,17 +597,20 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	for {
 		select {
 		case <-ctx.Done(): // 检查取消信号
-			fmt.Println("下载已取消:", url)
-			dir, _ := filepath.Split(dstFile)
+			//fmt.Println("下载已取消:", url)
+			outFile.Close()
 			DeleteAll(dir, "下载已取消")
 			return "", ctx.Err()
 		default:
-			n, err := resp.Body.Read(buf)
-			if err != nil && err != io.EOF {
-				return "", err
+			n, err1 := resp.Body.Read(buf)
+			if err1 != nil && err1 != io.EOF {
+				outFile.Close()
+				DeleteAll(dir, fmt.Sprintf("下载失败:%v", err1))
+				return "", err1
 			}
 			if n == 0 {
-				fmt.Println("文件路径：", dstFile)
+				outFile.Close()
+				fmt.Println("文件下载完成：", dstFile)
 				return dstFile, nil // 正常完成
 			}
 
@@ -576,15 +620,46 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 			fileSize := getFileSize(outFile)
 			progress := float64(fileSize) / float64(totalSize) * 100
 			if progress-preProgress > 3 {
-				fmt.Printf("[%s]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", tempFolder, float64(totalSize)/1e6, float64(fileSize)/1e6, progress)
+				fmt.Printf("[%d]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", goroutineId, float64(totalSize)/1e6, float64(fileSize)/1e6, progress)
 				preProgress = progress
 			}
 		}
 	}
+}
 
+func DownloadFileWithCancelByUrls(urls []string) (string, error) {
+	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
+		var dst string
+		select {
+		default:
+			//tid := GetGoroutineID()
+			dstFilePath, err := DownloadFileWithCancel(ctx, s)
+			if err == nil {
+				return dstFilePath
+			} else if errors.Is(err, context.Canceled) {
+				//fmt.Println("2通道 ", i, err.Error())
+				return dst
+			} else {
+			}
+		}
+		return dst
+	})
+	return newUrl, nil
 }
 
 func getFileSize(f *os.File) int64 {
 	info, _ := f.Stat()
 	return info.Size()
+}
+
+// GetGoroutineID 用于获取当前协程的ID
+func GetGoroutineID() uint64 {
+	var buf [64]byte
+	// 调用runtime.Stack获取当前协程的栈信息
+	n := runtime.Stack(buf[:], false)
+	// 解析栈信息以提取协程ID
+	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
+	var id uint64
+	fmt.Sscanf(idField, "%d", &id)
+	return id
 }
