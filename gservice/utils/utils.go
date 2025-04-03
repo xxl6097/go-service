@@ -76,7 +76,7 @@ func GetFileNameFromUrl(rawURL string) string {
 	parsedURL, _ := url.Parse(rawURL)
 	// 提取路径部分并获取文件名
 	fileName := path.Base(parsedURL.Path)
-	fmt.Println("文件名:", fileName) // 输出: document.pdf
+	//fmt.Println("文件名:", fileName) // 输出: document.pdf
 	return fileName
 }
 
