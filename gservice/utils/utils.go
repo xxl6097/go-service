@@ -550,7 +550,8 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	for {
 		select {
 		case <-ctx.Done(): // 检查取消信号
-			fmt.Println("\n下载已取消")
+			fmt.Println("下载已取消:", url)
+			Delete(dstFile, "下载已取消")
 			return "", ctx.Err()
 		default:
 			n, err := resp.Body.Read(buf)
