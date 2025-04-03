@@ -17,7 +17,7 @@ var (
 	Description  string // 服务描述信息
 )
 
-const Build_Time = "2025-03-04 18:09:44"
+const Build_Time = "2025-04-03 19:25:48"
 
 // Version 版本信息
 func Version() string {
