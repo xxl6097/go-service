@@ -541,6 +541,8 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 		dir, f := filepath.Split(dstFile)
 		dstFile = filepath.Join(dir, tempFolder, f)
 	}
+	dir, _ := filepath.Split(dstFile)
+	EnsureDir(dir)
 	// 创建目标文件
 	outFile, err := os.Create(dstFile)
 	if err != nil {
