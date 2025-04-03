@@ -627,7 +627,7 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	}
 }
 
-func DownloadFileWithCancelByUrls(urls []string) (string, error) {
+func DownloadFileWithCancelByUrls(urls []string) string {
 	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
@@ -644,7 +644,7 @@ func DownloadFileWithCancelByUrls(urls []string) (string, error) {
 		}
 		return dst
 	})
-	return newUrl, nil
+	return newUrl
 }
 
 func getFileSize(f *os.File) int64 {
