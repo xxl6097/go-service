@@ -576,7 +576,7 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 			fileSize := getFileSize(outFile)
 			progress := float64(fileSize) / float64(totalSize) * 100
 			if progress-preProgress > 3 {
-				fmt.Printf("总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", float64(totalSize)/1e6, float64(fileSize)/1e6, progress)
+				fmt.Printf("[%s]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", tempFolder, float64(totalSize)/1e6, float64(fileSize)/1e6, progress)
 				preProgress = progress
 			}
 		}
