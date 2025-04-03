@@ -524,6 +524,7 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	if args != nil && len(args) > 0 {
 		dstFile = args[0]
 	}
+	tempFolder := fmt.Sprintf("%d", time.Now().Unix())
 	if dstFile == "" {
 		dstName := GetFileNameFromUrl(url)
 		if dstName == "" {
@@ -534,8 +535,11 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 			dstName = fmt.Sprintf("%d", fileName)
 		}
 		if dstName != "" {
-			dstFile = filepath.Join(GetUpgradeDir(), dstName)
+			dstFile = filepath.Join(GetUpgradeDir(), tempFolder, dstName)
 		}
+	} else {
+		dir, f := filepath.Split(dstFile)
+		dstFile = filepath.Join(dir, tempFolder, f)
 	}
 	// 创建目标文件
 	outFile, err := os.Create(dstFile)
@@ -551,7 +555,8 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 		select {
 		case <-ctx.Done(): // 检查取消信号
 			fmt.Println("下载已取消:", url)
-			Delete(dstFile, "下载已取消")
+			dir, _ := filepath.Split(dstFile)
+			DeleteAll(dir, "下载已取消")
 			return "", ctx.Err()
 		default:
 			n, err := resp.Body.Read(buf)
