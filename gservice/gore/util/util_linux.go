@@ -15,6 +15,19 @@ const (
 	DefaultInstallPath = "/usr/local"
 )
 
+// GetDiskUsage 获取 Unix 系统磁盘使用情况
+func GetDiskUsage(path string) (total, used, free uint64, err error) {
+	var stat syscall.Statfs_t
+	err = syscall.Statfs(path, &stat)
+	if err != nil {
+		return
+	}
+	total = stat.Blocks * uint64(stat.Bsize)
+	free = stat.Bfree * uint64(stat.Bsize)
+	used = total - free
+	return
+}
+
 func SetPlatformSpecificAttrs(cmd *exec.Cmd) {
 	if runtime.GOOS == "linux" {
 		cmd.SysProcAttr = &syscall.SysProcAttr{
