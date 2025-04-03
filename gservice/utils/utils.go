@@ -583,7 +583,7 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	goroutineId := GetGoroutineID()
 	EnsureDir(dir)
 	// 创建目标文件
-	fmt.Println("os.Create", dstFile)
+	//fmt.Println("os.Create", dstFile)
 	outFile, err := os.Create(dstFile)
 	if err != nil {
 		DeleteAll(dir, "创建失败，删除")
@@ -610,7 +610,7 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 			}
 			if n == 0 {
 				outFile.Close()
-				fmt.Println("文件下载完成：", dstFile)
+				glog.Println("文件下载完成：", dstFile)
 				return dstFile, nil // 正常完成
 			}
 
