@@ -5,12 +5,17 @@ import (
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"time"
 )
+
+type BinInfo struct {
+	BinPath string
+}
 
 type Installer struct {
 	service gore.IGService
@@ -30,8 +35,7 @@ func (t Installer) OnVersion() string {
 	return pkg.AppVersion
 }
 
-func (t Installer) OnInstall(binPath, installBinPath string) error {
-	binDir := filepath.Dir(installBinPath)
+func (t Installer) GetAny(binDir string) any {
 	appName := glog.GetNameByPath(os.Args[1])
 	ext := filepath.Ext(os.Args[1])
 	dstBinPath := filepath.Join(binDir, appName, ext)
@@ -41,15 +45,21 @@ func (t Installer) OnInstall(binPath, installBinPath string) error {
 		return err
 	}
 	fmt.Println(binDir)
-	return nil
+	return &BinInfo{binDir}
 }
 
 func (t Installer) OnRun(service gore.IGService) error {
 	t.service = service
-	for {
-		glog.Println("run", time.Now().Format("2006-01-02 15:04:05"))
-		time.Sleep(time.Second * 10)
-	}
+	executable := ""
+	arg := make([]string, 0)
+	arg = append(arg, "upgrade")
+	cmd := exec.Command(executable, arg...)
+	util.SetPlatformSpecificAttrs(cmd)
+	glog.Printf("运行进程 %s %v\n", executable, arg)
+	err := cmd.Start()
+	cmd.Wait()
+	fmt.Println(err)
+	return err
 }
 
 func (t Installer) menu() []string {
