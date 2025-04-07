@@ -10,6 +10,7 @@ import (
 
 type Installer interface {
 	GService
+	//OnInstall arg1: 当前运行bin文件路径，arg2安装的目标bin文件路径
 	OnInstall(string, string) error
 }
 

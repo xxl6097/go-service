@@ -663,3 +663,11 @@ func GetGoroutineID() uint64 {
 	fmt.Sscanf(idField, "%d", &id)
 	return id
 }
+
+func IsPathExist(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return os.IsExist(err) // 如果路径不存在或权限不足返回 false
+	}
+	return true
+}

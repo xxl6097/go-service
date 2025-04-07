@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/xxl6097/go-service/cmd/app/test1"
+	"github.com/xxl6097/go-service/cmd/app/test1/test1"
 )
 
 func main() {
