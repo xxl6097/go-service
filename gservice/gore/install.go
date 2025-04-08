@@ -50,7 +50,7 @@ func signInstall(cfg any, binPath, installBinPath string) error {
 		return fmt.Errorf("签名错误: %v", err)
 	}
 	if utils.FileExists(binPath) {
-		utils.Delete(binPath, "旧运行文件")
+		_ = utils.Delete(binPath, "旧运行文件")
 	}
 	return nil
 }

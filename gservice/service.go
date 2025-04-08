@@ -341,17 +341,18 @@ func (this *gservice) install() error {
 		return err
 	}
 
-	err = os.Chdir(this.workDir)
-	if err != nil {
-		glog.Println("os.Chdir error:", err)
-		return err
-	}
-
 	err = gore.Install(this.srv, currentBinPath, this.conf.Executable)
 	if err != nil {
 		glog.Error(err)
 		return err
 	}
+
+	err = os.Chdir(this.workDir)
+	if err != nil {
+		glog.Println("os.Chdir error:", err)
+		return err
+	}
+	
 	err = this.daemon.Install() //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Printf("服务【%s】安装成功!\n", this.conf.DisplayName)
