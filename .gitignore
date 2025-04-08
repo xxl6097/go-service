@@ -4,6 +4,7 @@ node_modules
 /dist
 dist
 .version
+release
 /local.properties
 /.idea
 .DS_Store
