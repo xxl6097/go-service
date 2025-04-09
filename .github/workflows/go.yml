@@ -1,0 +1,34 @@
+#name: "Build for ${{ github.ref_name }}  by ${{ github.actor }}"
+run-name: "${{ github.ref_name }}"
+#on:
+#  workflow_dispatch:
+on:
+  push:
+    tags:
+      - 'v[0-99]*.[0-99]*.[0-99]*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
+jobs:
+  goreleaser:
+    #if: contains(github.event.head_commit.message, 'DEPLOY')  echo echo"github：${{ toJson(github) }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Make Go
+        run: |
+          chmod +x ./build.sh
+          ./build.sh all ${{ github.ref_name }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: release --clean --release-notes=./Release.md --skip=validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

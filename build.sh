@@ -159,16 +159,6 @@ function buildAll() {
   #wait
 }
 
-function build() {
-  #echo "---->$1 $2 $3 $4 $5 $6 $7"
-  if [ $7 -eq 1 ]; then
-    buildMenu $1 $2 $3 $4 $5 $6
-  else
-    buildAll $1 $2 $3 $4 $5 $6
-  fi
-}
-
-
 version::get_version_vars() {
     # shellcheck disable=SC1083
     GIT_COMMIT="$(git rev-parse HEAD^{commit})"
@@ -267,15 +257,6 @@ function buildLdflags() {
   echo "${ldflags[*]-}"
 }
 
-function buildFrps() {
-  appname="acfrps"
-  appdir="./cmd/frps"
-  DisplayName="AcFrps网络代理程序"
-  Description="一款基于GO语言的网络代理服务程序"
-  builddir="./release/frps"
-  rm -rf ${builddir}
-  build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-}
 
 function showBuildDir() {
   # 检查是否输入路径参数
@@ -316,20 +297,44 @@ function showBuildDir() {
   done
 }
 # shellcheck disable=SC2120
-function buildDir() {
+function buildInstaller() {
   showBuildDir ./cmd/app
-  builddir="./release/${dir}"
-  appname=$(basename "$dir")
+  builddir="./release"
+  #appname=$(basename "$dir")
+  appname="srvinstaller"
   appdir=${dir}
-  disname="${dir}应用程序"
-  describe="一款基于GO语言的${dir}程序"
+  disname="${appname}应用程序"
+  describe="一款基于GO语言的服务安装程序"
   rm -rf ${builddir}
   buildMenu $builddir $appname "$version" $appdir $disname $describe
 }
 
-function main() {
-  writeVersionGoFile
-  buildDir
+# shellcheck disable=SC2120
+function buildForGithubRelease() {
+  builddir="./release"
+  appname="srvinstaller"
+  appdir="./cmd/app/installer"
+  disname="${appname}应用程序"
+  describe="一款基于GO语言的服务安装程序"
+  echo "===>version:${version}"
+  go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  rm -rf ${builddir}
+  buildAll $builddir $appname "$version" $appdir $disname $describe
+  mkdir -p ./release/packages
+  cp -f ./release/* ./release/packages
 }
 
-main
+function bootstrap() {
+  #printf "\033[1;31m%-10s\033[0m\n" "Error"  # 红色加粗文本
+  if [ $# -ge 2 ] && [ -n "$2" ]; then
+    version=$2
+  fi
+  writeVersionGoFile
+  case $1 in
+  all) (buildForGithubRelease) ;;
+    *) (buildInstaller)  ;;
+  esac
+}
+
+bootstrap $1 $2
