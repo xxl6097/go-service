@@ -322,7 +322,7 @@ function buildForGithubRelease() {
   rm -rf ${builddir}
   buildAll $builddir $appname "$version" $appdir $disname $describe
   mkdir -p ./release/packages
-  cp -f ./release/* ./release/packages
+  mv -f ./release/srvinstaller* ./release/packages
 }
 
 function bootstrap() {
