@@ -545,6 +545,7 @@ func SecureRandomID() string {
 
 func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (string, error) {
 	// 创建可取消的 HTTP 请求
+	glog.Debug("开始下载", url)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", err
@@ -581,12 +582,12 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 	}
 	dir, _ := filepath.Split(dstFile)
 	goroutineId := GetGoroutineID()
-	EnsureDir(dir)
+	_ = EnsureDir(dir)
 	// 创建目标文件
 	//fmt.Println("os.Create", dstFile)
 	outFile, err := os.Create(dstFile)
 	if err != nil {
-		DeleteAll(dir, "创建失败，删除")
+		_ = DeleteAll(dir, "创建失败，删除")
 		return "", err
 	}
 	defer outFile.Close()
@@ -599,17 +600,17 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 		case <-ctx.Done(): // 检查取消信号
 			//fmt.Println("下载已取消:", url)
 			outFile.Close()
-			DeleteAll(dir, "下载已取消")
+			_ = DeleteAll(dir, fmt.Sprintf("下载取消:%s", url))
 			return "", ctx.Err()
 		default:
 			n, err1 := resp.Body.Read(buf)
 			if err1 != nil && err1 != io.EOF {
 				outFile.Close()
-				DeleteAll(dir, fmt.Sprintf("下载失败:%v", err1))
+				_ = DeleteAll(dir, fmt.Sprintf("下载失败:%s,%v", url, err1))
 				return "", err1
 			}
 			if n == 0 {
-				outFile.Close()
+				_ = outFile.Close()
 				glog.Println("文件下载完成：", dstFile)
 				return dstFile, nil // 正常完成
 			}
