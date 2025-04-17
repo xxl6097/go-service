@@ -107,10 +107,11 @@ func (this *gservice) run() error {
 
 func (this *gservice) runMenu() error {
 	defer func() {
-		fmt.Print("按回车键退出程序...")
-		endKey := make([]byte, 1)
-		_, _ = os.Stdin.Read(endKey) // 等待用户输入任意内容后按回车
-		fmt.Println("程序已退出")
+		//fmt.Print("按回车键退出程序...")
+		//endKey := make([]byte, 1)
+		//_, _ = os.Stdin.Read(endKey) // 等待用户输入任意内容后按回车
+		//fmt.Println("程序已退出")
+		utils.Exit()
 	}()
 	fmt.Println("1. 安装程序")
 	fmt.Println("2. 卸载程序")
@@ -352,7 +353,7 @@ func (this *gservice) install() error {
 		glog.Println("os.Chdir error:", err)
 		return err
 	}
-	
+
 	err = this.daemon.Install() //.Control("install", this.binPath, []string{"-d"})
 	if err == nil {
 		glog.Printf("服务【%s】安装成功!\n", this.conf.DisplayName)
