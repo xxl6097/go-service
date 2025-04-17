@@ -186,7 +186,9 @@ func IsOpenWRT() bool {
 	if err != nil {
 		return false
 	}
-	return strings.Contains(string(data), "OpenWRT")
+	src := strings.ToLower(string(data))
+	dst := strings.ToLower("OpenWRT")
+	return strings.Contains(src, dst)
 }
 
 // FileExists 用于判断文件是否存在
@@ -246,6 +248,7 @@ func InputStringEmpty1(title string) string {
 	fmt.Print(title)
 	input, err := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
+	input = strings.ReplaceAll(input, " ", "")
 	if err != nil {
 		return InputString(title)
 	}
@@ -258,6 +261,7 @@ func InputStringEmpty(title, defaultString string) string {
 	fmt.Print(title)
 	input, err := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
+	input = strings.ReplaceAll(input, " ", "")
 	if err != nil {
 		return InputString(title)
 	}
@@ -274,6 +278,7 @@ func InputString(title string) string {
 	fmt.Print(title)
 	input, err := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
+	input = strings.ReplaceAll(input, " ", "")
 	if err != nil {
 		return InputString(title)
 	}
@@ -284,11 +289,34 @@ func InputString(title string) string {
 	}
 	return input
 }
+func InputIntDefault(title string, def int) int {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(title)
+	input, err := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+	input = strings.ReplaceAll(input, " ", "")
+	if err != nil {
+		return InputInt(title)
+	}
+	var value int
+	if len(input) == 0 {
+		return def
+	} else {
+		value, err = strconv.Atoi(input)
+		if err != nil {
+			tips(title)
+			return InputInt(title)
+		}
+	}
+	return value
+}
+
 func InputInt(title string) int {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print(title)
 	input, err := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
+	input = strings.ReplaceAll(input, " ", "")
 	if err != nil {
 		return InputInt(title)
 	}
@@ -307,6 +335,7 @@ func GetInt() int {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
+	input = strings.ReplaceAll(input, " ", "")
 	if err != nil {
 		return GetInt()
 	}
