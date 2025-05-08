@@ -587,6 +587,10 @@ func DownloadFileWithCancel(ctx context.Context, url string, args ...string) (st
 		return "", err
 	}
 
+	if resp.StatusCode != 200 {
+		return "", errors.New(resp.Status)
+	}
+
 	defer resp.Body.Close()
 	var dstFile string
 	if args != nil && len(args) > 0 {
