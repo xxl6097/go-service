@@ -18,6 +18,7 @@ type GService interface {
 	OnInit() *service.Config
 	OnVersion() string
 	OnRun(IGService) error
+	OnFinish()
 }
 
 type BaseService interface {

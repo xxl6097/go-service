@@ -22,6 +22,9 @@ type DefaultUpgrade interface {
 }
 
 func Update(g GService, ctx context.Context, installBinPath, fileUrlOrLocalPath string) error {
+	if g != nil {
+		defer g.OnFinish()
+	}
 	if gs, ok := g.(Upgrade); ok {
 		glog.Printf("自定义升级\n")
 		return gs.OnUpgrade(installBinPath, fileUrlOrLocalPath)

@@ -18,6 +18,9 @@ type SvrInstall struct {
 	cfg     *service.Config
 }
 
+func (t *SvrInstall) OnFinish() {
+}
+
 func (t *SvrInstall) OnInit() *service.Config {
 	arr := t.menu()
 	t.cfg = &service.Config{
