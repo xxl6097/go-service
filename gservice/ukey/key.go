@@ -84,14 +84,14 @@ func GetCfgBufferFromFile(filePath string) []byte {
 	return nil
 }
 
-func Load() ([]byte, error) {
+func LoadBuffer(buf []byte) ([]byte, error) {
 	//获取原始的key
 	rawKey, err := GetRawKey()
 	if err != nil {
 		return nil, err
 	}
 	//判断buffer中是否存在原始key，如果找不到，说明程序是错误的
-	index := bytes.Index(buffer, rawKey)
+	index := bytes.Index(buf, rawKey)
 	if index == -1 {
 		return nil, errors.New("程序未初始化～")
 	}
@@ -99,11 +99,11 @@ func Load() ([]byte, error) {
 		return nil, fmt.Errorf("程序签名不正常:%d", index)
 	}
 	pos := len(rawKey)
-	if len(buffer) < BufferLenType+pos {
+	if len(buf) < BufferLenType+pos {
 		return nil, errors.New("buffer长度不对[读取dataLenBuffer]")
 	}
 	//获取数据长度字节数组 从原始key后面开始
-	dataLenBuffer := buffer[pos : pos+BufferLenType]
+	dataLenBuffer := buf[pos : pos+BufferLenType]
 	//从原始 key+bufferLenType后面开始
 	pos += BufferLenType
 
@@ -114,17 +114,21 @@ func Load() ([]byte, error) {
 	if dataLen <= 0 {
 		return nil, errors.New("程序未签名～")
 	}
-	if len(buffer) < dataLen+pos {
+	if len(buf) < dataLen+pos {
 		return nil, errors.New("buffer长度不对[读取dataBuffer]")
 	}
 	//获取配置数据buffer
-	configAesBuffer := buffer[pos : pos+dataLen]
+	configAesBuffer := buf[pos : pos+dataLen]
 	//记住了，构建的时候，要把16字节向量放在原始数据前面，不然这里解析不出来的
 	configBuffer, err := utils.DecAES(configAesBuffer[16:], configAesBuffer[:16])
 	if err != nil {
 		return nil, fmt.Errorf("解密错误:%v", err)
 	}
 	return configBuffer, nil
+}
+
+func Load() ([]byte, error) {
+	return LoadBuffer(buffer)
 }
 
 // GenConfig 只有在计算buffer长度的时候 cap才为true，其他情况一律false
