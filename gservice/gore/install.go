@@ -20,9 +20,6 @@ type DefaultInstaller interface {
 }
 
 func Install(g GService, binPath, installBinPath string) error {
-	if g != nil {
-		defer g.OnFinish()
-	}
 	if gs, ok := g.(Installer); ok {
 		return gs.OnInstall(binPath, installBinPath)
 	} else if gss, okk := g.(DefaultInstaller); okk {
