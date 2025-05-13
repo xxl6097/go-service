@@ -75,7 +75,6 @@ func (this *gservice) run() error {
 	if this.srv == nil {
 		return errors.New("请继承gservice.IService接口！")
 	}
-	defer this.srv.OnFinish()
 	if len(os.Args) > 1 {
 		k := os.Args[1]
 		switch k {
