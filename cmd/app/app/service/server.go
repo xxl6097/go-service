@@ -6,6 +6,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/cmd/app/app/service/middle"
 	"github.com/xxl6097/go-service/gservice/ukey"
+	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
 	"log"
 	"net/http"
@@ -112,6 +113,18 @@ func (t *Service) uninstallHandler(w http.ResponseWriter, r *http.Request) {
 //	}
 //}
 
+// 处理 GET 请求
+func (t *Service) handleSudo(w http.ResponseWriter, r *http.Request) {
+	if err := utils.RunWithSudo(); err != nil {
+		msg := fmt.Sprintf("获取管理员权限失败: %v\n", err)
+		glog.Println(msg)
+		w.Write([]byte(msg))
+	}
+	msg := "已获取管理员权限，正在执行敏感操作..."
+	glog.Println(msg)
+	w.Write([]byte(msg))
+}
+
 func Serve(t *Service) {
 	// 注册路由
 	defer glog.Flush()
@@ -121,6 +134,7 @@ func Serve(t *Service) {
 	mux.HandleFunc("/update", t.updateHandler)
 	mux.HandleFunc("/version", t.versionHandler)
 	mux.HandleFunc("/test", t.testHandler)
+	mux.HandleFunc("/sudo", t.handleSudo)
 	mux.HandleFunc("/get", t.handleGet)
 	mux.HandleFunc("/restart", t.restartHandler)
 	mux.HandleFunc("/uninstall", t.uninstallHandler)
