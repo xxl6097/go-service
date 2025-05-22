@@ -99,12 +99,13 @@ func (this *goreservice) Uninstall() error {
 			return err
 		}
 		fileName := filepath.Base(binpath)
-		destFilePath := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils.SecureRandomID()), fileName)
+		destDir := glog.GetCrossPlatformDataDir("temp", utils.SecureRandomID())
+		destFilePath := filepath.Join(destDir, fileName)
 		err = utils.Copy(binpath, destFilePath)
 		if err != nil {
 			return err
 		}
-		defer os.Remove(destFilePath)
+		defer utils.DeleteAll(destDir, "删除卸载临时文件")
 		err = os.Chmod(destFilePath, 0755)
 		if err != nil {
 			glog.Errorf("赋权限错误: %v %s %v\n", utils.FileExists(destFilePath), destFilePath, err)
