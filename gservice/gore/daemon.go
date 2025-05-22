@@ -32,7 +32,7 @@ func NewDaemon(shut service.Shutdowner, conf *service.Config) (*Daemon, error) {
 func (d *Daemon) control(cmd string) error {
 	e := service.Control(d.svr, cmd)
 	if e != nil {
-		fmt.Println(cmd, e)
+		//fmt.Println(cmd, e)
 		return e
 	}
 	return nil
