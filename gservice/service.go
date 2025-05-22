@@ -372,6 +372,7 @@ func (this *gservice) install() error {
 
 }
 func (this *gservice) uninstall() error {
+	defer glog.Flush()
 	err := this.daemon.Stop() //.Control("stop", "", nil)
 	if err != nil {           // service maybe not install
 		glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
@@ -385,8 +386,8 @@ func (this *gservice) uninstall() error {
 	}
 	time.Sleep(time.Second * 2)
 	// 尝试删除自身
-	utils.DeleteAll(this.tempDir, "临时文件夹")
-	utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
+	_ = utils.DeleteAll(this.tempDir, "临时文件夹")
+	_ = utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
 	glog.Println("尝试删除自身:", this.workDir)
 	if err := os.RemoveAll(this.workDir); err != nil {
 		fmt.Printf("Error removing executable: %v\n", err)
