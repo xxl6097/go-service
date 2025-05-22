@@ -374,6 +374,7 @@ func Delete(filePath string, args ...string) error {
 }
 
 func DeleteAll(filePath string, args ...string) error {
+	defer glog.Flush()
 	var title string
 	if args != nil && len(args) > 0 {
 		title = args[0]

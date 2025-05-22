@@ -38,6 +38,7 @@ func Run(srv gore.GService) error {
 		glog.LogDefaultLogSetting("app.log")
 	}
 	glog.Debugf("运行参数：%+v args:%+v", bconfig, os.Args)
+	glog.Flush()
 	if bconfig.DisplayName == "" {
 		return fmt.Errorf("服务显示名不能为空")
 	}
@@ -376,27 +377,32 @@ func (this *gservice) uninstall() error {
 	err := this.daemon.Stop() //.Control("stop", "", nil)
 	if err != nil {           // service maybe not install
 		glog.Printf("服务【%s】未运行 %v\n", this.conf.DisplayName, err)
+		_ = glog.Flush()
 		//return err
 	}
 	err = this.daemon.Uninstall() //Control("uninstall", "", nil)
 	if err != nil {
 		glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, err)
+		_ = glog.Flush()
 	} else {
 		glog.Printf("服务【%s】成功卸载\n", this.conf.DisplayName)
+		_ = glog.Flush()
 	}
 	time.Sleep(time.Second * 2)
 	// 尝试删除自身
 	_ = utils.DeleteAll(this.tempDir, "临时文件夹")
-	_ = utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
+	_ = utils.DeleteAll(glog.GetCrossPlatformDataDir(), "app文件夹")
 	glog.Println("尝试删除自身:", this.workDir)
+	_ = glog.Flush()
 	if err := os.RemoveAll(this.workDir); err != nil {
 		fmt.Printf("Error removing executable: %v\n", err)
+		_ = glog.Flush()
 		time.Sleep(time.Second * 3)
 		os.Exit(1)
 	} else {
 		glog.Println("尝试删除成功")
+		_ = glog.Flush()
 	}
-
 	return err
 }
 func (this *gservice) startService() error {
