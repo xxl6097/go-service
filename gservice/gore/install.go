@@ -23,15 +23,11 @@ func Install(g GService, binPath, installBinPath string) error {
 	if gs, ok := g.(Installer); ok {
 		return gs.OnInstall(binPath, installBinPath)
 	} else if gss, okk := g.(DefaultInstaller); okk {
-		glog.Println("------Install---2", binPath, installBinPath)
 		cfg := gss.GetAny(filepath.Dir(installBinPath))
-		glog.Println("------Install---2.1", cfg)
 		if cfg != nil {
-			glog.Println("------Install---3", binPath, installBinPath)
 			return signInstall(cfg, binPath, installBinPath)
 		}
 	}
-	glog.Println("------Install--4", binPath, installBinPath)
 	return manualInstall(binPath, installBinPath)
 }
 
