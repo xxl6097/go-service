@@ -94,6 +94,7 @@ func (this *goreservice) Uninstall() error {
 	}
 	e := this.s.Uninstall()
 	if e != nil {
+		glog.Errorf("原生函数卸载失败 %+v", e)
 		binpath, err := os.Executable()
 		if err != nil {
 			return err

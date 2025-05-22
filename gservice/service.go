@@ -24,6 +24,7 @@ type gservice struct {
 }
 
 func Run(srv gore.GService) error {
+	defer glog.Flush()
 	bconfig := srv.OnInit()
 	if bconfig == nil {
 		return fmt.Errorf("请实现OnConfig() *service.Config方法")
@@ -32,10 +33,11 @@ func Run(srv gore.GService) error {
 		return fmt.Errorf("应用名不能为空")
 	}
 	if len(os.Args) > 1 {
-		glog.LogDefaultLogSetting("install.log")
+		glog.LogDefaultLogSetting(fmt.Sprintf("%s.log", os.Args[1]))
 	} else {
 		glog.LogDefaultLogSetting("app.log")
 	}
+	glog.Debugf("运行参数：%+v args:%+v", bconfig, os.Args)
 	if bconfig.DisplayName == "" {
 		return fmt.Errorf("服务显示名不能为空")
 	}
@@ -55,7 +57,7 @@ func Run(srv gore.GService) error {
 
 	bconfig.Executable = filepath.Join(this.workDir, bconfig.Name)
 	binDir := filepath.Dir(os.Args[0])
-	os.Chdir(binDir)
+	_ = os.Chdir(binDir)
 	core := gore.NewCoreService(srv)
 	d, err := gore.NewDaemon(core, bconfig)
 	if err != nil {
@@ -71,7 +73,6 @@ func Run(srv gore.GService) error {
 }
 
 func (this *gservice) run() error {
-	defer glog.Flush()
 	if this.srv == nil {
 		return errors.New("请继承gservice.IService接口！")
 	}
