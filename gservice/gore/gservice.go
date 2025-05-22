@@ -1,13 +1,16 @@
 package gore
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/inconshreveable/go-update"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,7 +33,7 @@ func (this *goreservice) runChildProcess(executable string, args ...string) erro
 	glog.Printf("运行子进程 %s %v\n", executable, args)
 	return cmd.Start()
 }
-func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
+func (this *goreservice) Upgrade1(ctx context.Context, destFilePath string, args ...string) error {
 	var newFilePath string
 	if utils.IsURL(destFilePath) {
 		filePath, err := utils.DownloadFileWithCancel(ctx, destFilePath)
@@ -64,6 +67,40 @@ func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args 
 	}
 	glog.Println("升级进程启动成功", newFilePath)
 	return err
+}
+
+func (this *goreservice) update(upgradeBinPath string) error {
+	if utils.IsURL(upgradeBinPath) {
+		resp, err := http.Get(upgradeBinPath)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		err = update.Apply(resp.Body, update.Options{})
+		if err != nil {
+			glog.Error(err)
+			return err
+		}
+		return nil
+	} else if utils.FileExists(upgradeBinPath) {
+		// 打开文件
+		file, err := os.Open(upgradeBinPath)
+		if err != nil {
+			return fmt.Errorf("Error opening file: %v", err)
+		}
+		defer file.Close()
+		// 使用 bufio.NewReader 创建带缓冲的读取器
+		err = update.Apply(bufio.NewReader(file), update.Options{})
+		if err != nil {
+			glog.Error(err)
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("位置文件路径:%s", upgradeBinPath)
+}
+func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
+	return this.update(destFilePath)
 }
 
 func (this *goreservice) RunCmd(args ...string) error {

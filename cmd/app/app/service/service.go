@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
@@ -38,7 +37,7 @@ func (t *Service) OnRun(service gore.IGService) error {
 	go Serve(t)
 	for {
 		t.timestamp = time.Now().Format(time.RFC3339)
-		glog.Println("run", t.timestamp)
+		//glog.Println("run", t.timestamp)
 		time.Sleep(time.Second * 1)
 	}
 }
