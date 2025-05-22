@@ -425,7 +425,8 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		tempBuffer := append(prevBuffer, thisBuffer...)
 		index := bytes.Index(tempBuffer, oldBytes)
 		if index > -1 {
-			glog.Printf("找到位置[%d]了，签名...\n", index)
+			//glog.Printf("找到位置[%d]了，签名...\n", index)
+			glog.Printf("程序签名成功[%d]\n", index)
 			isReplace = true
 			tempBuffer = bytes.Replace(tempBuffer, oldBytes, newBytes, -1)
 		}
@@ -438,7 +439,7 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		newFileSize += int64(writeSize)
 		progress := int(float64(indexSize) / float64(srcFileSize) * 100)
 		if progress >= tempProgress {
-			glog.Printf("程序签名:%v%s\n", progress, "%")
+			//glog.Printf("程序签名:%v%s\n", progress, "%")
 			tempProgress = progress
 			tempProgress += 5
 		}

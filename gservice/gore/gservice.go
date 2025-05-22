@@ -10,6 +10,7 @@ import (
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type goreservice struct {
@@ -88,6 +89,39 @@ func (this *goreservice) Restart() error {
 }
 
 func (this *goreservice) Uninstall() error {
+	if this.s == nil {
+		return errors.New("daemon is nil")
+	}
+	e := this.s.Uninstall()
+	if e != nil {
+		binpath, err := os.Executable()
+		if err != nil {
+			return err
+		}
+		fileName := filepath.Base(binpath)
+		destFilePath := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils.SecureRandomID()), fileName)
+		err = utils.Copy(binpath, destFilePath)
+		if err != nil {
+			return err
+		}
+		err = os.Chmod(destFilePath, 0755)
+		if err != nil {
+			glog.Errorf("赋权限错误: %v %s %v\n", utils.FileExists(destFilePath), destFilePath, err)
+			return fmt.Errorf("赋权限错误: %v\n", err)
+		}
+		glog.Println("当前进程ID:", os.Getpid())
+		err = this.runChildProcess(destFilePath, "uninstall")
+		if err != nil {
+			glog.Errorf("RunChildProcess错误: %v\n", err)
+			return fmt.Errorf("Error starting update process: %v\n", err)
+		}
+		glog.Println("程序卸载成功", destFilePath)
+		return err
+	}
+	return e
+}
+
+func (this *goreservice) Uninstall1() error {
 	if this.s == nil {
 		return errors.New("daemon is nil")
 	}
