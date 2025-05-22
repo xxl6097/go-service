@@ -38,7 +38,6 @@ func Run(srv gore.GService) error {
 		glog.LogDefaultLogSetting("app.log")
 	}
 	glog.Debugf("运行参数：%+v", os.Args)
-	glog.Flush()
 	if bconfig.DisplayName == "" {
 		return fmt.Errorf("服务显示名不能为空")
 	}
@@ -70,10 +69,10 @@ func Run(srv gore.GService) error {
 	//} else {
 	//	return srv.OnRun(this)
 	//}
-	return this.run()
+	return this.run(srv)
 }
 
-func (this *gservice) run() error {
+func (this *gservice) run(srv gore.GService) error {
 	if this.srv == nil {
 		return errors.New("请继承gservice.IService接口！")
 	}
@@ -95,12 +94,16 @@ func (this *gservice) run() error {
 			return this.stopService()
 		case "restart":
 			return this.restart()
-		case "run":
+		//case "run":
+		//	glog.Printf("运行服务【%s】%v\n", this.conf.DisplayName, this.daemon.IsRunning())
+		//	return this.daemon.Run()
+		case "r", "run":
 			glog.Printf("运行服务【%s】%v\n", this.conf.DisplayName, this.daemon.IsRunning())
-			return this.daemon.Run()
+			return srv.OnRun(nil)
 		}
 	}
 	if this.canMenu() {
+		glog.Debug("运行菜单")
 		return this.runMenu()
 	}
 	glog.Printf("运行服务【%s】%v\n", this.conf.DisplayName, this.daemon.IsRunning())

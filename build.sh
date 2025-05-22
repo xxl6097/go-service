@@ -4,6 +4,7 @@ options=("windows:amd64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5"
 #options=("linux:amd64" "windows:amd64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
+appname="aatest"
 
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
@@ -301,7 +302,7 @@ function buildInstaller() {
   showBuildDir ./cmd/app
   builddir="./release"
   #appname=$(basename "$dir")
-  appname="srvinstaller"
+#  appname="srvinstaller"
   appdir=${dir}
   disname="${appname}应用程序"
   describe="一款基于GO语言的服务安装程序"
@@ -312,7 +313,7 @@ function buildInstaller() {
 # shellcheck disable=SC2120
 function buildForGithubRelease() {
   builddir="./release"
-  appname="srvinstaller"
+#  appname="srvinstaller"
   appdir="./cmd/app/installer"
   disname="${appname}应用程序"
   describe="一款基于GO语言的服务安装程序"
