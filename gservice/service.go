@@ -301,13 +301,13 @@ func (this *gservice) install() error {
 			return err
 		}
 	} else {
-		//this.daemon.Uninstall()
-		e := this.daemon.Uninstall()
-		if e != nil {
-			glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, e)
-		} else {
-			glog.Println("服务成功卸载！")
-		}
+		this.daemon.Uninstall()
+		//e := this.daemon.Uninstall()
+		//if e != nil {
+		//	glog.Printf("服务【%s】卸载失败 %v\n", this.conf.DisplayName, e)
+		//} else {
+		//	glog.Println("服务成功卸载！")
+		//}
 	}
 	util.SetFirewall(this.conf.Name, this.conf.Executable)
 	err = util.SetRLimit()
