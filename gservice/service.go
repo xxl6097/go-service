@@ -314,7 +314,7 @@ func (this *gservice) install() error {
 	if err != nil {
 		glog.Error(err)
 	}
-
+	glog.Println("------1！")
 	if _, err := os.Stat(this.workDir); !os.IsNotExist(err) {
 		if isRemoved {
 			err5 := os.RemoveAll(this.workDir)
@@ -337,9 +337,11 @@ func (this *gservice) install() error {
 		}
 	}
 
+	glog.Println("------2")
 	//这个地方是取的当前运行的执行文件
 	currentBinPath, err := os.Executable()
 	if err != nil {
+		glog.Println("------3", err)
 		glog.Fatal("os.Executable() error", err)
 		return err
 	}
@@ -350,6 +352,7 @@ func (this *gservice) install() error {
 		return err
 	}
 
+	glog.Println("------4", this.workDir)
 	err = os.Chdir(this.workDir)
 	if err != nil {
 		glog.Println("os.Chdir error:", err)

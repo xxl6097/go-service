@@ -21,13 +21,17 @@ type DefaultInstaller interface {
 
 func Install(g GService, binPath, installBinPath string) error {
 	if gs, ok := g.(Installer); ok {
+		glog.Println("------Install---1", binPath, installBinPath)
 		return gs.OnInstall(binPath, installBinPath)
 	} else if gss, okk := g.(DefaultInstaller); okk {
+		glog.Println("------Install---2", binPath, installBinPath)
 		cfg := gss.GetAny(filepath.Dir(installBinPath))
 		if cfg != nil {
+			glog.Println("------Install---3", binPath, installBinPath)
 			return signInstall(cfg, binPath, installBinPath)
 		}
 	}
+	glog.Println("------Install--4", binPath, installBinPath)
 	return manualInstall(binPath, installBinPath)
 }
 
