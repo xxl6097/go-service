@@ -104,6 +104,7 @@ func (this *goreservice) Uninstall() error {
 		if err != nil {
 			return err
 		}
+		defer os.Remove(destFilePath)
 		err = os.Chmod(destFilePath, 0755)
 		if err != nil {
 			glog.Errorf("赋权限错误: %v %s %v\n", utils.FileExists(destFilePath), destFilePath, err)
