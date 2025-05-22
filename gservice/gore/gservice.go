@@ -92,6 +92,7 @@ func (this *goreservice) Uninstall() error {
 	if this.s == nil {
 		return errors.New("daemon is nil")
 	}
+	defer glog.Flush()
 	e := this.s.Uninstall()
 	if e != nil {
 		glog.Errorf("原生函数卸载失败 %+v", e)

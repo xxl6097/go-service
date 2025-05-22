@@ -673,8 +673,10 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {
 				//fmt.Println("2通道 ", i, err.Error())
+				glog.Errorf("下载被取消 %+v", err)
 				return dst
 			} else {
+				glog.Errorf("下载失败 %+v", err)
 			}
 		}
 		return dst
