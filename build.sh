@@ -297,6 +297,14 @@ function showBuildDir() {
       fi
   done
 }
+
+
+function install() {
+ echo "${builddir}  ${appname}_${version}_${os}_${arch}"
+ sudo ${builddir}/${appname}_${version}_${os}_${arch} install
+}
+
+
 # shellcheck disable=SC2120
 function buildInstaller() {
   showBuildDir ./cmd/app
@@ -308,6 +316,8 @@ function buildInstaller() {
   describe="一款基于GO语言的服务安装程序"
   rm -rf ${builddir}
   buildMenu $builddir $appname "$version" $appdir $disname $describe
+
+  install
 }
 
 # shellcheck disable=SC2120
@@ -338,4 +348,16 @@ function bootstrap() {
   esac
 }
 
+function showMenu() {
+    echo "1. 编译程序"
+    echo "2. 安装程序"
+    echo "请输入编号:"
+    read index
+    clear
+    case "$index" in
+    [1]) (bootstrap $1 $2);;
+    [2]) (install);;
+    *) echo "exit" ;;
+  esac
+}
 bootstrap $1 $2

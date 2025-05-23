@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/kardianos/service"
+	_ "github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
@@ -43,6 +44,6 @@ func (t *Service) OnRun(service gore.IGService) error {
 }
 
 func (t *Service) menu() any {
-	appName := utils.InputString(fmt.Sprintf("请输入应用名称："))
+	appName := utils.InputStringEmpty(fmt.Sprintf("测试输入："), "册书数据")
 	return []string{appName}
 }
