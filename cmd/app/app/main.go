@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+//go:generate goversioninfo -icon=resource/icon.ico -manifest=resource/goversioninfo.exe.manifest
 func main() {
 	svr := service.Service{}
 	if len(os.Args) > 1 {

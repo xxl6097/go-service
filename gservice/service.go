@@ -11,7 +11,6 @@ import (
 	"github.com/xxl6097/go-service/gservice/ukey"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -30,13 +29,13 @@ func Run(srv gore.GService) error {
 	if bconfig == nil {
 		return fmt.Errorf("请实现OnConfig() *service.Config方法")
 	}
-	bconfig.Option = map[string]interface{}{
-		"RunAtLoad": true,
-	}
-	u, err := user.Current()
-	if err == nil {
-		bconfig.UserName = u.Username
-	}
+	//bconfig.Option = map[string]interface{}{
+	//	"RunAtLoad": true,
+	//}
+	//u, err := user.Current()
+	//if err == nil {
+	//	bconfig.UserName = u.Username
+	//}
 
 	if bconfig.Name == "" {
 		return fmt.Errorf("应用名不能为空")

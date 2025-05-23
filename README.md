@@ -12,3 +12,14 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o AAATest1.exe main.go
 go get github.com/kbinani/screenshot
 
 go get -u github.com/inconshreveable/go-update
+
+
+
+## goversioninfo
+
+```
+
+go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
+
+go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+```
