@@ -12,7 +12,7 @@ func main() {
 	svr := service.Service{}
 	if len(os.Args) > 1 {
 		if os.Args[1] == "test" {
-			service.Server(&svr)
+			service.Server(9090, &svr)
 			return
 		}
 	}

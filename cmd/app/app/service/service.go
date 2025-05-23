@@ -14,6 +14,7 @@ import (
 type Service struct {
 	gs        gore.IGService
 	timestamp string
+	port      int
 }
 
 type Config struct {
@@ -43,7 +44,7 @@ func (t *Service) OnVersion() string {
 func (t *Service) OnRun(service gore.IGService) error {
 	t.gs = service
 	//glog.SetLogFile("./logs", "app.log")
-	go Server(t)
+	go Server(t.port, t)
 	for {
 		t.timestamp = time.Now().Format(time.RFC3339)
 		//glog.Println("run", t.timestamp)
@@ -53,5 +54,7 @@ func (t *Service) OnRun(service gore.IGService) error {
 
 func (t *Service) menu() any {
 	appName := utils.InputStringEmpty(fmt.Sprintf("测试输入："), "册书数据")
+	port := utils.InputIntDefault(fmt.Sprintf("测试输入端口(%d)：", 9090), 9090)
+	t.port = port
 	return &Config{AppTesting: appName}
 }

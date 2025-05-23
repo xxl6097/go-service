@@ -195,7 +195,7 @@ func addStatic(subRouter *mux.Router) {
 	})
 }
 
-func Server(t *Service) {
+func Server(p int, t *Service) {
 	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
 	assets.Load("")
 
@@ -208,7 +208,11 @@ func Server(t *Service) {
 
 	addStatic(router.NewRoute().Subrouter())
 
-	port := ":8888"
+	if p <= 0 {
+		p = 9090
+	}
+
+	port := fmt.Sprintf(":%d", p)
 	address := "http://localhost" + port
 	// 启动 HTTP 服务器
 	glog.Printf("Starting server at %s\n", address)
