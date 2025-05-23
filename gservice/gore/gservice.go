@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -24,15 +22,7 @@ func NewGoreService(s service.Service, dirs []string) IGService {
 		dirs: dirs,
 	}
 }
-func (this *goreservice) runChildProcess(executable string, args ...string) error {
-	//args = append([]string{executable}, args...)
-	//cmd := exec.Command("sudo", args...)
-	cmd := exec.Command(executable, args...)
-	util.SetPlatformSpecificAttrs(cmd)
-	glog.Printf("运行子进程 %s %v\n", executable, args)
-	return cmd.Start()
-}
-func (this *goreservice) Upgrade1(ctx context.Context, destFilePath string, args ...string) error {
+func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
 	var newFilePath string
 	if utils.IsURL(destFilePath) {
 		filePath, err := utils.DownloadFileWithCancel(ctx, destFilePath)
@@ -59,7 +49,7 @@ func (this *goreservice) Upgrade1(ctx context.Context, destFilePath string, args
 	arg = append(arg, "upgrade")
 	arg = append(arg, newFilePath)
 	arg = append(arg, args...)
-	err = this.runChildProcess(newFilePath, arg...)
+	err = utils.RunChildProcess(newFilePath, arg...)
 	if err != nil {
 		glog.Errorf("RunChildProcess错误: %v\n", err)
 		return fmt.Errorf("Error starting update process: %v\n", err)
@@ -74,7 +64,7 @@ func (this *goreservice) RunCmd(args ...string) error {
 	if err != nil {
 		return err
 	}
-	err = this.runChildProcess(binpath, args...)
+	err = utils.RunChildProcess(binpath, args...)
 	if err != nil {
 		glog.Errorf("RunChildProcess错误: %v\n", err)
 		return fmt.Errorf("RunChildProcess错误: %v\n", err)
@@ -83,7 +73,7 @@ func (this *goreservice) RunCmd(args ...string) error {
 	return err
 }
 
-func (this *goreservice) Restart1() error {
+func (this *goreservice) Restart() error {
 	if utils.IsWindows() {
 		return utils.RestartForWindows()
 	}
@@ -93,7 +83,7 @@ func (this *goreservice) Restart1() error {
 	return this.s.Restart()
 }
 
-func (this *goreservice) Uninstall1() error {
+func (this *goreservice) Uninstall() error {
 	if this.s == nil {
 		return errors.New("daemon is nil")
 	}
@@ -119,7 +109,7 @@ func (this *goreservice) Uninstall1() error {
 			return fmt.Errorf("赋权限错误: %v\n", err)
 		}
 		glog.Println("当前进程ID:", os.Getpid())
-		err = this.runChildProcess(destFilePath, "uninstall")
+		err = utils.RunChildProcess(destFilePath, "uninstall")
 		if err != nil {
 			glog.Errorf("RunChildProcess错误: %v\n", err)
 			return fmt.Errorf("Error starting update process: %v\n", err)
