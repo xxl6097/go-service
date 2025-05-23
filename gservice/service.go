@@ -17,10 +17,11 @@ import (
 )
 
 type gservice struct {
-	daemon           *gore.Daemon
-	srv              gore.GService
-	conf             *service.Config
-	workDir, tempDir string
+	daemon  *gore.Daemon
+	srv     gore.GService
+	conf    *service.Config
+	workDir string
+	dirs    []string
 }
 
 func Run(srv gore.GService) error {
@@ -57,7 +58,6 @@ func Run(srv gore.GService) error {
 		srv:     srv,
 		conf:    bconfig,
 		workDir: filepath.Join(util.DefaultInstallPath, bconfig.Name),
-		tempDir: filepath.Join(os.TempDir(), bconfig.Name),
 	}
 	if utils.IsWindows() {
 		bconfig.Name = bconfig.Name + ".exe"
@@ -66,7 +66,8 @@ func Run(srv gore.GService) error {
 	bconfig.Executable = filepath.Join(this.workDir, bconfig.Name)
 	binDir := filepath.Dir(os.Args[0])
 	_ = os.Chdir(binDir)
-	core := gore.NewCoreService(srv, []string{this.workDir, this.tempDir, glog.GetCrossPlatformDataDir()})
+	this.dirs = []string{this.workDir, glog.GetCrossPlatformDataDir()}
+	core := gore.NewCoreService(srv, this.dirs)
 	d, err := gore.NewDaemon(core, bconfig)
 	if err != nil {
 		return err
@@ -93,7 +94,15 @@ func (this *gservice) run(srv gore.GService) error {
 		case "install":
 			return this.install()
 		case "uninstall":
-			return this.uninstall()
+			err := this.uninstall()
+			glog.Debugf("卸载进程: %v,err : %v", os.Getpid(), err)
+			for _, dir := range this.dirs {
+				e := os.RemoveAll(dir)
+				if e != nil {
+					glog.Error("删除失败", dir, e)
+				}
+			}
+			return err
 		case "upgrade", "update":
 			return this.upgrade()
 		case "start":
@@ -413,7 +422,6 @@ func (this *gservice) uninstall() error {
 	}
 	time.Sleep(time.Second * 2)
 	// 尝试删除自身
-	_ = utils.DeleteAll(this.tempDir, "临时文件夹")
 	_ = utils.DeleteAll(glog.GetCrossPlatformDataDir(), "app文件夹")
 	glog.Println("尝试删除自身:", this.workDir)
 	_ = glog.Flush()

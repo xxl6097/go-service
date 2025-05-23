@@ -9,6 +9,7 @@ import (
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type goreservice struct {
@@ -83,12 +84,35 @@ func (this *goreservice) Restart() error {
 	return this.s.Restart()
 }
 
+func (this *goreservice) uninstall() error {
+	defer func() {
+		err := this.DeleteAllDirs()
+		glog.Debug("DeleteAllDirs", err)
+		err = this.s.Stop()
+		glog.Debug("Stop", err)
+		err = this.s.Stop()
+		_ = glog.Flush()
+	}()
+	err := this.s.Uninstall() //Control("uninstall", "", nil)
+	if err != nil {
+		glog.Printf("服务卸载失败 %v\n", err)
+		_ = glog.Flush()
+	} else {
+		glog.Printf("服务成功卸载\n")
+		_ = glog.Flush()
+	}
+	time.Sleep(time.Second * 2)
+	// 尝试删除自身
+	return err
+}
+
 func (this *goreservice) Uninstall() error {
 	if this.s == nil {
 		return errors.New("daemon is nil")
 	}
 	defer glog.Flush()
-	e := this.s.Uninstall()
+	//e := this.s.Uninstall()
+	e := this.uninstall()
 	if e != nil {
 		glog.Errorf("原生函数卸载失败 %+v", e)
 		binpath, err := os.Executable()
@@ -114,20 +138,27 @@ func (this *goreservice) Uninstall() error {
 			glog.Errorf("RunChildProcess错误: %v\n", err)
 			return fmt.Errorf("Error starting update process: %v\n", err)
 		}
+		_ = this.DeleteAllDirs()
 		glog.Println("程序卸载成功", destFilePath)
 		return err
+	} else {
+		glog.Debug("程序卸载成功")
 	}
 	return e
 }
 
-func (this *goreservice) DeleteAllDirs() {
+func (this *goreservice) DeleteAllDirs() error {
 	if this.dirs == nil {
-		return
+		return nil
 	}
+	var e error
 	for _, dir := range this.dirs {
 		err := os.RemoveAll(dir)
+		glog.Debug("删除文件", dir)
 		if err != nil {
 			glog.Error("删除失败", dir, err)
+			e = err
 		}
 	}
+	return e
 }
