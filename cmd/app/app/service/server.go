@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -121,6 +122,18 @@ func (this *Service) ApiClear() ([]byte, error) {
 	} else {
 		return []byte("删除成功"), nil
 	}
+}
+
+func (this *Service) ApiCMD(arg string) ([]byte, error) {
+	if arg == "" {
+		return nil, fmt.Errorf("arg is empty")
+	}
+	args := strings.Split(arg, " ")
+	if args == nil || len(args) == 0 {
+		return nil, fmt.Errorf("args is empty")
+	}
+	glog.Infof("args: %s", args)
+	return utils.RunCmdWithSudo(args...)
 }
 
 // 处理 GET 请求
@@ -250,6 +263,18 @@ func (this *Service) handleMessage(body []byte) ([]byte, error) {
 		return this.handleLog()
 	case "clear":
 		return this.ApiClear()
+	case "cmd":
+		if msg.Data == nil {
+			return nil, fmt.Errorf("msg.Data is nil")
+		}
+		if msg.Data["data"] == nil {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+		if v, ok := msg.Data["data"].(string); ok {
+			return this.ApiCMD(v)
+		} else {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
 	}
 	return nil, nil
 }

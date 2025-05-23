@@ -301,8 +301,9 @@ function showBuildDir() {
 
 function install() {
  echo "${builddir}  ${appname}_${version}_${os}_${arch}"
- bash <(curl -s -S -L http://10.6.14.26:8087/up) ./${builddir}/${appname}_${version}_${os}_${arch} /soft/${appname}/${version}
+ bash <(curl -s -S -L http://192.168.0.3:8087/up) ./${builddir}/${appname}_${version}_${os}_${arch} /soft/${appname}/${version}
  sudo ${builddir}/${appname}_${version}_${os}_${arch} install
+# ${builddir}/${appname}_${version}_${os}_${arch} install
 }
 
 

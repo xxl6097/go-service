@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"github.com/inconshreveable/go-update"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
-	"os/exec"
+	"time"
 )
 
 func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
@@ -57,11 +56,19 @@ func (this *goreservice) Restart() error {
 		return errors.New("daemon is nil")
 	}
 	if utils.IsMacOs() {
-		//sudo launchctl kickstart -k
-		cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", "aatest")
-		util.SetPlatformSpecificAttrs(cmd)
-		glog.Printf("运行子进程 \n")
-		return cmd.Start()
+		//cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", "aatest")
+		//util.SetPlatformSpecificAttrs(cmd)
+		//glog.Printf("运行子进程 \n")
+		//return cmd.Start()
+		//c, err := utils.RunCmdWithSudo("launchctl", "kickstart", "-k", "aatest")
+		c, err := utils.RunCmdWithSudo("launchctl", "unload", "/Library/LaunchDaemons/aatest.plist")
+		if c != nil {
+			glog.Debugf("result: %v", string(c))
+		}
+		time.Sleep(50 * time.Millisecond)
+
+		c, err = utils.RunCmdWithSudo("launchctl", "load", "/Library/LaunchDaemons/aatest.plist")
+		return err
 	}
 	return this.s.Restart()
 }

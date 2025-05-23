@@ -26,11 +26,13 @@ func (t *Service) GetAny(binDir string) any {
 }
 
 func (t *Service) OnInit() *service.Config {
-	return &service.Config{
-		Name:        pkg.AppName,
+	cfg := service.Config{
+		Name: pkg.AppName,
+		//UserName:    "root",
 		DisplayName: fmt.Sprintf("A AAATest1 Service %s", pkg.AppVersion),
 		Description: "A Golang AAATest1 Service..",
 	}
+	return &cfg
 }
 
 func (t *Service) OnVersion() string {

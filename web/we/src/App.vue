@@ -25,7 +25,7 @@
             style="width: 50%"
             placeholder="请输入命令"
           ></el-input>
-          <el-button @click="handleCMD(input2, '')" style="width: 50%" plain
+          <el-button @click="handleCMD('cmd', input2)" style="width: 50%" plain
             >执行命令
           </el-button>
         </div>

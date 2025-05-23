@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 )
 
 func runWithSudo() error {
@@ -28,12 +29,11 @@ func runWithSudo() error {
 }
 
 func main() {
-	if err := runWithSudo(); err != nil {
-		fmt.Printf("获取管理员权限失败: %v\n", err)
-		os.Exit(1)
+	u, err := user.Current()
+	if err != nil {
+		fmt.Println("获取用户信息失败:", err)
+		return
 	}
-
-	// 执行需要管理员权限的操作
-	fmt.Println("已获取管理员权限，正在执行敏感操作...")
+	fmt.Println("当前系统用户名:", u.Username)
 	// ...
 }

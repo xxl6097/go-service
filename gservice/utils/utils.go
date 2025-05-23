@@ -731,6 +731,24 @@ func RunWithSudo() error {
 	return cmd.Run()
 }
 
+func RunCmdWithSudo(args ...string) ([]byte, error) {
+	glog.Debug("run", args)
+	cmd := exec.Command("sudo", args...)
+	output, err := cmd.CombinedOutput() // 捕获标准输出和错误
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(output)) // 输出：hello world
+	return output, err
+
+	//cmd := exec.Command("sudo", args...)
+	//cmd.Stdin = os.Stdin
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
+	//// 执行命令
+	//return cmd.Run()
+}
+
 func IsMacOs() bool {
 	if strings.Compare(runtime.GOOS, "darwin") == 0 {
 		return true
