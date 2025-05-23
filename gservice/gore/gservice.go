@@ -86,14 +86,12 @@ func (this *goreservice) Restart() error {
 
 func (this *goreservice) uninstall() error {
 	defer func() {
-		if utils.IsWindows() {
-			err := this.s.Stop()
-			glog.Debug("尝试停止服务", err)
-		}
 		err := this.DeleteAllDirs()
 		glog.Debug("DeleteAllDirs", err)
-		err = this.s.Stop()
-		glog.Debug("尝试停止服务", err)
+		if !utils.IsWindows() {
+			err = this.s.Stop()
+			glog.Debug("尝试停止服务", err)
+		}
 		_ = glog.Flush()
 	}()
 	err := this.s.Uninstall() //Control("uninstall", "", nil)
