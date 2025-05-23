@@ -2,50 +2,45 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/cmd/app/app/service/middle"
-	"github.com/xxl6097/go-service/gservice/ukey"
+	"github.com/xxl6097/go-service/assets"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
-	"log"
+	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
-// 处理 GET 请求
-func (t *Service) updateHandler(w http.ResponseWriter, r *http.Request) {
-	// 确保只处理 GET 请求
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+type Message[T any] struct {
+	Action string `json:"action,omitempty"`
+	Data   T      `json:"data,omitempty"`
+}
 
-	// 获取查询参数
-	queryParams := r.URL.Query()
-
-	glog.Println("update", r.URL.Path)
-	// 获取单个参数值
-	binurl := queryParams.Get("binurl")
-	// 返回响应
-	response := fmt.Sprintf("Hello, %s", binurl)
-	glog.Println("update", response)
-	err := t.service.Upgrade(r.Context(), binurl)
-	glog.Println("update", err)
-	fmt.Fprintln(w, pkg.Version())
+type Result struct {
+	Code int    `json:"code"`
+	Data string `json:"data,omitempty"`
 }
 
 // 处理 GET 请求
-func (t *Service) versionHandler(w http.ResponseWriter, r *http.Request) {
-	// 确保只处理 GET 请求
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+func (t *Service) updateHandler(binurl string) ([]byte, error) {
+	response := fmt.Sprintf("Hello, %s", binurl)
+	glog.Println("update", response)
+	if t.service == nil {
+		return []byte(response), fmt.Errorf("service is nil")
 	}
-	pkg.Version()
-	fmt.Println(ukey.GetBuffer())
-	fmt.Fprintln(w, pkg.Version())
+	err := t.service.Upgrade(context.Background(), binurl)
+	glog.Println("update", err)
+	return []byte(pkg.Version()), err
+}
+
+// 处理 GET 请求
+func (t *Service) versionHandler() ([]byte, error) {
+	return []byte(pkg.Version()), nil
 }
 
 // 处理 GET 请求
@@ -64,103 +59,160 @@ func (t *Service) testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // 处理 GET 请求
-func (t *Service) handleGet(w http.ResponseWriter, r *http.Request) {
-	_, _ = w.Write([]byte(fmt.Sprintf("%s\ntimestamp: %s", pkg.Version(), t.timestamp)))
+func (t *Service) handleGet() ([]byte, error) {
+	return []byte(fmt.Sprintf("%s\ntimestamp: %s", pkg.Version(), t.timestamp)), nil
 }
 
 // 处理 GET 请求
-func (t *Service) restartHandler(w http.ResponseWriter, r *http.Request) {
-	// 确保只处理 GET 请求
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+func (t *Service) handleDelete() ([]byte, error) {
+	// 获取当前可执行文件路径
+	exePath, err := os.Executable()
+	if err != nil {
+		return nil, err
 	}
-	fmt.Fprintln(w, pkg.Version())
-	//t.service.Restart()
-	t.service.RunCmd("restart")
-}
 
-// 处理 GET 请求
-func (t *Service) uninstallHandler(w http.ResponseWriter, r *http.Request) {
-	// 确保只处理 GET 请求
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+	// 确保路径是绝对路径
+	exePath, err = filepath.Abs(exePath)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Fprintln(w, pkg.Version())
-	t.service.Uninstall()
+	err = os.Remove(exePath)
+	if err != nil {
+		return []byte("失败"), err
+	} else {
+		return []byte("成功"), err
+	}
 }
 
-//func Serve(t *Service) {
-//	// 注册路由
-//	defer glog.Flush()
-//	http.HandleFunc("/update", t.updateHandler)
-//	http.HandleFunc("/version", t.versionHandler)
-//	http.HandleFunc("/test", t.testHandler)
-//	http.HandleFunc("/get", t.handleGet)
-//	http.HandleFunc("/restart", t.restartHandler)
-//	http.HandleFunc("/uninstall", t.uninstallHandler)
-//
-//	// 启动 HTTP 服务器
-//	glog.Println("Starting server at http://localhost:8080")
-//	glog.Println("update--->http://localhost:8080/update")
-//	glog.Println("version--->http://localhost:8080/version")
-//	glog.Println("test--->http://localhost:8080/test")
-//	glog.Println("restart--->http://localhost:8080/restart")
-//	glog.Println("uninstall--->http://localhost:8080/uninstall")
-//	if err := http.ListenAndServe(":8080", nil); err != nil {
-//		glog.Error("--->", err)
-//	}
-//}
+// 处理 GET 请求
+func (t *Service) restartHandler() ([]byte, error) {
+	err := t.service.RunCmd("restart")
+	return []byte(pkg.Version()), err
+}
 
 // 处理 GET 请求
-func (t *Service) handleSudo(w http.ResponseWriter, r *http.Request) {
+func (t *Service) uninstallHandler() ([]byte, error) {
+	err := t.service.Uninstall()
+	return []byte(pkg.Version()), err
+}
+
+// 处理 GET 请求
+func (t *Service) handleSudo() ([]byte, error) {
 	if err := utils.RunWithSudo(); err != nil {
 		msg := fmt.Sprintf("获取管理员权限失败: %v\n", err)
 		glog.Println(msg)
-		w.Write([]byte(msg))
+		return []byte(msg), err
 	}
 	msg := "已获取管理员权限，正在执行敏感操作..."
 	glog.Println(msg)
-	w.Write([]byte(msg))
+	return []byte(msg), nil
 }
 
-func Serve(t *Service) {
-	// 注册路由
-	defer glog.Flush()
-	// 创建默认的ServeMux
-	mux := http.NewServeMux()
+func (this *Service) apiCommand(w http.ResponseWriter, r *http.Request) {
+	var errMsg error
+	var data []byte
+	defer func() {
+		var msg string
+		if data != nil {
+			msg = fmt.Sprintf("data: %s", string(data))
+		}
+		if errMsg != nil {
+			msg = fmt.Sprintf("%s err: %s", msg, errMsg)
+		}
+
+		res := Result{
+			Code: 0,
+			Data: msg,
+		}
+		jsonData, err := json.Marshal(res)
+		if err != nil {
+			glog.Errorf("json marshal err: %v", err)
+			return
+		}
+		glog.Debug(string(jsonData))
+		_, _ = w.Write(jsonData)
+	}()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		errMsg = fmt.Errorf("body读取失败 %v", err)
+		return
+	}
+	if body == nil {
+		errMsg = fmt.Errorf("body is nil")
+		return
+	}
+
+	data, errMsg = this.handleMessage(body)
+}
+
+func addStatic(subRouter *mux.Router) {
+	subRouter.Handle("/favicon.ico", http.FileServer(assets.FileSystem)).Methods("GET")
+	subRouter.PathPrefix("/static/").Handler(
+		assets.MakeHTTPGzipHandler(http.StripPrefix("/static/", http.FileServer(assets.FileSystem))),
+	).Methods("GET")
+	subRouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/static/", http.StatusMovedPermanently)
+	})
+}
+
+func (this *Service) handleMessage(body []byte) ([]byte, error) {
+	var msg Message[map[string]interface{}]
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		return nil, fmt.Errorf("解析Json对象失败 %v", err)
+	}
+	glog.Debugf("body:%s", string(body))
+	switch msg.Action {
+	case "update":
+		if msg.Data == nil {
+			return nil, fmt.Errorf("msg.Data is nil")
+		}
+		if msg.Data["data"] == nil {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+		if v, ok := msg.Data["data"].(string); ok {
+			return this.updateHandler(v)
+		} else {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+
+	case "version":
+		return this.versionHandler()
+	case "sudo":
+		return this.handleSudo()
+	case "get":
+		return this.handleGet()
+	case "delete":
+		return this.handleDelete()
+	case "restart":
+		return this.restartHandler()
+	case "uninstall":
+		return this.uninstallHandler()
+	}
+	return nil, nil
+}
+func Server(t *Service) {
+	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
+	assets.Load("")
 	// 注册路由处理函数
-	mux.HandleFunc("/update", t.updateHandler)
-	mux.HandleFunc("/version", t.versionHandler)
-	mux.HandleFunc("/test", t.testHandler)
-	mux.HandleFunc("/sudo", t.handleSudo)
-	mux.HandleFunc("/get", t.handleGet)
-	mux.HandleFunc("/restart", t.restartHandler)
-	mux.HandleFunc("/uninstall", t.uninstallHandler)
+	router.HandleFunc("/api/cmd", t.apiCommand)
 
+	addStatic(router.NewRoute().Subrouter())
+
+	port := ":8888"
+	address := "http://localhost" + port
 	// 启动 HTTP 服务器
-	glog.Println("Starting server at http://localhost:8080")
-	glog.Println("update--->http://localhost:8080/update")
-	glog.Println("version--->http://localhost:8080/version")
-	glog.Println("test--->http://localhost:8080/test")
-	glog.Println("get--->http://localhost:8080/get")
-	glog.Println("restart--->http://localhost:8080/restart")
-	glog.Println("uninstall--->http://localhost:8080/uninstall")
+	glog.Printf("Starting server at %s\n", address)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	// 创建服务器配置
-	server := &http.Server{
-		Addr:         ":" + port,
-		Handler:      middle.LoggingMiddleware(mux),
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  120 * time.Second,
-	}
+	fmt.Println(address)
+	// 启动服务器
+	_ = http.ListenAndServe(port, router)
+}
 
-	fmt.Printf("服务器启动，监听端口 %s\n", port)
-	log.Fatal(server.ListenAndServe())
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Welcome to Home Page"))
+}
+
+func UsersHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("User API Endpoint"))
 }

@@ -7,3 +7,5 @@ require (
 	github.com/xxl6097/glog v0.1.23
 	golang.org/x/sys v0.30.0
 )
+
+require github.com/gorilla/mux v1.8.1 // indirect

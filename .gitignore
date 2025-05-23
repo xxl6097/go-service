@@ -1,14 +1,22 @@
 .gradle
-.DS_Store
-node_modules
-/dist
-dist
-.version
-release
 /local.properties
 /.idea
+dist
+dist-frps
+dist-frpc
+.version
+version.txt
+release/
+./token
+.token
+./dist
+dist.zip
 .DS_Store
 /build
+logs
+log
+/web/frpc/node_modules
+/web/frps/node_modules
 *.iml
 .externalNativeBuild
 /captures
@@ -20,7 +28,7 @@ build
 fyne-cross
 .idea
 cmake-build-debug
-node_modules
+
 # Built application files
 *.apk
 *.ap_
@@ -72,4 +80,22 @@ ipch
 .vs
 .svn
 # setting.ini
+
+
+.DS_Store
+assets/html/vue-admin/node_modules/
+assets/html/vue-admin/dist/
+assets/html/vue-admin/npm-debug.log*
+assets/html/vue-admin/yarn-debug.log*
+assets/html/vue-admin/yarn-error.log*
+assets/html/vue-admin/package-lock.json
+assets/html/vue-admin/tests/**/coverage/
+
+# Editor directories and files
+assets/html/vue-admin/.idea
+assets/html/vue-admin/.vscode
+assets/html/vue-admin/*.suo
+assets/html/vue-admin/*.ntvs*
+assets/html/vue-admin/*.njsproj
+assets/html/vue-admin/*.sln
 

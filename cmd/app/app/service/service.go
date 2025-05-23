@@ -34,7 +34,7 @@ func (t *Service) OnVersion() string {
 func (t *Service) OnRun(service gore.IGService) error {
 	t.service = service
 	//glog.SetLogFile("./logs", "app.log")
-	go Serve(t)
+	go Server(t)
 	for {
 		t.timestamp = time.Now().Format(time.RFC3339)
 		//glog.Println("run", t.timestamp)
