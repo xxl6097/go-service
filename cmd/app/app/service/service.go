@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	service   gore.IGService
+	gs        gore.IGService
 	timestamp string
 }
 
@@ -33,7 +33,7 @@ func (t *Service) OnVersion() string {
 }
 
 func (t *Service) OnRun(service gore.IGService) error {
-	t.service = service
+	t.gs = service
 	//glog.SetLogFile("./logs", "app.log")
 	go Server(t)
 	for {

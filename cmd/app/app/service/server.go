@@ -30,12 +30,12 @@ type Result struct {
 func (t *Service) updateHandler(binurl string) ([]byte, error) {
 	response := fmt.Sprintf("Hello, %s", binurl)
 	glog.Println("update", response)
-	if t.service == nil {
-		return []byte(response), fmt.Errorf("service is nil")
+	if t.gs == nil {
+		return []byte(response), fmt.Errorf("gs is nil")
 	}
-	err := t.service.Upgrade(context.Background(), binurl)
+	err := t.gs.Upgrade(context.Background(), binurl)
 	glog.Println("update", err)
-	return []byte(pkg.Version()), err
+	return []byte(pkg.AppVersion), err
 }
 
 // 处理 GET 请求
@@ -86,13 +86,13 @@ func (t *Service) handleDelete() ([]byte, error) {
 
 // 处理 GET 请求
 func (t *Service) restartHandler() ([]byte, error) {
-	err := t.service.RunCmd("restart")
+	err := t.gs.RunCmd("restart")
 	return []byte(pkg.Version()), err
 }
 
 // 处理 GET 请求
 func (t *Service) uninstallHandler() ([]byte, error) {
-	err := t.service.Uninstall()
+	err := t.gs.Uninstall()
 	return []byte(pkg.Version()), err
 }
 
@@ -155,6 +155,32 @@ func addStatic(subRouter *mux.Router) {
 	})
 }
 
+func Server(t *Service) {
+	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
+	assets.Load("")
+	// 注册路由处理函数
+	router.HandleFunc("/api/cmd", t.apiCommand)
+
+	addStatic(router.NewRoute().Subrouter())
+
+	port := ":8888"
+	address := "http://localhost" + port
+	// 启动 HTTP 服务器
+	glog.Printf("Starting server at %s\n", address)
+
+	fmt.Println(address)
+	// 启动服务器
+	_ = http.ListenAndServe(port, router)
+}
+
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Welcome to Home Page"))
+}
+
+func UsersHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("User API Endpoint"))
+}
+
 func (this *Service) handleMessage(body []byte) ([]byte, error) {
 	var msg Message[map[string]interface{}]
 	err := json.Unmarshal(body, &msg)
@@ -190,29 +216,4 @@ func (this *Service) handleMessage(body []byte) ([]byte, error) {
 		return this.uninstallHandler()
 	}
 	return nil, nil
-}
-func Server(t *Service) {
-	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
-	assets.Load("")
-	// 注册路由处理函数
-	router.HandleFunc("/api/cmd", t.apiCommand)
-
-	addStatic(router.NewRoute().Subrouter())
-
-	port := ":8888"
-	address := "http://localhost" + port
-	// 启动 HTTP 服务器
-	glog.Printf("Starting server at %s\n", address)
-
-	fmt.Println(address)
-	// 启动服务器
-	_ = http.ListenAndServe(port, router)
-}
-
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Welcome to Home Page"))
-}
-
-func UsersHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("User API Endpoint"))
 }
