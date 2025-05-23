@@ -102,7 +102,7 @@ func (this *gservice) run(srv gore.GService) error {
 			return srv.OnRun(nil)
 		}
 	}
-	if this.canMenu() {
+	if ukey.CanShowMenu() {
 		glog.Debug("运行菜单")
 		return this.runMenu()
 	}
@@ -145,13 +145,14 @@ func (this *gservice) runMenu() error {
 	}
 	return nil
 }
-func (this *gservice) canMenu() bool {
-	_, err := ukey.Load()
-	if err != nil {
-		return true
-	}
-	return false
-}
+
+//func (this *gservice) canMenu() bool {
+//	_, err := ukey.Load()
+//	if err != nil {
+//		return true
+//	}
+//	return false
+//}
 
 //
 //func (this *gservice) update(upgradeBinPath string) error {

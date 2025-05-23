@@ -23,12 +23,32 @@ func Install(g GService, binPath, installBinPath string) error {
 	if gs, ok := g.(Installer); ok {
 		return gs.OnInstall(binPath, installBinPath)
 	} else if gss, okk := g.(DefaultInstaller); okk {
-		cfg := gss.GetAny(filepath.Dir(installBinPath))
+		//cfg := gss.GetAny(filepath.Dir(installBinPath))
+		cfg := getAny(filepath.Dir(installBinPath), gss)
 		if cfg != nil {
 			return signInstall(cfg, binPath, installBinPath)
 		}
 	}
 	return manualInstall(binPath, installBinPath)
+}
+
+func getAny(binDir string, bs BaseService) any {
+	if bs == nil {
+		glog.Error("getAny bs is nil")
+		return nil
+	}
+	cfg := bs.GetAny(filepath.Dir(binDir))
+	if cfg == nil {
+		cfg = ukey.KeyBuffer{}
+	}
+	if v, ok := cfg.(ukey.KeyBuffer); ok {
+		v.MenuDisable = true
+		return v
+	} else if v1, ok := cfg.(*ukey.KeyBuffer); ok {
+		v1.MenuDisable = true
+		return v1
+	}
+	return cfg
 }
 
 func signInstall(cfg any, binPath, installBinPath string) error {

@@ -5,6 +5,7 @@ import (
 	"github.com/kardianos/service"
 	_ "github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/ukey"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
 	"time"
@@ -13,6 +14,11 @@ import (
 type Service struct {
 	gs        gore.IGService
 	timestamp string
+}
+
+type Config struct {
+	ukey.KeyBuffer
+	AppTesting string `json:"appTesting"`
 }
 
 func (t *Service) GetAny(binDir string) any {
@@ -45,5 +51,5 @@ func (t *Service) OnRun(service gore.IGService) error {
 
 func (t *Service) menu() any {
 	appName := utils.InputStringEmpty(fmt.Sprintf("测试输入："), "册书数据")
-	return []string{appName}
+	return &Config{AppTesting: appName}
 }

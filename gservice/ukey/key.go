@@ -22,6 +22,10 @@ var key = []byte{0x98, 0xF3, 0x74, 0xED, 0x96, 0xFF, 0x49, 0x3B, 0x22, 0x1E, 0x3
 
 const BufferLenType = 4
 
+type KeyBuffer struct {
+	MenuDisable bool `json:"menuDisable"` //默认false
+}
+
 func GetRawKey() ([]byte, error) {
 	newKey, err := DecKey(key)
 	if err != nil {
@@ -129,6 +133,31 @@ func LoadBuffer(buf []byte) ([]byte, error) {
 
 func Load() ([]byte, error) {
 	return LoadBuffer(buffer)
+}
+
+func CanShowMenu() bool {
+	buf, err := Load()
+	if err != nil || buf == nil {
+		return false
+	}
+
+	var obj any
+	err = json.Unmarshal(buf, obj)
+	if err != nil {
+		return false
+	}
+	glog.Debugf("CanShowMenu %+v", obj)
+	if m, ok := obj.(map[string]interface{}); ok {
+		if v, okk := m["menuDisable"]; okk {
+			if v == nil {
+				return false
+			}
+			if vv, o := v.(bool); o {
+				return vv
+			}
+		}
+	}
+	return false
 }
 
 // GenConfig 只有在计算buffer长度的时候 cap才为true，其他情况一律false
