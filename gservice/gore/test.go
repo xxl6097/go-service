@@ -64,8 +64,7 @@ func (this *goreservice) Restart() error {
 		//if c != nil {
 		//	glog.Debugf("result: %v", string(c))
 		//}
-
-		err := utils.RunWithSudo1("restart")
+		err := this.RunCmd("restart")
 		return err
 	}
 	return this.s.Restart()
