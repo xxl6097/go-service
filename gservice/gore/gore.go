@@ -42,10 +42,11 @@ func (c coreService) Start(s service.Service) error {
 
 func (c coreService) Stop(s service.Service) error {
 	defer glog.Flush()
-	glog.Println("停止服务")
-
+	status, err := s.Status()
 	Stop(c.svr, s)
-	if service.Interactive() {
+	ok := service.Interactive()
+	glog.Println("停止服务", ok, s.String(), s.Platform(), status, err)
+	if ok {
 		glog.Println("停止deamon")
 		os.Exit(0)
 	}

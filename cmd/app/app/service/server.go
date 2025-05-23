@@ -86,14 +86,41 @@ func (t *Service) handleDelete() ([]byte, error) {
 
 // 处理 GET 请求
 func (t *Service) restartHandler() ([]byte, error) {
-	err := t.gs.RunCmd("restart")
-	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), err
+	//err := t.gs.RunCmd("restart")
+	err := t.gs.Restart()
+	return nil, err
 }
 
 // 处理 GET 请求
 func (t *Service) uninstallHandler() ([]byte, error) {
 	err := t.gs.Uninstall()
+	return nil, err
+}
+
+// 处理 GET 请求
+func (t *Service) handleLog() ([]byte, error) {
+	err := t.gs.Uninstall()
 	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), err
+}
+
+// /api/shutdown
+func (this *Service) ApiClear() ([]byte, error) {
+	binPath, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	binDir := filepath.Dir(binPath)
+	clientsDir := filepath.Join(binDir, "clients")
+	err = utils.DeleteAll(clientsDir)
+	logDir := glog.GetCrossPlatformDataDir()
+	err = utils.DeleteAll(logDir)
+	upDir := utils.GetUpgradeDir()
+	err = utils.DeleteAll(upDir)
+	if err != nil {
+		return nil, err
+	} else {
+		return []byte("删除成功"), nil
+	}
 }
 
 // 处理 GET 请求
@@ -158,6 +185,11 @@ func addStatic(subRouter *mux.Router) {
 func Server(t *Service) {
 	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
 	assets.Load("")
+
+	staticPrefix := "/log/"
+	baseDir := glog.GetCrossPlatformDataDir()
+	router.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
+
 	// 注册路由处理函数
 	router.HandleFunc("/api/cmd", t.apiCommand)
 
@@ -214,6 +246,10 @@ func (this *Service) handleMessage(body []byte) ([]byte, error) {
 		return this.restartHandler()
 	case "uninstall":
 		return this.uninstallHandler()
+	case "log":
+		return this.handleLog()
+	case "clear":
+		return this.ApiClear()
 	}
 	return nil, nil
 }

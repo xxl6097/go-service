@@ -43,8 +43,18 @@
           <el-button @click="handleCMD('delete', '')">delete</el-button>
           <el-button @click="handleCMD('restart', '')">restart</el-button>
           <el-button @click="handleCMD('uninstall', '')">uninstall</el-button>
-          <el-button @click="handleGetNetwork">获取网络信息</el-button>
+        </div>
+        <div
+          style="
+            display: flex;
+            margin-left: 5px;
+            margin-right: 5px;
+            margin-top: 10px;
+          "
+        >
+          <el-button @click="handleReadLog">查看日志</el-button>
           <el-button @click="handleClearLog">清空日志</el-button>
+          <el-button @click="handleCMD('clear', '')">清空数据</el-button>
           <el-button @click="handleTest">测试按钮</el-button>
         </div>
       </el-col>
@@ -86,8 +96,9 @@ const handleCMD = (action: string | undefined, data: string | undefined) => {
   fetchRunApi(action, { data: data })
 }
 
-const handleGetNetwork = () => {
-  fetchRunApi('network', {})
+const handleReadLog = () => {
+  const host = window.origin
+  window.open(`${host}/log/`)
 }
 const handleTest = () => {
   addLog('这是一条测试数据')

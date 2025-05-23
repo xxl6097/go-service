@@ -81,7 +81,7 @@ func (this *goreservice) RunCmd(args ...string) error {
 	return err
 }
 
-func (this *goreservice) Restart() error {
+func (this *goreservice) Restart1() error {
 	if utils.IsWindows() {
 		return utils.RestartForWindows()
 	}

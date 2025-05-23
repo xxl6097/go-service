@@ -49,3 +49,10 @@ func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args 
 	return nil
 
 }
+
+func (this *goreservice) Restart() error {
+	if this.s == nil {
+		return errors.New("daemon is nil")
+	}
+	return this.s.Restart()
+}
