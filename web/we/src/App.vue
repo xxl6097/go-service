@@ -44,6 +44,7 @@
           <el-button @click="handleCMD('restart', '')">restart</el-button>
           <el-button @click="handleCMD('uninstall', '')">uninstall</el-button>
           <el-button @click="handleGetNetwork">获取网络信息</el-button>
+          <el-button @click="handleClearLog">清空日志</el-button>
           <el-button @click="handleTest">测试按钮</el-button>
         </div>
       </el-col>
@@ -90,6 +91,9 @@ const handleGetNetwork = () => {
 }
 const handleTest = () => {
   addLog('这是一条测试数据')
+}
+const handleClearLog = () => {
+  logs.value = []
 }
 
 const fetchRunApi = (action: string | undefined, data: any) => {

@@ -40,7 +40,7 @@ func (t *Service) updateHandler(binurl string) ([]byte, error) {
 
 // 处理 GET 请求
 func (t *Service) versionHandler() ([]byte, error) {
-	return []byte(pkg.Version()), nil
+	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), nil
 }
 
 // 处理 GET 请求
@@ -87,13 +87,13 @@ func (t *Service) handleDelete() ([]byte, error) {
 // 处理 GET 请求
 func (t *Service) restartHandler() ([]byte, error) {
 	err := t.gs.RunCmd("restart")
-	return []byte(pkg.Version()), err
+	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), err
 }
 
 // 处理 GET 请求
 func (t *Service) uninstallHandler() ([]byte, error) {
 	err := t.gs.Uninstall()
-	return []byte(pkg.Version()), err
+	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), err
 }
 
 // 处理 GET 请求
