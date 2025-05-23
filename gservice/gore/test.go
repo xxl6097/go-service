@@ -38,7 +38,7 @@ func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args 
 	}
 
 	defer func() {
-		_ = utils.DeleteAll(filepath.Dir(newFilePath), "升价文件夹")
+		_ = utils.DeleteAll(filepath.Dir(newFilePath), "升级文件夹")
 	}()
 	err := os.Chmod(newFilePath, 0755)
 	if err != nil {
@@ -52,6 +52,7 @@ func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args 
 		return fmt.Errorf("error opening file: %v", err)
 	}
 	defer file.Close()
+	this.s.Stop()
 	// 使用 bufio.NewReader 创建带缓冲的读取器
 	err = update.Apply(bufio.NewReader(file), update.Options{})
 	if err != nil {
