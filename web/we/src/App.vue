@@ -144,6 +144,8 @@ const fetchRunApi = (action: string | undefined, data: any) => {
       loading.close()
     })
 }
+
+handleCMD('version', '')
 </script>
 
 <style>

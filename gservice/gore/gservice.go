@@ -14,12 +14,14 @@ import (
 )
 
 type goreservice struct {
-	s service.Service
+	s    service.Service
+	dirs []string
 }
 
-func NewGoreService(s service.Service) IGService {
+func NewGoreService(s service.Service, dirs []string) IGService {
 	return &goreservice{
-		s: s,
+		s:    s,
+		dirs: dirs,
 	}
 }
 func (this *goreservice) runChildProcess(executable string, args ...string) error {
@@ -128,9 +130,14 @@ func (this *goreservice) Uninstall1() error {
 	return e
 }
 
-func (this *goreservice) Uninstall() error {
-	if this.s == nil {
-		return errors.New("daemon is nil")
+func (this *goreservice) DeleteAllDirs() {
+	if this.dirs == nil {
+		return
 	}
-	return this.s.Uninstall()
+	for _, dir := range this.dirs {
+		err := os.RemoveAll(dir)
+		if err != nil {
+			glog.Error("删除失败", dir, err)
+		}
+	}
 }

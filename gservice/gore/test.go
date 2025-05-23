@@ -11,6 +11,12 @@ import (
 	"os"
 )
 
+func (this *goreservice) Uninstall() error {
+	if this.s == nil {
+		return errors.New("daemon is nil")
+	}
+	return this.s.Uninstall()
+}
 func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
 	var newFilePath string
 	if utils.IsURL(destFilePath) {
@@ -54,18 +60,20 @@ func (this *goreservice) Restart() error {
 	if this.s == nil {
 		return errors.New("daemon is nil")
 	}
-	if utils.IsMacOs() {
-		//cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", "aatest")
-		//util.SetPlatformSpecificAttrs(cmd)
-		//glog.Printf("运行子进程 \n")
-		//return cmd.Start()
-		//c, err := utils.RunCmdWithSudo("launchctl", "kickstart", "-k", "aatest")
-		//c, err := utils.RunCmdWithSudo("launchctl", "load", "/Library/LaunchDaemons/aatest.plist")
-		//if c != nil {
-		//	glog.Debugf("result: %v", string(c))
-		//}
-		err := this.RunCmd("restart")
-		return err
-	}
-	return this.s.Restart()
+	//if utils.IsMacOs() {
+	//	//cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", "aatest")
+	//	//util.SetPlatformSpecificAttrs(cmd)
+	//	//glog.Printf("运行子进程 \n")
+	//	//return cmd.Start()
+	//	//c, err := utils.RunCmdWithSudo("launchctl", "kickstart", "-k", "aatest")
+	//	//c, err := utils.RunCmdWithSudo("launchctl", "load", "/Library/LaunchDaemons/aatest.plist")
+	//	//if c != nil {
+	//	//	glog.Debugf("result: %v", string(c))
+	//	//}
+	//	err := this.RunCmd("restart")
+	//	return err
+	//}
+	err := this.s.Restart()
+	this.DeleteAllDirs()
+	return err
 }

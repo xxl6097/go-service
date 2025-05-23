@@ -67,7 +67,7 @@ func Run(srv gore.GService) error {
 	bconfig.Executable = filepath.Join(this.workDir, bconfig.Name)
 	binDir := filepath.Dir(os.Args[0])
 	_ = os.Chdir(binDir)
-	core := gore.NewCoreService(srv)
+	core := gore.NewCoreService(srv, []string{this.workDir, this.tempDir, glog.GetCrossPlatformDataDir()})
 	d, err := gore.NewDaemon(core, bconfig)
 	if err != nil {
 		return err

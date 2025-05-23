@@ -26,17 +26,18 @@ type BaseService interface {
 }
 
 type coreService struct {
-	svr GService
+	svr  GService
+	dirs []string
 }
 
-func (c coreService) Start(s service.Service) error {
+func (c *coreService) Start(s service.Service) error {
 	defer glog.Flush()
 	status, err := s.Status()
 	glog.Printf("启动服务【%s】\r\n", s.String())
 	glog.Println("StatusUnknown=0；StatusRunning=1；StatusStopped=2；status", status, err)
 	glog.Println("Platform", s.Platform())
 	utils.DeleteAll(utils.GetUpgradeDir(), "升级文件夹")
-	go c.svr.OnRun(NewGoreService(s))
+	go c.svr.OnRun(NewGoreService(s, c.dirs))
 	return err
 }
 
@@ -64,8 +65,9 @@ func (c coreService) Shutdown(s service.Service) error {
 	return nil
 }
 
-func NewCoreService(svr GService) service.Shutdowner {
+func NewCoreService(svr GService, dirs []string) service.Shutdowner {
 	return &coreService{
-		svr: svr,
+		svr:  svr,
+		dirs: dirs,
 	}
 }
