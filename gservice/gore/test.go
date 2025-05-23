@@ -9,6 +9,8 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
+	"path/filepath"
+	"time"
 )
 
 func (this *goreservice) Uninstall() error {
@@ -34,6 +36,9 @@ func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args 
 		return errors.New("无法识别的文件" + newFilePath)
 	}
 
+	defer func() {
+		_ = utils.DeleteAll(filepath.Dir(newFilePath), "升价文件夹")
+	}()
 	err := os.Chmod(newFilePath, 0755)
 	if err != nil {
 		glog.Errorf("赋权限错误: %v %s %v\n", utils.FileExists(newFilePath), newFilePath, err)
@@ -52,7 +57,18 @@ func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args 
 		glog.Error(err)
 		return err
 	}
-	return nil
+	time.Sleep(time.Second * 1)
+	if utils.IsWindows() {
+		err = this.s.Start()
+	} else {
+		err = this.s.Restart()
+	}
+	if err != nil {
+		glog.Println("服务启动失败，错误信息:", err)
+	} else {
+		glog.Println("服务启动成功！")
+	}
+	return err
 
 }
 
