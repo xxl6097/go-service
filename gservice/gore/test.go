@@ -9,7 +9,6 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
-	"time"
 )
 
 func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
@@ -61,13 +60,12 @@ func (this *goreservice) Restart() error {
 		//glog.Printf("运行子进程 \n")
 		//return cmd.Start()
 		//c, err := utils.RunCmdWithSudo("launchctl", "kickstart", "-k", "aatest")
-		c, err := utils.RunCmdWithSudo("launchctl", "unload", "/Library/LaunchDaemons/aatest.plist")
-		if c != nil {
-			glog.Debugf("result: %v", string(c))
-		}
-		time.Sleep(50 * time.Millisecond)
+		//c, err := utils.RunCmdWithSudo("launchctl", "load", "/Library/LaunchDaemons/aatest.plist")
+		//if c != nil {
+		//	glog.Debugf("result: %v", string(c))
+		//}
 
-		c, err = utils.RunCmdWithSudo("launchctl", "load", "/Library/LaunchDaemons/aatest.plist")
+		err := utils.RunWithSudo1("restart")
 		return err
 	}
 	return this.s.Restart()

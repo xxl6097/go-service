@@ -731,6 +731,24 @@ func RunWithSudo() error {
 	return cmd.Run()
 }
 
+func RunWithSudo1(args ...string) error {
+	// 获取当前可执行文件路径
+	exePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("获取可执行文件路径失败: %v", err)
+	}
+
+	args = append([]string{exePath}, args...)
+	// 构建 sudo 命令
+	cmd := exec.Command("sudo", args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// 执行命令
+	return cmd.Run()
+}
+
 func RunCmdWithSudo(args ...string) ([]byte, error) {
 	glog.Debug("run", args)
 	cmd := exec.Command("sudo", args...)
