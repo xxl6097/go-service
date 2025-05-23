@@ -84,7 +84,7 @@ func (this *goreservice) Restart() error {
 	return this.s.Restart()
 }
 
-func (this *goreservice) uninstall() error {
+func (this *goreservice) Uninstall() error {
 	defer func() {
 		err := this.DeleteAllDirs()
 		glog.Debug("DeleteAllDirs", err)
@@ -106,13 +106,13 @@ func (this *goreservice) uninstall() error {
 	return err
 }
 
-func (this *goreservice) Uninstall() error {
+func (this *goreservice) Uninstall1() error {
 	if this.s == nil {
 		return errors.New("daemon is nil")
 	}
 	defer glog.Flush()
-	//e := this.s.Uninstall()
-	e := this.uninstall()
+	e := this.s.Uninstall()
+	//e := this.uninstall()
 	if e != nil {
 		glog.Errorf("原生函数卸载失败 %+v", e)
 		binpath, err := os.Executable()
