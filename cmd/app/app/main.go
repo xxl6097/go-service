@@ -18,5 +18,5 @@ func main() {
 		}
 	}
 	err := gservice.Run(&svr)
-	glog.Println(pkg.AppName, err, glog.GetCrossPlatformDataDir())
+	glog.Println(pkg.AppName, err)
 }
