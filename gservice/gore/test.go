@@ -20,6 +20,7 @@ func (this *goreservice) Uninstall() error {
 	return this.s.Uninstall()
 }
 func (this *goreservice) Upgrade(ctx context.Context, destFilePath string, args ...string) error {
+	glog.Debug("开始升级", destFilePath)
 	var newFilePath string
 	if utils.IsURL(destFilePath) {
 		filePath, err := utils.DownloadFileWithCancel(ctx, destFilePath)
