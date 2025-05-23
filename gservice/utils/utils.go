@@ -730,3 +730,10 @@ func RunWithSudo() error {
 	// 执行命令
 	return cmd.Run()
 }
+
+func IsMacOs() bool {
+	if strings.Compare(runtime.GOOS, "darwin") == 0 {
+		return true
+	}
+	return false
+}
