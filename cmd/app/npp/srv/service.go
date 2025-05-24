@@ -1,32 +1,26 @@
-package service
+package srv
 
 import (
 	"fmt"
 	"github.com/kardianos/service"
-	_ "github.com/xxl6097/go-service/assets/we"
-	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
-	"github.com/xxl6097/go-service/pkg/ukey"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"time"
 )
 
 type Service struct {
-	gs        gore.IGService
 	timestamp string
 	port      int
+	gs        igs.Service
 }
 
 type Config struct {
-	ukey.KeyBuffer
+	//ukey.KeyBuffer
 	AppTesting string `json:"appTesting"`
 }
 
-func (t *Service) GetAny(binDir string) any {
-	return t.menu()
-}
-
-func (t *Service) OnInit() *service.Config {
+func (this *Service) OnConfig() *service.Config {
 	cfg := service.Config{
 		Name: pkg.AppName,
 		//UserName:    "root",
@@ -36,25 +30,29 @@ func (t *Service) OnInit() *service.Config {
 	return &cfg
 }
 
-func (t *Service) OnVersion() string {
+func (this *Service) OnVersion() string {
 	pkg.Version()
 	return pkg.AppVersion
 }
 
-func (t *Service) OnRun(service gore.IGService) error {
-	t.gs = service
+func (this *Service) OnRun(service igs.Service) error {
+	this.gs = service
 	//glog.SetLogFile("./logs", "app.log")
-	go Server(t.port, t)
+	go Server(this.port, this)
 	for {
-		t.timestamp = time.Now().Format(time.RFC3339)
+		this.timestamp = time.Now().Format(time.RFC3339)
 		//glog.Println("run", t.timestamp)
 		time.Sleep(time.Second * 1)
 	}
 }
 
-func (t *Service) menu() any {
+func (this *Service) GetAny(s2 string) any {
+	return this.menu()
+}
+
+func (this *Service) menu() any {
 	appName := utils.InputStringEmpty(fmt.Sprintf("测试输入："), "册书数据")
 	port := utils.InputIntDefault(fmt.Sprintf("测试输入端口(%d)：", 9090), 9090)
-	t.port = port
+	this.port = port
 	return &Config{AppTesting: appName}
 }

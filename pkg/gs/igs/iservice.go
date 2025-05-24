@@ -1,0 +1,30 @@
+package igs
+
+import (
+	"context"
+	"github.com/kardianos/service"
+)
+
+type Service interface {
+	Upgrade(context.Context, string) error
+	UnInstall() error
+	RunCMD(...string) error
+	Restart() error
+}
+type IService interface {
+	OnConfig() *service.Config
+	OnVersion() string
+	OnRun(Service) error
+	GetAny(string) any
+}
+
+type Installer interface {
+	IService
+	//OnInstall arg1: 当前运行bin文件路径，arg2安装的目标bin文件路径
+	OnInstall(string, string) error
+}
+
+type DefaultService interface {
+	Service
+	Run() error
+}

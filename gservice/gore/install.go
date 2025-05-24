@@ -3,8 +3,8 @@ package gore
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/ukey"
 	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
 	"path/filepath"
 )
 
