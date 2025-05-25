@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/assets"
+	_ "github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
 	"io"
@@ -28,13 +29,13 @@ type Result struct {
 }
 
 // 处理 GET 请求
-func (t *Service) updateHandler(binurl string) ([]byte, error) {
+func (t *Service) updateHandler(binurl string, ctx context.Context) ([]byte, error) {
 	response := fmt.Sprintf("Hello, %s", binurl)
 	glog.Println("update", response)
 	if t.gs == nil {
 		return []byte(response), fmt.Errorf("gs is nil")
 	}
-	err := t.gs.Upgrade(context.Background(), binurl)
+	err := t.gs.Upgrade(ctx, binurl)
 	glog.Println("update", err)
 	return []byte(pkg.AppVersion), err
 }
@@ -135,6 +136,19 @@ func (this *Service) ApiCMD(arg string) ([]byte, error) {
 	return utils.RunCmdWithSudo(args...)
 }
 
+func (this *Service) ApiSelfCMD(arg string) ([]byte, error) {
+	if arg == "" {
+		return nil, fmt.Errorf("arg is empty")
+	}
+	args := strings.Split(arg, " ")
+	if args == nil || len(args) == 0 {
+		return nil, fmt.Errorf("args is empty")
+	}
+	glog.Infof("args: %s", args)
+	err := this.gs.RunCMD(args...)
+	return nil, err
+}
+
 // 处理 GET 请求
 func (t *Service) handleSudo() ([]byte, error) {
 	if err := utils.RunWithSudo(); err != nil {
@@ -168,7 +182,8 @@ func (this *Service) apiCommand(w http.ResponseWriter, r *http.Request) {
 			glog.Errorf("json marshal err: %v", err)
 			return
 		}
-		glog.Debug(string(jsonData))
+		//glog.Debug(string(jsonData))
+		glog.Debug("Code", res.Code)
 		_, _ = w.Write(jsonData)
 	}()
 	body, err := io.ReadAll(r.Body)
@@ -181,7 +196,7 @@ func (this *Service) apiCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, errMsg = this.handleMessage(body)
+	data, errMsg = this.handleMessage(body, r)
 }
 
 func addStatic(subRouter *mux.Router) {
@@ -229,7 +244,7 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User API Endpoint"))
 }
 
-func (this *Service) handleMessage(body []byte) ([]byte, error) {
+func (this *Service) handleMessage(body []byte, r *http.Request) ([]byte, error) {
 	var msg Message[map[string]interface{}]
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
@@ -245,7 +260,7 @@ func (this *Service) handleMessage(body []byte) ([]byte, error) {
 			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
 		}
 		if v, ok := msg.Data["data"].(string); ok {
-			return this.updateHandler(v)
+			return this.updateHandler(v, r.Context())
 		} else {
 			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
 		}
@@ -266,6 +281,18 @@ func (this *Service) handleMessage(body []byte) ([]byte, error) {
 		return this.handleLog()
 	case "clear":
 		return this.ApiClear()
+	case "self":
+		if msg.Data == nil {
+			return nil, fmt.Errorf("msg.Data is nil")
+		}
+		if msg.Data["data"] == nil {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+		if v, ok := msg.Data["data"].(string); ok {
+			return this.ApiSelfCMD(v)
+		} else {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
 	case "cmd":
 		if msg.Data == nil {
 			return nil, fmt.Errorf("msg.Data is nil")

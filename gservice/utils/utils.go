@@ -351,11 +351,16 @@ func GetInt() int {
 }
 
 func Exit() {
-	for i := 5; i >= 0; i-- {
-		fmt.Printf("\r%d秒后退出程序..", i)
-		time.Sleep(1 * time.Second)
-	}
-	fmt.Printf("\n")
+	//for i := 5; i >= 0; i-- {
+	//	fmt.Printf("\r%d秒后退出程序..", i)
+	//	time.Sleep(1 * time.Second)
+	//}
+	fmt.Print("按回车键退出程序...")
+	endKey := make([]byte, 1)
+	_, _ = os.Stdin.Read(endKey) // 等待用户输入任意内容后按回车
+	//fmt.Println("程序已退出")
+	//e := os.RemoveAll(glog.GetCrossPlatformDataDir())
+	//fmt.Println("s", e)
 	os.Exit(0)
 }
 

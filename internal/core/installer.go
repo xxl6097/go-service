@@ -68,7 +68,7 @@ func manualInstall(binPath, installBinPath string) error {
 		return fmt.Errorf("当前文件与安装文件路径一致，不允许安装 binPath:%v installBinPath:%v", binPath, installBinPath)
 	} else {
 		defer func() {
-			err := os.RemoveAll(binPath)
+			err := os.RemoveAll(filepath.Dir(filepath.Dir(binPath)))
 			if err != nil {
 				glog.Error("删除临时安装文件失败", binPath, err)
 			} else {

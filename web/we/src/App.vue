@@ -37,6 +37,23 @@
             margin-top: 10px;
           "
         >
+          <el-input
+            v-model="input3"
+            style="width: 50%"
+            placeholder="执行self命令"
+          ></el-input>
+          <el-button @click="handleCMD('self', input3)" style="width: 50%" plain
+            >执行self命令
+          </el-button>
+        </div>
+        <div
+          style="
+            display: flex;
+            margin-left: 5px;
+            margin-right: 5px;
+            margin-top: 10px;
+          "
+        >
           <el-button @click="handleCMD('version', '')">获取版本号</el-button>
           <el-button @click="handleCMD('sudo', '')">sudo</el-button>
           <el-button @click="handleCMD('get', '')">get</el-button>
@@ -82,6 +99,7 @@ const logContainer = ref<HTMLDivElement | null>(null)
 
 const input1 = ref<string>()
 const input2 = ref<string>()
+const input3 = ref<string>()
 
 const addLog = (context: string): void => {
   const newLog = `${new Date().toLocaleString()}: ${context}`

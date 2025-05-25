@@ -7,7 +7,6 @@ import (
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
-	"github.com/xxl6097/go-service/pkg/ukey"
 	"time"
 )
 
@@ -18,7 +17,6 @@ type Service struct {
 }
 
 type Config struct {
-	ukey.KeyBuffer
 	AppTesting string `json:"appTesting"`
 }
 

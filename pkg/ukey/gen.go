@@ -13,12 +13,13 @@ import (
 	"path/filepath"
 )
 
+// SignFileBySelfKey install的时候buffer是为初始化的
 func SignFileBySelfKey(cfg any, inFilePath string) (string, error) {
 	//1、获取用户的配置信息；
 	//2、加密用户信息，构建二进制常量；
 	//3、从原始二进制文件中查询特征码，替换为二进制常量；
 	//4、替换后，将二进制文件复制到安装指定的目录
-	newBufferBytes, err := GenConfig(cfg, false)
+	cfgBuffer, err := GenConfig(cfg, false)
 	if err != nil {
 		return "", fmt.Errorf("构建签名信息错误: %v", err)
 	}
@@ -26,9 +27,9 @@ func SignFileBySelfKey(cfg any, inFilePath string) (string, error) {
 	//安装程序，需要对程序进行签名，那么需要传入两个参数：
 	//1、最原始的key；
 	//2、需写入的data
-	buf := GetBuffer()
-	glog.Printf("buffer大小 %d\n", len(buf))
-	err = GenerateBin(inFilePath, outFilePath, buf, newBufferBytes)
+	keyBuffer := GetBuffer()
+	glog.Printf("buffer大小 %d\n", len(keyBuffer))
+	err = GenerateBin(inFilePath, outFilePath, keyBuffer, cfgBuffer)
 	if err != nil {
 		return "", fmt.Errorf("签名错误: %v", err)
 	}
@@ -48,8 +49,9 @@ func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
 		return "", err
 	}
 	outFilePath := filepath.Join(glog.GetCrossPlatformDataDir("sign", utils.GetID()), filepath.Base(newFilePath))
-	glog.Debug("获取配置数据成功", len(cfgBufferBytes))
-	oldBuffer := GetBuffer()
+	glog.Debug("获取配置数据成功，数据大小", len(cfgBufferBytes))
+	//oldBuffer := GetBuffer()
+	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
 	if err != nil {
 		glog.Error("签名错误：", err)
@@ -169,3 +171,25 @@ func DivideAndCeil(a, b int) int {
 func Divide(a, b int) int {
 	return DivideAndCeil(a, b) * b
 }
+
+//func SignFileBySelfKey(cfg any, inFilePath string) (string, error) {
+//	//1、获取用户的配置信息；
+//	//2、加密用户信息，构建二进制常量；
+//	//3、从原始二进制文件中查询特征码，替换为二进制常量；
+//	//4、替换后，将二进制文件复制到安装指定的目录
+//	newBufferBytes, err := GenConfig(cfg, false)
+//	if err != nil {
+//		return "", fmt.Errorf("构建签名信息错误: %v", err)
+//	}
+//	outFilePath := filepath.Join(glog.GetCrossPlatformDataDir("sign", utils.GetID()), filepath.Base(inFilePath))
+//	//安装程序，需要对程序进行签名，那么需要传入两个参数：
+//	//1、最原始的key；
+//	//2、需写入的data
+//	buf := GetBuffer()
+//	glog.Printf("buffer大小 %d\n", len(buf))
+//	err = GenerateBin(inFilePath, outFilePath, buf, newBufferBytes)
+//	if err != nil {
+//		return "", fmt.Errorf("签名错误: %v", err)
+//	}
+//	return outFilePath, nil
+//}

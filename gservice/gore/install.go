@@ -32,24 +32,37 @@ func Install(g GService, binPath, installBinPath string) error {
 	return manualInstall(binPath, installBinPath)
 }
 
-func getAny(binDir string, bs BaseService) any {
-	if bs == nil {
-		glog.Error("getAny bs is nil")
+func getAny(binDir string, g BaseService) any {
+	if g == nil {
+		glog.Error("igs.IService is nil")
 		return nil
 	}
-	cfg := bs.GetAny(filepath.Dir(binDir))
+	cfg := g.GetAny(filepath.Dir(binDir))
 	if cfg == nil {
-		cfg = ukey.KeyBuffer{}
-	}
-	if v, ok := cfg.(ukey.KeyBuffer); ok {
-		v.MenuDisable = true
-		return v
-	} else if v1, ok := cfg.(*ukey.KeyBuffer); ok {
-		v1.MenuDisable = true
-		return v1
+		cfg = map[string]any{"path": binDir}
 	}
 	return cfg
 }
+
+//
+//func getAny(binDir string, bs BaseService) any {
+//	if bs == nil {
+//		glog.Error("getAny bs is nil")
+//		return nil
+//	}
+//	cfg := bs.GetAny(filepath.Dir(binDir))
+//	if cfg == nil {
+//		cfg = ukey.KeyBuffer{}
+//	}
+//	if v, ok := cfg.(ukey.KeyBuffer); ok {
+//		v.MenuDisable = true
+//		return v
+//	} else if v1, ok := cfg.(*ukey.KeyBuffer); ok {
+//		v1.MenuDisable = true
+//		return v1
+//	}
+//	return cfg
+//}
 
 func signInstall(cfg any, binPath, installBinPath string) error {
 	//1、获取用户的配置信息；

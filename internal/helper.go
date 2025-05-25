@@ -8,20 +8,30 @@ import (
 	"github.com/xxl6097/go-service/gservice/gore/util"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/internal/core"
+	"github.com/xxl6097/go-service/pkg/ukey"
 	utils3 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 func (this *CoreService) install() error {
-	s, err := this.srv.Status()
+	//if len(os.Args) > 1 {
+	//	if os.Args[1] == "install" {
+	//		this.reqeustWindowsUser()
+	//	} else if os.Args[1] == "uninstall" {
+	//		glog.CloseLog()
+	//	}
+	//}
+	//this.reqeustWindowsUser()
+	s, err := this.statusService()
 	var isRemoved = true
 	if err == nil {
 		no := utils2.InputString(fmt.Sprintf("%s%s%s", "检测到", this.config.Name, "程序已经安装，卸载/更新/取消?(y/u/n):"))
 		switch no {
 		case "y", "Y", "Yes", "YES":
 			isRemoved = true
-			e := this.srv.Uninstall()
+			e := this.uninstallService()
 			if e != nil {
 				glog.Error("卸载失败", this.config.Name, e)
 			} else {
@@ -30,7 +40,7 @@ func (this *CoreService) install() error {
 			break
 		case "u", "U", "Update", "UPDATE":
 			isRemoved = false
-			e := this.srv.Stop()
+			e := this.stopService()
 			if err != nil {
 				//return err
 				glog.Error(e)
@@ -43,7 +53,7 @@ func (this *CoreService) install() error {
 			return err
 		}
 	} else if s != service.StatusUnknown {
-		e := this.srv.Uninstall()
+		e := this.uninstallService()
 		if e != nil {
 			glog.Error("卸载失败", e)
 		}
@@ -95,14 +105,14 @@ func (this *CoreService) install() error {
 		return e
 	}
 
-	err = this.srv.Install() //.Control("install", this.binPath, []string{"-d"})
+	err = this.installService()
 	if err == nil {
 		glog.Printf("服务【%s】安装成功!\n", this.config.DisplayName)
 	} else {
 		glog.Printf("服务【%s】安装失败，错误信息:%v\n", this.config.DisplayName, err)
 	}
 	time.Sleep(time.Second * 2)
-	err = this.srv.Start()
+	err = this.startService()
 	if err != nil {
 		glog.Printf("服务【%s】启动失败，错误信息:%v\n", this.config.DisplayName, err)
 	} else {
@@ -113,25 +123,24 @@ func (this *CoreService) install() error {
 func (this *CoreService) uninstall() error {
 	defer func() {
 		this.clear()
-		if !utils2.IsWindows() {
-			err := this.srv.Stop()
-			glog.Debug("尝试停止服务", err)
-		}
-		_ = glog.Flush()
+		glog.Debug("1尝试停止服务")
+		err := this.stopService()
+		glog.Debug("2尝试停止服务", err)
+		this.clear()
+		glog.Flush()
 	}()
-	if utils2.IsWindows() {
-		err := this.srv.Stop()
-		glog.Debug("尝试停止服务", err)
-	}
-	err := this.srv.Uninstall() //Control("uninstall", "", nil)
+	//glog.CloseLog()
+	//if utils2.IsWindows() {
+	//	err := this.srv.Stop()
+	//	glog.Debug("尝试停止服务", err)
+	//}
+	err := this.uninstallService()
 	if err != nil {
 		glog.Printf("服务卸载失败 %v\n", err)
-		_ = glog.Flush()
 	} else {
 		glog.Printf("服务成功卸载\n")
-		_ = glog.Flush()
 	}
-	time.Sleep(time.Second * 2)
+	//time.Sleep(time.Second * 2)
 	// 尝试删除自身
 	return err
 }
@@ -140,46 +149,42 @@ func (this *CoreService) uninstall() error {
 // 2. 升级文件最终需要被删除，所以使用defer删除；
 // 3. 给升级文件赋予0755权限
 func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) error {
-	newFilePath, err := utils3.CheckFileOrDownload(ctx, binUrlOrLocal)
+	defer glog.Flush()
+	downFilePath, err := utils3.CheckFileOrDownload(ctx, binUrlOrLocal)
 	if err != nil {
+		glog.Debug("升级失败", err)
 		return err
 	}
-	defer func() {
-		e := os.Remove(newFilePath)
-		if e != nil {
-			glog.Error("升级文件删除失败", newFilePath, e)
-		} else {
-			glog.Debug("升级文件删除成功", newFilePath)
-		}
-	}()
-	err = os.Chmod(newFilePath, 0755)
+	signFilePath, e := ukey.SignFileByOldFileKey(this.config.Executable, downFilePath)
+	_ = utils3.DeleteAllDirector(filepath.Dir(filepath.Dir(downFilePath)))
+	if e != nil {
+		glog.Debug("升级签名错误", e)
+		return err
+	}
+	err = os.Chmod(signFilePath, 0755)
 	if err != nil {
-		eMsg := fmt.Sprintf("赋权限错误: %s %v\n", newFilePath, err)
+		eMsg := fmt.Sprintf("赋权限错误: %s %v\n", signFilePath, err)
+		glog.Error(eMsg)
 		return fmt.Errorf(eMsg)
 	}
 	glog.Println("当前进程ID:", os.Getpid())
-	err = utils3.PerformUpdate(newFilePath)
+	err = utils3.PerformUpdate(signFilePath, this.config.Executable)
+	//_ = utils3.DeleteAllDirector(filepath.Dir(filepath.Dir(signFilePath)), "签名文件")
 	if err != nil {
+		glog.Error("升级失败", err)
 		return err
 	}
-	utils3.RestartWindowsApplication()
-	return nil
+	glog.Error("升级成功")
+	if utils2.IsWindows() {
+		return this.RunCMD("restart")
+	}
+	return this.restartService()
 }
 
 func (this *CoreService) clear() {
-	glog.CleanGLog(glog.StdGLog)
+	glog.CloseLog()
 	glog.Debugf("删除安装文件，pid: %v", os.Getpid())
-	e := os.RemoveAll(this.workDir)
-	if e != nil {
-		glog.Errorf("删除失败[%s] err:%v", this.workDir, e)
-	} else {
-		glog.Debugf("删除成功[%s]", this.workDir)
-	}
+	_ = utils3.DeleteAllDirector(this.workDir)
 	appDir := glog.GetCrossPlatformDataDir()
-	e = os.RemoveAll(appDir)
-	if e != nil {
-		glog.Errorf("删除失败[%s] err:%v", appDir, e)
-	} else {
-		glog.Debugf("删除成功[%s]", appDir)
-	}
+	_ = utils3.DeleteAllDirector(appDir)
 }

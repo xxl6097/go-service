@@ -21,13 +21,13 @@ func (this *CoreService) createService() error {
 }
 
 func (this *CoreService) control(cmd string) error {
-	glog.Printf("服务【%s】正在%s", this.config.Name, cmd)
+	glog.Printf("服务【%s】正在 %s", this.config.Name, cmd)
 	e := service.Control(this.srv, cmd)
 	if e != nil {
-		glog.Printf("【%s】%s失败", this.config.Name, cmd)
+		glog.Printf("【%s】%s 失败 %v", this.config.Name, cmd, e)
 		return e
 	}
-	glog.Printf("【%s】%s成功", this.config.Name, cmd)
+	glog.Printf("【%s】%s 成功", this.config.Name, cmd)
 	return nil
 }
 
@@ -62,6 +62,7 @@ func (this *CoreService) installService() error {
 	if this.config.Option == nil {
 		this.config.Option = make(map[string]interface{})
 	}
+	//windows下，服务->登录-登录身份->本地系统账户->允许服务与桌面交互
 	this.config.Option["Interactive"] = true
 	return this.control(service.ControlAction[3])
 }

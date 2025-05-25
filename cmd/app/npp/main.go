@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/cmd/app/npp/srv"
 	"github.com/xxl6097/go-service/pkg/gs"
 	"os"
@@ -15,8 +16,6 @@ func main() {
 		}
 	}
 	err := gs.Run(&s)
-	if err != nil {
-		panic(err)
-	}
+	glog.Debug("程序结束", err)
 
 }
