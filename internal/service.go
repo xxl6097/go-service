@@ -25,6 +25,8 @@ func (this *CoreService) Restart() error {
 		return RunCmdBySelf("restart")
 	}
 	return this.restartService()
+	//return this.srv.Restart()
+	//return RunCmdBySelf("restart")
 }
 
 func RunCmdBySelf(args ...string) error {

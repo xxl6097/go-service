@@ -27,7 +27,8 @@ func (c *CoreService) Stop(s service.Service) error {
 	defer glog.Flush()
 	status, err := s.Status()
 	ok := service.Interactive()
-	c.clear()
+	//注意，这个地方在非windows下不行！
+	//c.clear()
 	glog.Println("停止服务", ok, s.String(), s.Platform(), status, err)
 	if ok {
 		glog.Println("停止deamon")

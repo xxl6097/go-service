@@ -179,6 +179,8 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		return this.RunCMD("restart")
 	}
 	return this.restartService()
+	//return this.RunCMD("restart")
+	//return utils2.RunWithSudoCMD("restart")
 }
 
 func (this *CoreService) clear() {
