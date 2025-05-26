@@ -35,3 +35,7 @@ base_pattern="${filename%%-[0-9]*}.jar"  # 结果：log4j-core.jar
 
 # 匹配所有符合基础模式的文件
 find ./lib -name "$base_pattern"
+
+
+### 差分包
+go install github.com/xxl6097/go-service/cmd/differ@latest
