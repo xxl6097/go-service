@@ -87,6 +87,6 @@ func diff(older, newer string) error {
 	if err != nil {
 		return err
 	}
-	fileName := filepath.Base(newer)
-	return os.WriteFile(filepath.Join(filepath.Dir(newer), fileName), patch.Bytes(), 0644)
+	pathName := fmt.Sprintf("%s.patch", filepath.Base(newer))
+	return os.WriteFile(filepath.Join(filepath.Dir(newer), pathName), patch.Bytes(), 0644)
 }
