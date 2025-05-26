@@ -15,6 +15,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: 源码文件被修改了
+        id: changed-go-files         # 设置步骤ID，用于后续引用输出
+        uses: tj-actions/changed-files@v45
+        with:
+          files: "cmd/**"         # 监控src目录下所有文件[1](@ref)
+          json: true              # 输出JSON格式（用于矩阵任务）[4](@ref)
       - name: Web文件修改检测
         id: changed-web-files         # 设置步骤ID，用于后续引用输出
         uses: tj-actions/changed-files@v45
@@ -42,7 +48,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bsdiff libbz2-dev
-          go install github.com/xxl6097/go-service/cmd/differ@latest
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -52,7 +57,9 @@ jobs:
           chmod +x ./build.sh
           ./build.sh github ${{ github.ref_name }}
           echo "./pre_release_files ./release ${{ github.ref_name }}"
+          go install github.com/xxl6097/go-service/cmd/differ@latest
           differ "./pre_release_files" "./release" ${{ github.ref_name }}
+          ls -lh ./release
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
