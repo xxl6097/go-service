@@ -27,3 +27,11 @@ go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
 
 go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 ```
+
+
+# 删除从最后一个 "-" 开始的所有字符
+filename="log4j-core-2.7.jar"
+base_pattern="${filename%%-[0-9]*}.jar"  # 结果：log4j-core.jar
+
+# 匹配所有符合基础模式的文件
+find ./lib -name "$base_pattern"
