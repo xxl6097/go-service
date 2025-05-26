@@ -20,10 +20,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download v0.4.71 \
-            --pattern "srvinstaller_v0.4.71_linux_amd64" \
-            --output "old_bin"
-          ls -lh
+          gh release download "$PREV_VERSION" \
+            --dir raw
+          ls -lh raw
       - name: 安装bsdiff工具链
         run: |
           sudo apt-get update
