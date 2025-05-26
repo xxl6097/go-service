@@ -18,6 +18,7 @@ func PerformUpdate(newFilePath, targetPath string) error {
 	// Windows需要管理员权限
 	opts := update.Options{
 		TargetPath: targetPath, // 当前可执行文件路径
+		Patcher:    update.NewBSDiffPatcher(),
 	}
 
 	//opts.CheckPermissions()

@@ -4,6 +4,8 @@ github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf h1:WfD7V
 github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf/go.mod h1:hyb9oH7vZsitZCiBt0ZvifOrB+qc8PS5IiilCIb87rg=
 github.com/kardianos/service v1.2.2 h1:ZvePhAHfvo0A7Mftk/tEzqEZ7Q4lgnR8sGz4xu1YX60=
 github.com/kardianos/service v1.2.2/go.mod h1:CIMRFEJVL+0DS1a3Nx06NaMn4Dz63Ng6O7dl0qH0zVM=
+github.com/kr/binarydist v0.1.0 h1:6kAoLA9FMMnNGSehX0s1PdjbEaACznAv/W219j2uvyo=
+github.com/kr/binarydist v0.1.0/go.mod h1:DY7S//GCoz1BCd0B0EVrinCKAZN3pXe+MDaIZbXQVgM=
 github.com/xxl6097/glog v0.1.23 h1:Of4SasEGWxDW7DMkcxSPVbxa0u19dOX9iuxuxqvU/Z4=
 github.com/xxl6097/glog v0.1.23/go.mod h1:Ug/BU4gFQMUoDgY1t8bJZU9T472CXcj70BekRC+fz+k=
 github.com/xxl6097/glog v0.1.24 h1:itot7gTNFMiEWYVvlz+myHx5s0yKd2q4YvaSJmTdSYE=
