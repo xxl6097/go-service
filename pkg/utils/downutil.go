@@ -144,3 +144,18 @@ func getFileSize(f *os.File) int64 {
 	info, _ := f.Stat()
 	return info.Size()
 }
+
+// IsURL 判断给定的字符串是否是一个有效的URL
+func IsURL(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(toTest)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme == "http" || u.Scheme == "https"
+}

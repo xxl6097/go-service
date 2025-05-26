@@ -10,6 +10,7 @@ type Service interface {
 	UnInstall() error
 	RunCMD(...string) error
 	Restart() error
+	Status() string
 }
 type IService interface {
 	OnConfig() *service.Config

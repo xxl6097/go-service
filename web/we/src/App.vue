@@ -163,6 +163,41 @@ const fetchRunApi = (action: string | undefined, data: any) => {
     })
 }
 
+const source = ref<EventSource>()
+function initSSE() {
+  const ssurl = `${window.location.origin}/api/sse-stream`
+  try {
+    addLog(`开始连接SSE:${ssurl}`)
+    const s = new EventSource(ssurl)
+    source.value = s
+    s.onmessage = (event) => {
+      console.log('收到消息:', event.data)
+      addLog(event.data)
+    }
+    s.onopen = (e) => {
+      console.log('SSE连接已建立', s.readyState) // readyState=1表示连接正常
+      addLog('连接成功 ' + e.currentTarget?.toString())
+      console.log('sse connect sucessully..', e)
+    }
+    s.onerror = (e) => {
+      source.value?.close()
+      source.value = undefined
+      addLog('连接错误:' + JSON.stringify(e))
+      console.log('onerror received a message', e)
+      setTimeout(function () {
+        initSSE()
+      }, 5000)
+    }
+  } catch (e) {
+    console.log('sse init err', e)
+    addLog(`连接SSE识别:${JSON.stringify(e)}`)
+    setTimeout(function () {
+      initSSE()
+    }, 5000)
+  }
+}
+
+initSSE()
 handleCMD('version', '')
 </script>
 

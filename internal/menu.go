@@ -22,6 +22,7 @@ func (this *CoreService) menu() error {
 		glog.Debug("运行菜单", os.Getpid())
 		return this.runMenu()
 	}
+	glog.Debug("运行参数", os.Args, os.Getpid())
 	return this.runService()
 }
 
@@ -49,6 +50,9 @@ func (this *CoreService) runSwitch(cmd string) error {
 		return this.stopService()
 	case "restart":
 		return this.restartService()
+	case "status":
+		glog.Debug(this.Status())
+		return nil
 	case "r", "run":
 		return this.iService.OnRun(this)
 	}
@@ -59,13 +63,14 @@ func (this *CoreService) runMenu() error {
 	defer func() {
 		utils.ExitAnyKey()
 	}()
-	keys := []string{"install", "uninstall", "upgrade", "restart", "stop", "v"}
+	keys := []string{"install", "uninstall", "upgrade", "restart", "stop", "status", "v"}
 	fmt.Println("1. 安装程序")
 	fmt.Println("2. 卸载程序")
 	fmt.Println("3. 升级程序")
 	fmt.Println("4. 重启程序")
 	fmt.Println("5. 停止程序")
-	fmt.Println("6. 查看版本")
+	fmt.Println("6. 服务状态")
+	fmt.Println("7. 查看版本")
 	index := utils.InputInt("请根据菜单选择：")
 	if index >= 1 && index <= len(keys) {
 		index--

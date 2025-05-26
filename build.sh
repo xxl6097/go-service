@@ -302,10 +302,12 @@ function showBuildDir() {
 function install() {
  echo "${builddir}  ${appname}_${version}_${os}_${arch}"
  pwd
- #bash <(curl -s -S -L http://v.uuxia.cn:8087/up) ${dstFilePath} /home/soft/${appname}/${version}
- #bash <(curl -s -S -L http://192.168.10.7:8087/up) ${dstFilePath} /soft/${appname}/${version}
- #bash <(curl -s -S -L http://uuxia.cn:8087/up) ${dstFilePath} /soft/${appname}/${version}
- bash <(curl -s -S -L http://192.168.0.3:8087/up) ${dstFilePath} /soft/${appname}/${version}
+# host="v.uuxia.cn"
+# host="192.168.10.7"
+# host="uuxia.cn"
+# host="10.6.14.26"
+ host="192.168.0.3"
+ bash <(curl -s -S -L http://${host}:8087/up) ${dstFilePath} /soft/${appname}/${version}
  sudo ${builddir}/${appname}_${version}_${os}_${arch} install
 # ${builddir}/${appname}_${version}_${os}_${arch} install
 }

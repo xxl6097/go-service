@@ -20,10 +20,10 @@ func PerformUpdate(newFilePath, targetPath string) error {
 		TargetPath: targetPath, // 当前可执行文件路径
 	}
 
+	//opts.CheckPermissions()
 	//opts := update.Options{
 	//	TargetPath: os.Args[0], // 当前可执行文件路径
 	//}
-
 	// 使用 bufio.NewReader 创建带缓冲的读取器
 	if err = update.Apply(bufio.NewReader(file), opts); err != nil {
 		if e := update.RollbackError(err); e != nil {

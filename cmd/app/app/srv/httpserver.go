@@ -8,8 +8,8 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/assets"
 	_ "github.com/xxl6097/go-service/assets/we"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"net/http"
 	"os"
@@ -17,6 +17,14 @@ import (
 	"strings"
 	"time"
 )
+
+var logQueue = NewLogQueue()
+
+func init() {
+	glog.Hook(func(bytes []byte) {
+		logQueue.AddMessage(string(bytes[2:]))
+	})
+}
 
 type Message[T any] struct {
 	Action string `json:"action,omitempty"`
@@ -112,11 +120,8 @@ func (this *Service) ApiClear() ([]byte, error) {
 	}
 	binDir := filepath.Dir(binPath)
 	clientsDir := filepath.Join(binDir, "clients")
-	err = utils.DeleteAll(clientsDir)
-	logDir := glog.GetCrossPlatformDataDir()
-	err = utils.DeleteAll(logDir)
-	upDir := utils.GetUpgradeDir()
-	err = utils.DeleteAll(upDir)
+	err = utils.DeleteAllDirector(clientsDir)
+	err = utils.DeleteAllDirector(glog.GetCrossPlatformDataDir())
 	if err != nil {
 		return nil, err
 	} else {
@@ -219,6 +224,7 @@ func Server(p int, t *Service) {
 
 	// 注册路由处理函数
 	router.HandleFunc("/api/cmd", t.apiCommand)
+	router.HandleFunc("/api/sse-stream", SseHandler(logQueue))
 
 	addStatic(router.NewRoute().Subrouter())
 

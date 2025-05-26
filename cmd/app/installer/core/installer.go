@@ -4,24 +4,21 @@ import (
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/gore"
-	"github.com/xxl6097/go-service/gservice/gore/util"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
+	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
 type SvrInstall struct {
-	service gore.IGService
+	service igs.Service
 	cfg     *service.Config
 }
 
-func (t *SvrInstall) OnFinish() {
-}
-
-func (t *SvrInstall) OnInit() *service.Config {
+func (t *SvrInstall) OnConfig() *service.Config {
 	arr := t.menu()
 	t.cfg = &service.Config{
 		Name:        arr[0],
@@ -29,6 +26,14 @@ func (t *SvrInstall) OnInit() *service.Config {
 		Description: arr[2],
 	}
 	return t.cfg
+}
+
+func (t *SvrInstall) GetAny(s string) any {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *SvrInstall) OnFinish() {
 }
 
 func (t *SvrInstall) OnVersion() string {
@@ -92,8 +97,8 @@ func (t *SvrInstall) OnInstall(string, binPath string) error {
 //	return &BinInfo{binDir}
 //}
 
-func (t *SvrInstall) OnRun(service gore.IGService) error {
-	t.service = service
+func (t *SvrInstall) OnRun(s igs.Service) error {
+	t.service = s
 	executable := ""
 	arg := make([]string, 0)
 	arg = append(arg, "upgrade")

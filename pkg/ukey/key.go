@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"math/big"
 	"os"
@@ -59,7 +59,7 @@ func GetCfgBufferFromFile(filePath string) []byte {
 	cfgBufferSize := len(buffer)
 	prevBuffer := make([]byte, 0)
 	for {
-		thisBuffer := make([]byte, utils.Divide(cfgBufferSize, 1024))
+		thisBuffer := make([]byte, Divide(cfgBufferSize, 1024))
 		n, err2 := reader.Read(thisBuffer)
 		if err2 != nil && err2 != io.EOF {
 			glog.Errorf("读取文件时出错: %v", err2)

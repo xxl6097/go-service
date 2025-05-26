@@ -87,13 +87,15 @@ func (this *CoreService) install() error {
 	} else {
 		glog.Printf("服务【%s】安装失败，错误信息:%v\n", this.config.DisplayName, err)
 	}
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 1)
 	err = this.startService()
 	if err != nil {
 		glog.Printf("服务【%s】启动失败，错误信息:%v\n", this.config.DisplayName, err)
 	} else {
 		glog.Printf("服务【%s】启动成功!\n", this.config.DisplayName)
 	}
+	time.Sleep(time.Second * 1)
+	glog.Info(this.Status())
 	return nil
 }
 func (this *CoreService) uninstall() error {
@@ -105,14 +107,21 @@ func (this *CoreService) uninstall() error {
 		this.clear()
 		glog.Flush()
 	}()
+
+	if utils.IsOpenWRT() {
+		err := this.stopService()
+		if err != nil {
+			glog.Errorf("服务【%s】停止失败 %v", this.config.Name, err)
+		} else {
+			glog.Errorf("服务【%s】停止成功", this.config.Name)
+		}
+	}
 	err := this.uninstallService()
 	if err != nil {
-		glog.Printf("服务卸载失败 %v\n", err)
+		glog.Printf("服务【%s】卸载失败 %v\n", this.config.Name, err)
 	} else {
-		glog.Printf("服务成功卸载\n")
+		glog.Printf("服务【%s】成功卸载\n", this.config.Name)
 	}
-	//time.Sleep(time.Second * 2)
-	// 尝试删除自身
 	return err
 }
 
@@ -139,7 +148,7 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		glog.Error(eMsg)
 		return fmt.Errorf(eMsg)
 	}
-	glog.Println("当前进程ID:", os.Getpid())
+	glog.Println("当前进程ID:", os.Getpid(), this.config.Executable)
 	err = utils.PerformUpdate(signFilePath, this.config.Executable)
 	//同样，更新完后，需要删除签名文件
 	_ = utils.DeleteAllDirector(filepath.Dir(filepath.Dir(signFilePath)))
@@ -148,6 +157,11 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		return err
 	}
 	glog.Error("升级成功")
+	if utils.IsWindows() {
+		glog.Debug(utils.RunCmd("dir"))
+	} else {
+		glog.Debug(utils.RunCmd("ls", "-l"))
+	}
 	return this.RunCMD("restart")
 }
 

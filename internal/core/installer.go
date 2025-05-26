@@ -3,10 +3,9 @@ package core
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/ukey"
-	utils2 "github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"path/filepath"
 	"strings"
 )
@@ -68,7 +67,7 @@ func manualInstall(binPath, installBinPath string) error {
 		return fmt.Errorf("当前文件与安装文件路径一致，不允许安装 binPath:%v installBinPath:%v", binPath, installBinPath)
 	} else {
 		defer func() {
-			_ = utils2.DeleteAllDirector(filepath.Dir(filepath.Dir(binPath)))
+			_ = utils.DeleteAllDirector(filepath.Dir(filepath.Dir(binPath)))
 		}()
 	}
 	err := utils.Copy(binPath, installBinPath)

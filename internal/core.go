@@ -4,11 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/gore/util"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
-	utils2 "github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,15 +39,14 @@ func (this *CoreService) Run() error {
 		this.config.Name = fmt.Sprintf("%s.exe", this.config.Name)
 	}
 	this.config.Executable = filepath.Join(this.workDir, this.config.Name)
-	tempFilePath := filepath.Join(this.workDir, fmt.Sprintf(".%s.old", this.config.Name))
-	_ = utils2.DeleteAllDirector(tempFilePath)
+	this.deleteOld()
 	binDir := filepath.Dir(os.Args[0])
 	_ = os.Chdir(binDir)
 	e := this.createService()
 	if e != nil {
 		return e
 	}
-	glog.Debug("运行参数", os.Args, os.Getpid())
+	//glog.Debug("运行参数", os.Args, os.Getpid())
 	return this.menu()
 }
 
@@ -69,6 +66,13 @@ func (this *CoreService) reqeustWindowsUser() {
 			}
 
 		}
+	}
+}
+
+func (this *CoreService) deleteOld() {
+	tempFilePath := filepath.Join(this.workDir, fmt.Sprintf(".%s.old", this.config.Name))
+	if utils.FileExists(tempFilePath) {
+		_ = utils.DeleteAllDirector(tempFilePath)
 	}
 }
 
