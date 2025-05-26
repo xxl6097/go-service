@@ -328,7 +328,11 @@ function buildInstaller() {
 }
 
 # shellcheck disable=SC2120
-function buildForGithubRelease() {
+function githubActions() {
+  bsdiff -h
+  bsdiff -V
+  bsdiff --version
+  bspatch --version
   builddir="./release"
 #  appname="srvinstaller"
   appdir="./cmd/app/installer"
@@ -350,7 +354,7 @@ function bootstrap() {
   fi
   writeVersionGoFile
   case $1 in
-  all) (buildForGithubRelease) ;;
+  github) (githubActions) ;;
     *) (buildInstaller)  ;;
   esac
 }

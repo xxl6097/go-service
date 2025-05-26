@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func PerformUpdate(newFilePath, targetPath string) error {
+func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	file, err := os.Open(newFilePath)
 	if err != nil {
 		return fmt.Errorf("升级文件打开失败【%s】: %v", newFilePath, err)
@@ -18,7 +18,9 @@ func PerformUpdate(newFilePath, targetPath string) error {
 	// Windows需要管理员权限
 	opts := update.Options{
 		TargetPath: targetPath, // 当前可执行文件路径
-		Patcher:    update.NewBSDiffPatcher(),
+	}
+	if patcher {
+		opts.Patcher = update.NewBSDiffPatcher()
 	}
 
 	//opts.CheckPermissions()

@@ -6,6 +6,7 @@ import (
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/internal/core"
+	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
@@ -134,14 +135,22 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		glog.Debug("升级失败", err)
 		return err
 	}
-	//signFilePath, e := ukey.SignFileByOldFileKey(this.config.Executable, downFilePath)
-	////签名完后会生产出新的签名文件，那么下载的文件需要被删除
-	//_ = utils.DeleteAllDirector(filepath.Dir(filepath.Dir(downFilePath)))
-	//if e != nil {
-	//	glog.Debug("升级签名错误", e)
-	//	return err
-	//}
-	signFilePath := downFilePath
+	var signFilePath string
+	patch := false
+	if filepath.Ext(downFilePath) == ".patch" {
+		signFilePath = downFilePath
+		patch = true
+	} else {
+		tempFilePath, e := ukey.SignFileByOldFileKey(this.config.Executable, downFilePath)
+		//签名完后会生产出新的签名文件，那么下载的文件需要被删除
+		_ = utils.DeleteAllDirector(filepath.Dir(filepath.Dir(downFilePath)))
+		if e != nil {
+			glog.Debug("升级签名错误", e)
+			return err
+		}
+		signFilePath = tempFilePath
+	}
+
 	err = os.Chmod(signFilePath, 0755)
 	if err != nil {
 		eMsg := fmt.Sprintf("赋权限错误: %s %v\n", signFilePath, err)
@@ -149,7 +158,7 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		return fmt.Errorf(eMsg)
 	}
 	glog.Println("当前进程ID:", os.Getpid(), this.config.Executable)
-	err = utils.PerformUpdate(signFilePath, this.config.Executable)
+	err = utils.PerformUpdate(signFilePath, this.config.Executable, patch)
 	//同样，更新完后，需要删除签名文件
 	_ = utils.DeleteAllDirector(filepath.Dir(filepath.Dir(signFilePath)))
 	if err != nil {
