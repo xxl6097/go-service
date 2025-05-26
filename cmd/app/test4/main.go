@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
+	"github.com/xxl6097/go-service/pkg/utils"
 )
 
 func main() {
-
-	file1 := "C://work/acfrpc_arm64.exe"
-	fmt.Println(filepath.Base(file1))
+	file1 := "/Users/uuxia/Desktop/work/code/github/golang/go-service/release1"
+	fmt.Println(utils.ResetDirector(file1))
 }

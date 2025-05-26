@@ -28,20 +28,23 @@ func CheckFileOrDownload(ctx context.Context, fileUrlOrLocal string) (string, er
 	}
 }
 
+func CheckDirector(path string) error {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		// 存在，删除
+		return nil
+	}
+	return os.MkdirAll(path, 0755)
+}
+
 func ResetDirector(path string) error {
-	// 检查目录是否存在
-	if _, err := os.Stat(path); err == nil {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		// 存在，删除
 		err = os.RemoveAll(path)
 		if err != nil {
 			return err
 		}
 		return os.MkdirAll(path, 0755)
-	} else if !os.IsNotExist(err) {
-		// 其他错误
-		return err
 	}
-	// 不存在，创建
 	return os.MkdirAll(path, 0755)
 }
 
@@ -49,10 +52,10 @@ func DeleteAllDirector(filePath string) error {
 	defer glog.Flush()
 	err := os.RemoveAll(filePath)
 	if err != nil {
-		msg := fmt.Errorf("删除失败: %s,%v\n", filePath, err)
+		msg := fmt.Errorf("删除失败[%v]: %s,%v\n", os.Getpid(), filePath, err)
 		glog.Error(msg)
 		return msg
 	}
-	glog.Infof("删除成功: %s\n", filePath)
+	glog.Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
 	return err
 }

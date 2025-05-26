@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg/ukey"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"os"
 )
 
@@ -57,7 +57,7 @@ func (this *CoreService) runSwitch(cmd string) error {
 
 func (this *CoreService) runMenu() error {
 	defer func() {
-		utils.Exit()
+		utils.ExitAnyKey()
 	}()
 	keys := []string{"install", "uninstall", "upgrade", "restart", "stop", "v"}
 	fmt.Println("1. 安装程序")

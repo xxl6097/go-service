@@ -6,7 +6,7 @@ import (
 	"github.com/xxl6097/go-service/gservice/utils"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/ukey"
-	"os"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"path/filepath"
 	"strings"
 )
@@ -68,12 +68,7 @@ func manualInstall(binPath, installBinPath string) error {
 		return fmt.Errorf("当前文件与安装文件路径一致，不允许安装 binPath:%v installBinPath:%v", binPath, installBinPath)
 	} else {
 		defer func() {
-			err := os.RemoveAll(filepath.Dir(filepath.Dir(binPath)))
-			if err != nil {
-				glog.Error("删除临时安装文件失败", binPath, err)
-			} else {
-				glog.Error("删除临时安装文件成功", binPath)
-			}
+			_ = utils2.DeleteAllDirector(filepath.Dir(filepath.Dir(binPath)))
 		}()
 	}
 	err := utils.Copy(binPath, installBinPath)
