@@ -23,7 +23,7 @@ func (this *CoreService) install() error {
 		switch no {
 		case "y", "Y", "Yes", "YES":
 			isRemoved = true
-			e := this.uninstallService()
+			e := this.uninstall()
 			if e != nil {
 				glog.Error("卸载失败", this.config.Name, e)
 			} else {
