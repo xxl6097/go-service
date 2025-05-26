@@ -5,7 +5,7 @@
         <div style="display: flex; margin-left: 5px; margin-right: 5px">
           <el-input
             v-model="input1"
-            placeholder="请输入升级程序的url链接地址~"
+            placeholder="请输入升级程序的url链接地址"
             style="width: 50%"
           ></el-input>
           <el-button @click="handleCMD('update', input1)" style="width: 50%"
