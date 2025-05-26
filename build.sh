@@ -333,7 +333,6 @@ function githubActions() {
   newFile="./temp/sample.new"
   patFile="./temp/sample.patch"
   bsdiff ${oldFile} ${newFile} ${patFile}
-  bsdiff 2>&1 | grep "bsdiff"
   ls -lh ./temp
   builddir="./release"
 #  appname="srvinstaller"
