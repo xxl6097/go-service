@@ -44,7 +44,7 @@ func Diff(oldDir string, newDir, version string) error {
 		}
 		e := diff(oldFilePath, filepath.Join(newDir, newFileName))
 		if e != nil {
-			fmt.Printf("生产差分包失败 %s\n", newFileName)
+			fmt.Printf("生产差分包失败 %s %v\n", newFileName, e)
 		} else {
 			fmt.Printf("生产差分包成功 %s\n", newFileName)
 		}
