@@ -42,16 +42,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bsdiff libbz2-dev
+          go install github.com/xxl6097/go-service/cmd/differ@latest
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-
       - name: Make Go
         run: |
           chmod +x ./build.sh
           ./build.sh github ${{ github.ref_name }}
-
+          echo "${{ pre_release_files }} ${{ pre_release_files }} ${{ github.ref_name }}"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
