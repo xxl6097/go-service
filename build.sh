@@ -329,10 +329,11 @@ function buildInstaller() {
 
 # shellcheck disable=SC2120
 function githubActions() {
-  bsdiff -h
-  bsdiff -V
-  bsdiff --version
-  bspatch --version
+  oldFile="./temp/sample.old"
+  newFile="./temp/sample.new"
+  patFile="./temp/sample.patch"
+  bsdiff ${oldFile} ${newFile} ${patFile}
+  ls -lh ./temp
   builddir="./release"
 #  appname="srvinstaller"
   appdir="./cmd/app/installer"
