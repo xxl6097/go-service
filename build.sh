@@ -1,7 +1,7 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
-#options=("windows:amd64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
-options=("linux:amd64")
+options=("windows:amd64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
+#options=("linux:amd64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
 appname="aatest"
@@ -329,11 +329,11 @@ function buildInstaller() {
 
 # shellcheck disable=SC2120
 function githubActions() {
-  oldFile="./temp/sample.old"
-  newFile="./temp/sample.new"
-  patFile="./temp/sample.patch"
-  bsdiff ${oldFile} ${newFile} ${patFile}
-  ls -lh ./temp
+#  oldFile="./temp/sample.old"
+#  newFile="./temp/sample.new"
+#  patFile="./temp/sample.patch"
+#  bsdiff ${oldFile} ${newFile} ${patFile}
+#  ls -lh ./temp
   builddir="./release"
 #  appname="srvinstaller"
   appdir="./cmd/app/app"
