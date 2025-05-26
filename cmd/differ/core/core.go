@@ -20,6 +20,15 @@ func Diff(oldDir string, newDir, version string) error {
 	if err != nil {
 		return err
 	}
+
+	oldFiles, err := os.ReadDir(oldDir)
+	if err == nil {
+		fmt.Println("旧版本目录：")
+		for _, oldFile := range oldFiles {
+			fmt.Println(oldFile.Name())
+		}
+	}
+
 	newFiles, err := os.ReadDir(newDir)
 	if err != nil {
 		return err
@@ -35,9 +44,9 @@ func Diff(oldDir string, newDir, version string) error {
 		}
 		e := diff(oldFilePath, filepath.Join(newDir, newFileName))
 		if e != nil {
-			fmt.Printf("生产差分包失败 %s-->%s\n", oldFilePath, newFileName)
+			fmt.Printf("生产差分包失败 %s\n", newFileName)
 		} else {
-			fmt.Printf("生产差分包成功 %s-->%s\n", oldFilePath, newFileName)
+			fmt.Printf("生产差分包成功 %s\n", newFileName)
 		}
 	}
 	return err

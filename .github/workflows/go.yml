@@ -19,7 +19,10 @@ jobs:
         id: changed-go-files         # 设置步骤ID，用于后续引用输出
         uses: tj-actions/changed-files@v45
         with:
-          files: "cmd/**"         # 监控src目录下所有文件[1](@ref)
+          files: |
+            cmd/**
+            internal/**
+            pkg/**
           json: true              # 输出JSON格式（用于矩阵任务）[4](@ref)
       - name: Web文件修改检测
         id: changed-web-files         # 设置步骤ID，用于后续引用输出
@@ -43,6 +46,7 @@ jobs:
         run: |
           gh release download "$PREV_VERSION" \
             --dir pre_release_files
+            --pattern "aatest*"
           ls -lh pre_release_files
 #      - name: 安装bsdiff工具链
 #        run: |
