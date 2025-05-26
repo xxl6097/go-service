@@ -56,11 +56,14 @@ jobs:
         run: |
           chmod +x ./build.sh
           ./build.sh github ${{ github.ref_name }}
-          echo "./pre_release_files ./release ${{ github.ref_name }}"
           go install github.com/xxl6097/go-service/cmd/differ@latest
+          echo "./pre_release_files ./release ${{ github.ref_name }}"
+          echo "pre_release_files文件列表："
           ls -lh ./pre_release_files
+          echo "./release/packages文件列表："
           ls -lh ./release/packages
           differ "./pre_release_files" "./release/packages" ${{ github.ref_name }}
+          echo "release文件列表："
           ls -lh ./release/packages
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
