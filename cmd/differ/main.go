@@ -14,6 +14,6 @@ func main() {
 	fmt.Println("Args", os.Args)
 	err := core.Diff(os.Args[1], os.Args[2], os.Args[3])
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		fmt.Printf("differ失败 %v\n", err)
 	}
 }

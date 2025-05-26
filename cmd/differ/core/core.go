@@ -33,7 +33,12 @@ func Diff(oldDir string, newDir, version string) error {
 		if !utils.FileExists(oldFilePath) {
 			continue
 		}
-		_ = diff(oldFilePath, filepath.Join(newDir, newFileName))
+		e := diff(oldFilePath, filepath.Join(newDir, newFileName))
+		if e != nil {
+			fmt.Printf("生产差分包失败 %s-->%s\n", oldFilePath, newFileName)
+		} else {
+			fmt.Printf("生产差分包成功 %s-->%s\n", oldFilePath, newFileName)
+		}
 	}
 	return err
 }
@@ -51,7 +56,14 @@ func chgOlderToNewer(oldDir, version string) error {
 			continue
 		}
 		oldFileName := oldFile.Name()
-		_ = os.Rename(filepath.Join(oldDir, oldFileName), filepath.Join(oldDir, chgOldFileName(oldFileName, version)))
+		newFileName := chgOldFileName(oldFileName, version)
+		err = os.Rename(filepath.Join(oldDir, oldFileName), filepath.Join(oldDir, newFileName))
+		if err != nil {
+			fmt.Printf("修改名称失败 %s-->%s\n", oldFileName, newFileName)
+		} else {
+			fmt.Printf("修改名称成功 %s-->%s\n", oldFileName, newFileName)
+		}
+
 	}
 	return nil
 }
@@ -59,7 +71,6 @@ func chgOlderToNewer(oldDir, version string) error {
 func chgOldFileName(filename, v string) string {
 	re := regexp.MustCompile(`_v\d+\.\d+\.\d+_`)
 	newName := re.ReplaceAllString(filename, fmt.Sprintf("_%s_", v)) // 替换为单个下划线
-	fmt.Println(newName)
 	return newName
 }
 func diff(older, newer string) error {
