@@ -21,8 +21,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release download "$PREV_VERSION" \
-            --dir raw
-          ls -lh raw
+            --dir pre_release_files
+          ls -lh pre_release_files
       - name: 安装bsdiff工具链
         run: |
           sudo apt-get update

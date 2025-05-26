@@ -336,7 +336,7 @@ function githubActions() {
   ls -lh ./temp
   builddir="./release"
 #  appname="srvinstaller"
-  appdir="./cmd/app/installer"
+  appdir="./cmd/app/app"
   disname="${appname}应用程序"
   describe="一款基于GO语言的服务安装程序"
   echo "===>version:${version}"
@@ -345,7 +345,7 @@ function githubActions() {
   rm -rf ${builddir}
   buildAll $builddir $appname "$version" $appdir $disname $describe
   mkdir -p ./release/packages
-  mv -fv ./release/srvinstaller* ./release/packages
+  mv -fv ./release/${appname}* ./release/packages
 }
 
 function bootstrap() {
