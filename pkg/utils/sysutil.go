@@ -1,11 +1,14 @@
 package utils
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/utils/util"
+	"io"
 	"os"
 	"os/exec"
 	"reflect"
@@ -203,4 +206,25 @@ func ExitCountDown(count int) {
 	}
 	fmt.Println()
 	os.Exit(0)
+}
+
+// GzipCompress 压缩字节数组
+func GzipCompress(data []byte) ([]byte, error) {
+	var buf bytes.Buffer
+	// 设置压缩级别（BestSpeed, BestCompression, DefaultCompression）
+	gz, _ := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+	if _, err := gz.Write(data); err != nil {
+		return nil, err
+	}
+	if err := gz.Close(); err != nil { // 必须关闭以写入所有数据
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// GzipDecompress 解压
+func GzipDecompress(compressed []byte) ([]byte, error) {
+	r, _ := gzip.NewReader(bytes.NewReader(compressed))
+	defer r.Close()
+	return io.ReadAll(r)
 }

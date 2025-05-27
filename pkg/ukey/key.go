@@ -131,6 +131,10 @@ func LoadBuffer(buf []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("解密错误:%v", err)
 	}
+	temp, e := utils.GzipDecompress(configBuffer)
+	if e == nil && temp != nil {
+		configBuffer = temp
+	}
 	return configBuffer, nil
 }
 
@@ -186,6 +190,13 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 	if cfgBuffer == nil {
 		//glog.Printf("原始配置信息[%d]:%s\n", len(cfgJsonBytes), string(cfgJsonBytes))
 		return nil, fmt.Errorf("原始配置信息字节数组不能空")
+	}
+
+	glog.Printf("配置buffer原始大小：%d", len(cfgBuffer))
+	temp, e := utils.GzipCompress(cfgBuffer)
+	if e == nil && temp != nil {
+		cfgBuffer = temp
+		glog.Printf("配置buffer压缩后大小：%d", len(cfgBuffer))
 	}
 	md5Keys := utils.GetUUID()
 	cfgBytes, err := utils.EncAES(cfgBuffer, md5Keys)
