@@ -201,6 +201,12 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 		glog.Error(eMsg)
 		return fmt.Errorf(eMsg)
 	}
+	if !patch {
+		err = utils.IsMatch(signFilePath)
+		if err != nil {
+			return err
+		}
+	}
 	glog.Println("当前进程ID:", os.Getpid(), this.config.Executable)
 	err = utils.PerformUpdate(signFilePath, this.config.Executable, patch)
 	//同样，更新完后，需要删除签名文件

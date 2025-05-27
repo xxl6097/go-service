@@ -9,7 +9,4 @@ require (
 	golang.org/x/sys v0.30.0
 )
 
-require (
-	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
-	github.com/kr/binarydist v0.1.0 // indirect
-)
+require github.com/xxl6097/go-update v0.0.4 // indirect

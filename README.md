@@ -18,6 +18,9 @@ go get github.com/kbinani/screenshot
 go get -u github.com/inconshreveable/go-update
 
 
+go get -u github.com/xxl6097/go-update
+
+
 
 ## goversioninfo
 

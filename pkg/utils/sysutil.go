@@ -148,13 +148,21 @@ func RunCmdWithSudo(args ...string) ([]byte, error) {
 }
 
 func RunCmd(name string, args ...string) string {
-	glog.Debug("run", name, args)
-	cmd := exec.Command(name, args...)
-	output, err := cmd.CombinedOutput() // 捕获标准输出和错误
+	output, err := Cmd(name, args...)
 	if err != nil {
 		return err.Error()
 	}
 	return string(output)
+}
+
+func Cmd(name string, args ...string) ([]byte, error) {
+	glog.Debug("run", name, args)
+	cmd := exec.Command(name, args...)
+	output, err := cmd.CombinedOutput() // 捕获标准输出和错误
+	if err != nil {
+		return nil, err
+	}
+	return output, err
 }
 
 func RunWithSudo() error {

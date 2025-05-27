@@ -3,10 +3,18 @@ package utils
 import (
 	"bufio"
 	"fmt"
-	"github.com/inconshreveable/go-update"
+	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-update"
 	"os"
+	"runtime"
 )
 
+func IsMatch(binpath string) error {
+	if IsMissMatchOsApp(binpath) {
+		return nil
+	}
+	return fmt.Errorf("安装文件与当前系统不匹配: %s 当前系统：%s CPU架构：%s", binpath, runtime.GOOS, runtime.GOARCH)
+}
 func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	file, err := os.Open(newFilePath)
 	if err != nil {
@@ -18,6 +26,7 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	// Windows需要管理员权限
 	opts := update.Options{
 		TargetPath: targetPath, // 当前可执行文件路径
+		Middler:    IsMatch,
 	}
 	if patcher {
 		opts.Patcher = update.NewBSDiffPatcher()
@@ -35,4 +44,22 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 		return fmt.Errorf("更新失败: %w", err)
 	}
 	return nil
+}
+
+func IsMissMatchOsApp(binPath string) bool {
+	if !FileExists(binPath) {
+		return false
+	}
+	err := os.Chmod(binPath, 0755)
+	if err != nil {
+		glog.Error(err)
+		return false
+	}
+	o, e := Cmd(binPath, "-v")
+	if e != nil {
+		glog.Error(e)
+		return false
+	}
+	glog.Debug(o)
+	return true
 }
