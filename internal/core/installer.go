@@ -32,7 +32,7 @@ func getAny(binDir string, g igs.IService) []byte {
 		glog.Error("igs.IService is nil")
 		return nil
 	}
-	buffer := g.GetAny(filepath.Dir(binDir))
+	buffer := g.GetAny(binDir)
 	if buffer == nil {
 		cfg := map[string]any{"path": binDir}
 		bb, err := ukey.StructToGob(cfg)
