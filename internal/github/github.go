@@ -14,7 +14,7 @@ import (
 
 var GithuApiHost = "https://api.github.com/repos/xxl6097/go-service/releases/latest"
 
-type githubapi struct {
+type GithubApi struct {
 	result  *model.GitHubModel
 	proxies []string
 }
@@ -45,13 +45,13 @@ func request() ([]byte, error) {
 	}
 	return body, nil
 }
-func Request() *githubapi {
+func Request() *GithubApi {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Debug(err)
 		}
 	}()
-	this := &githubapi{}
+	this := &GithubApi{}
 	body, err := request()
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
@@ -68,7 +68,7 @@ func Request() *githubapi {
 	return this
 }
 
-func (this *githubapi) Upgrade(fullName string, fn func(string, string, string)) *githubapi {
+func (this *GithubApi) Upgrade(fullName string, fn func(string, string, string, *GithubApi)) *GithubApi {
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
@@ -95,9 +95,18 @@ func (this *githubapi) Upgrade(fullName string, fn func(string, string, string))
 			releaseNote = releaseNote[:index]
 		}
 		if fn != nil {
-			fn(patchUpUrl, fullUpUrl, releaseNote)
+			fn(patchUpUrl, fullUpUrl, releaseNote, this)
 		}
 	}
 
 	return this
+}
+
+func (this *GithubApi) GetUrl(fileUrl string) []string {
+	newProxy := make([]string, 0)
+	for _, proxy := range this.proxies {
+		newUrl := fmt.Sprintf("%s%s", proxy, fileUrl)
+		newProxy = append(newProxy, newUrl)
+	}
+	return newProxy
 }

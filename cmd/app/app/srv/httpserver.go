@@ -110,17 +110,18 @@ func (t *Service) uninstallHandler() ([]byte, error) {
 
 // 处理 GET 请求
 func (t *Service) checkVersionHandler() ([]byte, error) {
-	github.Request().Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string) {
+	github.Request().Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string, api *github.GithubApi) {
 		glog.Debug(pathUrl, fullUrl, releaseNotes)
 		if pathUrl != "" {
 			glog.Debug("差量升级")
-			err := t.gs.Upgrade(context.Background(), pathUrl)
+			err := t.gs.Upgrade(context.Background(), utils.DownloadFileWithCancelByUrls(api.GetUrl(pathUrl)))
 			glog.Debug("差量升级结果", err)
 		} else if fullUrl != "" {
 			glog.Debug("全量升级")
-			err := t.gs.Upgrade(context.Background(), fullUrl)
+			err := t.gs.Upgrade(context.Background(), utils.DownloadFileWithCancelByUrls(api.GetUrl(fullUrl)))
 			glog.Debug("全量升级结果", err)
 		}
+
 	})
 	return nil, nil
 }
