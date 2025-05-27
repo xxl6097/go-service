@@ -7,6 +7,7 @@ import (
 
 type Service interface {
 	Upgrade(context.Context, string) error
+	UpgradeByBuffer([]byte) error
 	UnInstall() error
 	RunCMD(...string) error
 	Restart() error

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
@@ -151,7 +152,50 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		signFilePath = tempFilePath
 	}
 
-	err = os.Chmod(signFilePath, 0755)
+	return this.update(signFilePath, patch)
+	//err = os.Chmod(signFilePath, 0755)
+	//if err != nil {
+	//	eMsg := fmt.Sprintf("赋权限错误: %s %v\n", signFilePath, err)
+	//	glog.Error(eMsg)
+	//	return fmt.Errorf(eMsg)
+	//}
+	//glog.Println("当前进程ID:", os.Getpid(), this.config.Executable)
+	//err = utils.PerformUpdate(signFilePath, this.config.Executable, patch)
+	////同样，更新完后，需要删除签名文件
+	//_ = utils.DeleteAllDirector(filepath.Dir(filepath.Dir(signFilePath)))
+	//if err != nil {
+	//	glog.Error("升级失败", err)
+	//	return err
+	//}
+	//glog.Error("升级成功")
+	//if utils.IsWindows() {
+	//	glog.Debug(utils.RunCmd("dir"))
+	//} else {
+	//	glog.Debug(utils.RunCmd("ls", "-l"))
+	//}
+	//return this.RunCMD("restart")
+}
+
+func (this *CoreService) changeSelf(buffer []byte) error {
+	if buffer == nil || len(buffer) == 0 {
+		return errors.New("配置buffer空")
+	}
+	binFilePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
+	}
+
+	tempFilePath, e := ukey.SignFileByBuffer(buffer, binFilePath)
+	if e != nil {
+		glog.Debug("升级签名错误", e)
+		return err
+	}
+	signFilePath := tempFilePath
+	return this.update(signFilePath, false)
+}
+
+func (this *CoreService) update(signFilePath string, patch bool) error {
+	err := os.Chmod(signFilePath, 0755)
 	if err != nil {
 		eMsg := fmt.Sprintf("赋权限错误: %s %v\n", signFilePath, err)
 		glog.Error(eMsg)

@@ -43,8 +43,12 @@ func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
 	//3、替换新文件特征数据
 	//4、数据写到安装目录地址（oldBinPath）
 	cfgBufferBytes := GetCfgBufferFromFile(oldFilePath)
+	return SignFileByBuffer(cfgBufferBytes, newFilePath)
+}
+
+func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error) {
 	if cfgBufferBytes == nil {
-		err := fmt.Errorf("读取原文件配置信息失败 %s", oldFilePath)
+		err := fmt.Errorf("配置buffer is nil")
 		glog.Error(err)
 		return "", err
 	}
@@ -190,6 +194,30 @@ func Divide(a, b int) int {
 //	err = GenerateBin(inFilePath, outFilePath, buf, newBufferBytes)
 //	if err != nil {
 //		return "", fmt.Errorf("签名错误: %v", err)
+//	}
+//	return outFilePath, nil
+//}
+
+//func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
+//	glog.Debugf("\n旧文件：%s\n新文件：%s\n", oldFilePath, newFilePath)
+//	//1、读取老文件特征数据；
+//	//2、下载新文件
+//	//3、替换新文件特征数据
+//	//4、数据写到安装目录地址（oldBinPath）
+//	cfgBufferBytes := GetCfgBufferFromFile(oldFilePath)
+//	if cfgBufferBytes == nil {
+//		err := fmt.Errorf("读取原文件配置信息失败 %s", oldFilePath)
+//		glog.Error(err)
+//		return "", err
+//	}
+//	outFilePath := filepath.Join(glog.AppHome("sign", utils.GetID()), filepath.Base(newFilePath))
+//	glog.Debug("获取配置数据成功，数据大小", len(cfgBufferBytes))
+//	//oldBuffer := GetBuffer()
+//	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
+//	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
+//	if err != nil {
+//		glog.Error("签名错误：", err)
+//		return "", err
 //	}
 //	return outFilePath, nil
 //}
