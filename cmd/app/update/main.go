@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/inconshreveable/go-update"
+	"github.com/xxl6097/go-update"
 	"net/http"
 	"os"
 	"os/exec"

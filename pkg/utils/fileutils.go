@@ -7,6 +7,8 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"io"
 	"os"
+	"path"
+	"unicode"
 )
 
 func CheckFileOrDownload(ctx context.Context, fileUrlOrLocal string) (string, error) {
@@ -108,4 +110,21 @@ func IsPathExist(path string) bool {
 		return os.IsExist(err) // 如果路径不存在或权限不足返回 false
 	}
 	return true
+}
+func CleanExt(name string) string {
+	filename := path.Base(name) // 获取文件名"app.log"
+	nameOnly := filename[:len(filename)-len(path.Ext(filename))]
+	return nameOnly
+}
+
+// ToUpperFirst 将字符串的首字母转换为大写
+func ToUpperFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	// 将字符串转换为符文切片
+	r := []rune(s)
+	// 将首字符转换为大写
+	r[0] = unicode.ToUpper(r[0])
+	return string(r)
 }

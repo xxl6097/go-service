@@ -7,6 +7,7 @@ import (
 	"github.com/xxl6097/go-update"
 	"os"
 	"runtime"
+	"strings"
 )
 
 func IsMatch(binpath string) error {
@@ -62,4 +63,27 @@ func IsMissMatchOsApp(binPath string) bool {
 	}
 	glog.Debug(o)
 	return true
+}
+
+func ExtractCodeBlocks(markdown string) []string {
+	var codeBlocks []string
+	inCodeBlock := false
+	var currentCodeBlock strings.Builder
+
+	scanner := bufio.NewScanner(strings.NewReader(markdown))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "```") {
+			if inCodeBlock {
+				codeBlocks = append(codeBlocks, currentCodeBlock.String())
+				currentCodeBlock.Reset()
+			}
+			inCodeBlock = !inCodeBlock
+		} else if inCodeBlock {
+			currentCodeBlock.WriteString(line)
+			currentCodeBlock.WriteRune('\n')
+		}
+	}
+
+	return codeBlocks
 }

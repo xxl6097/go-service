@@ -55,11 +55,18 @@
           "
         >
           <el-button @click="handleCMD('version', '')">获取版本号</el-button>
+          <el-button type="primary" plain @click="handleCMD('checkversion', '')"
+            >检测版本</el-button
+          >
           <el-button @click="handleCMD('sudo', '')">sudo</el-button>
           <el-button @click="handleCMD('get', '')">get</el-button>
-          <el-button type="danger" plain @click="handleCMD('delete', '')">delete</el-button>
+          <el-button type="danger" plain @click="handleCMD('delete', '')"
+            >delete</el-button
+          >
           <el-button @click="handleCMD('restart', '')">restart</el-button>
-          <el-button type="warning" plain @click="handleCMD('uninstall', '')">uninstall</el-button>
+          <el-button type="warning" plain @click="handleCMD('uninstall', '')"
+            >uninstall</el-button
+          >
         </div>
         <div
           style="
@@ -71,7 +78,9 @@
         >
           <el-button @click="handleReadLog">查看日志</el-button>
           <el-button @click="handleClearLog">清空日志</el-button>
-          <el-button type="danger" plain @click="handleCMD('clear', '')">删除缓存</el-button>
+          <el-button type="danger" plain @click="handleCMD('clear', '')"
+            >删除缓存</el-button
+          >
           <el-button @click="handleTest">测试按钮</el-button>
         </div>
       </el-col>
@@ -164,6 +173,7 @@ const fetchRunApi = (action: string | undefined, data: any) => {
 }
 
 const source = ref<EventSource>()
+
 function initSSE() {
   const ssurl = `${window.location.origin}/api/sse-stream`
   try {

@@ -8,6 +8,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/assets"
 	_ "github.com/xxl6097/go-service/assets/we"
+	"github.com/xxl6097/go-service/internal/github"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
@@ -105,6 +106,14 @@ func (t *Service) restartHandler() ([]byte, error) {
 func (t *Service) uninstallHandler() ([]byte, error) {
 	err := t.gs.UnInstall()
 	return nil, err
+}
+
+// 处理 GET 请求
+func (t *Service) checkVersionHandler() ([]byte, error) {
+	github.Request().Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string) {
+		glog.Debug(pathUrl, fullUrl, releaseNotes)
+	})
+	return nil, nil
 }
 
 // 处理 GET 请求
@@ -283,6 +292,8 @@ func (this *Service) handleMessage(body []byte, r *http.Request) ([]byte, error)
 	case "restart":
 		return this.restartHandler()
 	case "uninstall":
+		return this.uninstallHandler()
+	case "checkversion":
 		return this.uninstallHandler()
 	case "log":
 		return this.handleLog()
