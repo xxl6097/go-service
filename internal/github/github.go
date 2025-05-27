@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-var GithuApiHost = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
+var GithuApiHost = "https://api.github.com/repos/xxl6097/go-service/releases/latest"
 
 type githubapi struct {
 	result  *model.GitHubModel
@@ -54,7 +54,6 @@ func Request() *githubapi {
 	this := &githubapi{}
 	body, err := request()
 	var result model.GitHubModel
-	//glog.Debug("request", string(body))
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		panic(fmt.Errorf("github请求失败 %v", err))
@@ -63,6 +62,8 @@ func Request() *githubapi {
 	if this.result == nil {
 		panic("github请求结果空～")
 	}
+
+	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
 	return this
 }
