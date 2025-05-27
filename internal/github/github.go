@@ -12,17 +12,16 @@ import (
 	"strings"
 )
 
-var GithuApiHost = "https://api.github.com/repos/xxl6097/go-service/releases/latest"
-
 type GithubApi struct {
 	result  *model.GitHubModel
 	proxies []string
 }
 
-func request() ([]byte, error) {
-	glog.Debug("request", GithuApiHost)
+func request(githubUser, repoName string) ([]byte, error) {
+	baseUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", githubUser, repoName)
+	glog.Debug("request", baseUrl)
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", GithuApiHost, nil)
+	req, _ := http.NewRequest("GET", baseUrl, nil)
 	clientId := os.Getenv("GITHUB_CLIENT_ID")
 	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
 	if clientId != "" || clientSecret != "" {
@@ -45,14 +44,14 @@ func request() ([]byte, error) {
 	}
 	return body, nil
 }
-func Request() *GithubApi {
+func Request(githubUser, repoName string) *GithubApi {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Debug(err)
 		}
 	}()
 	this := &GithubApi{}
-	body, err := request()
+	body, err := request(githubUser, repoName)
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
 	if err != nil {
@@ -102,11 +101,15 @@ func (this *GithubApi) Upgrade(fullName string, fn func(string, string, string, 
 	return this
 }
 
-func (this *GithubApi) GetUrl(fileUrl string) []string {
+func (this *GithubApi) GetProxyUrls(fileUrl string) []string {
 	newProxy := make([]string, 0)
-	for _, proxy := range this.proxies {
-		newUrl := fmt.Sprintf("%s%s", proxy, fileUrl)
-		newProxy = append(newProxy, newUrl)
+	if this.proxies == nil || len(this.proxies) <= 0 {
+		newProxy = append(newProxy, fileUrl)
+	} else {
+		for _, proxy := range this.proxies {
+			newUrl := fmt.Sprintf("%s%s", proxy, fileUrl)
+			newProxy = append(newProxy, newUrl)
+		}
 	}
 	return newProxy
 }
