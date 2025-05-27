@@ -9,4 +9,4 @@ require (
 	golang.org/x/sys v0.30.0
 )
 
-require github.com/xxl6097/go-update v0.0.4 // indirect
+require github.com/xxl6097/go-update v0.0.5 // indirect

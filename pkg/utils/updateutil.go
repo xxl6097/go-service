@@ -13,7 +13,7 @@ func IsMatch(binpath string) error {
 	if IsMissMatchOsApp(binpath) {
 		return nil
 	}
-	return fmt.Errorf("安装文件与当前系统不匹配: %s 当前系统：%s CPU架构：%s", binpath, runtime.GOOS, runtime.GOARCH)
+	return fmt.Errorf("安装文件与当前系统不匹配: %s 当前系统：%s/%s", binpath, runtime.GOOS, runtime.GOARCH)
 }
 func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	file, err := os.Open(newFilePath)

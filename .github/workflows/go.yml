@@ -40,7 +40,7 @@ jobs:
           cd ./web/we
           npm install
           npm run build
-      - name: Download previous release
+      - name: 下载上一个版本
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -52,7 +52,7 @@ jobs:
 #        run: |
 #          sudo apt-get update
 #          sudo apt-get install -y bsdiff libbz2-dev
-      - name: Set up Go
+      - name: 编译golang程序
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'

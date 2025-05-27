@@ -57,9 +57,9 @@
           <el-button @click="handleCMD('version', '')">获取版本号</el-button>
           <el-button @click="handleCMD('sudo', '')">sudo</el-button>
           <el-button @click="handleCMD('get', '')">get</el-button>
-          <el-button @click="handleCMD('delete', '')">delete</el-button>
+          <el-button type="danger" plain @click="handleCMD('delete', '')">delete</el-button>
           <el-button @click="handleCMD('restart', '')">restart</el-button>
-          <el-button @click="handleCMD('uninstall', '')">uninstall</el-button>
+          <el-button type="warning" plain @click="handleCMD('uninstall', '')">uninstall</el-button>
         </div>
         <div
           style="
@@ -71,7 +71,7 @@
         >
           <el-button @click="handleReadLog">查看日志</el-button>
           <el-button @click="handleClearLog">清空日志</el-button>
-          <el-button @click="handleCMD('clear', '')">清空数据</el-button>
+          <el-button type="danger" plain @click="handleCMD('clear', '')">删除缓存</el-button>
           <el-button @click="handleTest">测试按钮</el-button>
         </div>
       </el-col>
