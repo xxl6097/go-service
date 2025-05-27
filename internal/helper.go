@@ -202,7 +202,7 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 		return fmt.Errorf(eMsg)
 	}
 	if !patch {
-		err = utils.IsMatch(signFilePath)
+		err = utils.IsMissMatchOsApp(signFilePath)
 		if err != nil {
 			return err
 		}

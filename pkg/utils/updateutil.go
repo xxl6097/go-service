@@ -6,16 +6,9 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-update"
 	"os"
-	"runtime"
 	"strings"
 )
 
-func IsMatch(binpath string) error {
-	if IsMissMatchOsApp(binpath) {
-		return nil
-	}
-	return fmt.Errorf("安装文件与当前系统不匹配: %s 当前系统：%s/%s", binpath, runtime.GOOS, runtime.GOARCH)
-}
 func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	file, err := os.Open(newFilePath)
 	if err != nil {
@@ -27,7 +20,7 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	// Windows需要管理员权限
 	opts := update.Options{
 		TargetPath: targetPath, // 当前可执行文件路径
-		//Middler:    IsMatch,
+		Middler:    IsMissMatchOsApp,
 	}
 	if patcher {
 		opts.Patcher = update.NewBSDiffPatcher()
@@ -47,23 +40,21 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	return nil
 }
 
-func IsMissMatchOsApp(binPath string) bool {
+func IsMissMatchOsApp(binPath string) error {
 	if !FileExists(binPath) {
 		glog.Error("文件不存在")
-		return false
+		return fmt.Errorf("文件不存在")
 	}
 	err := os.Chmod(binPath, 0755)
 	if err != nil {
-		glog.Error("赋予权限错误", err)
-		return false
+		return fmt.Errorf("赋予权限错误 %v", err)
 	}
 	o, e := Cmd(binPath, "-v")
 	if e != nil {
-		glog.Error("cmd运行错误", e)
-		return false
+		return fmt.Errorf("cmd运行错误 %v", e)
 	}
-	glog.Debug("运行结果", o)
-	return true
+	glog.Debug("运行结果", string(o))
+	return nil
 }
 
 func ExtractCodeBlocks(markdown string) []string {
