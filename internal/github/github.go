@@ -15,6 +15,7 @@ import (
 type GithubApi struct {
 	result  *model.GitHubModel
 	proxies []string
+	err     error
 }
 
 func request(githubUser, repoName string) ([]byte, error) {
@@ -45,23 +46,17 @@ func request(githubUser, repoName string) ([]byte, error) {
 	return body, nil
 }
 func Request(githubUser, repoName string) *GithubApi {
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Debug(err)
-		}
-	}()
 	this := &GithubApi{}
 	body, err := request(githubUser, repoName)
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		panic(fmt.Errorf("github请求失败 %v", err))
+		this.err = fmt.Errorf("github请求失败 %v", err)
 	}
 	this.result = &result
 	if this.result == nil {
-		panic("github请求结果空～")
+		this.err = fmt.Errorf("github请求结果空~")
 	}
-
 	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
 	return this
@@ -112,4 +107,8 @@ func (this *GithubApi) GetProxyUrls(fileUrl string) []string {
 		}
 	}
 	return newProxy
+}
+
+func (this *GithubApi) Result() error {
+	return this.err
 }

@@ -122,7 +122,7 @@ func (t *Service) uninstallHandler() ([]byte, error) {
 
 // 处理 GET 请求
 func (t *Service) checkVersionHandler() ([]byte, error) {
-	github.Request("xxl6097", "go-service").Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string, api *github.GithubApi) {
+	err := github.Request("xxl6097", "go-service").Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string, api *github.GithubApi) {
 		glog.Debug(pathUrl, fullUrl, releaseNotes)
 		if pathUrl != "" {
 			glog.Debug("差量升级")
@@ -138,8 +138,8 @@ func (t *Service) checkVersionHandler() ([]byte, error) {
 			glog.Debug("全量升级结果", err)
 		}
 
-	})
-	return nil, nil
+	}).Result()
+	return nil, err
 }
 
 // 处理 GET 请求
