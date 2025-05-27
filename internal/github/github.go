@@ -54,10 +54,12 @@ func Request() *githubapi {
 	this := &githubapi{}
 	body, err := request()
 	var result model.GitHubModel
+	//glog.Debug("request", string(body))
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		panic(fmt.Errorf("github请求失败 %v", err))
 	}
+	this.result = &result
 	if this.result == nil {
 		panic("github请求结果空～")
 	}
