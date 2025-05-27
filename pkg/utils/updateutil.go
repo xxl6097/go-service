@@ -27,7 +27,7 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	// Windows需要管理员权限
 	opts := update.Options{
 		TargetPath: targetPath, // 当前可执行文件路径
-		Middler:    IsMatch,
+		//Middler:    IsMatch,
 	}
 	if patcher {
 		opts.Patcher = update.NewBSDiffPatcher()
