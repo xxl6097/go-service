@@ -1,7 +1,6 @@
 package srv
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
@@ -32,7 +31,8 @@ func load() (*Config, error) {
 		return nil, err
 	}
 	var cfg Config
-	err = json.Unmarshal(byteArray, &cfg)
+	err = ukey.GobToStruct(byteArray, &cfg)
+	//err = json.Unmarshal(byteArray, &cfg)
 	if err != nil {
 		glog.Println("ClientConfig解析错误", err)
 		return nil, err
@@ -75,12 +75,17 @@ func (this *Service) OnRun(service igs.Service) error {
 	}
 }
 
-func (this *Service) GetAny(s2 string) any {
+func (this *Service) GetAny(s2 string) []byte {
 	return this.menu()
 }
 
-func (this *Service) menu() any {
+func (this *Service) menu() []byte {
 	appName := utils.InputStringEmpty(fmt.Sprintf("测试输入："), "测试数据")
 	port := utils.InputIntDefault(fmt.Sprintf("测试输入端口(%d)：", 9090), 9090)
-	return &Config{AppTesting: appName, ServerPort: port}
+	cfg := &Config{AppTesting: appName, ServerPort: port}
+	bb, e := ukey.StructToGob(cfg)
+	if e != nil {
+		return nil
+	}
+	return bb
 }

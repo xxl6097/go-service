@@ -239,7 +239,8 @@ func Server(p int, t *Service) {
 
 	fmt.Println(address)
 	// 启动服务器
-	_ = http.ListenAndServe(port, router)
+	err := http.ListenAndServe(port, router)
+	glog.Fatal(err)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

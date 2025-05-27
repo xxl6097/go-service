@@ -14,12 +14,12 @@ import (
 )
 
 // SignFileBySelfKey install的时候buffer是为初始化的
-func SignFileBySelfKey(cfg any, inFilePath string) (string, error) {
+func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 	//1、获取用户的配置信息；
 	//2、加密用户信息，构建二进制常量；
 	//3、从原始二进制文件中查询特征码，替换为二进制常量；
 	//4、替换后，将二进制文件复制到安装指定的目录
-	cfgBuffer, err := GenConfig(cfg, false)
+	cfgBuffer, err := GenConfig(buffer, false)
 	if err != nil {
 		return "", fmt.Errorf("构建签名信息错误: %v", err)
 	}

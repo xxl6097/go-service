@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
@@ -174,17 +174,21 @@ func CanShowMenu() bool {
 //}
 
 // GenConfig 只有在计算buffer长度的时候 cap才为true，其他情况一律false
-func GenConfig(cfg interface{}, cap bool) ([]byte, error) {
-	cfgJsonBytes, err := json.Marshal(cfg)
-	//data, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("json解析cfg错误:%v", err)
-	}
-	if cfgJsonBytes != nil {
+func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
+	//cfgJsonBytes, err := json.Marshal(cfg)
+	////data, err := json.MarshalIndent(cfg, "", "  ")
+	//if err != nil {
+	//	return nil, fmt.Errorf("json解析cfg错误:%v", err)
+	//}
+	//if cfgJsonBytes != nil {
+	//	//glog.Printf("原始配置信息[%d]:%s\n", len(cfgJsonBytes), string(cfgJsonBytes))
+	//}
+	if cfgBuffer == nil {
 		//glog.Printf("原始配置信息[%d]:%s\n", len(cfgJsonBytes), string(cfgJsonBytes))
+		return nil, fmt.Errorf("原始配置信息字节数组不能空")
 	}
 	md5Keys := utils.GetUUID()
-	cfgBytes, err := utils.EncAES(cfgJsonBytes, md5Keys)
+	cfgBytes, err := utils.EncAES(cfgBuffer, md5Keys)
 	if err != nil {
 		return nil, fmt.Errorf("AES加密cfg错误:%v", err)
 	}
@@ -269,3 +273,16 @@ func GenSign(raw, key []byte) {
 //	User  string `json:"user"`
 //	Token string `json:"token"`
 //}
+
+func StructToGob(s interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(s)
+	return buf.Bytes(), err
+}
+
+func GobToStruct(data []byte, s interface{}) error {
+	buf := bytes.NewReader(data)
+	decoder := gob.NewDecoder(buf)
+	return decoder.Decode(s)
+}

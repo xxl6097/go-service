@@ -16,7 +16,7 @@ type IService interface {
 	OnConfig() *service.Config
 	OnVersion() string
 	OnRun(Service) error
-	GetAny(string) any
+	GetAny(string) []byte
 }
 
 type Installer interface {

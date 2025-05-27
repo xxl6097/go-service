@@ -27,16 +27,21 @@ func Install(g igs.IService, binPath, installBinPath string) error {
 	return manualInstall(binPath, installBinPath)
 }
 
-func getAny(binDir string, g igs.IService) any {
+func getAny(binDir string, g igs.IService) []byte {
 	if g == nil {
 		glog.Error("igs.IService is nil")
 		return nil
 	}
-	cfg := g.GetAny(filepath.Dir(binDir))
-	if cfg == nil {
-		cfg = map[string]any{"path": binDir}
+	buffer := g.GetAny(filepath.Dir(binDir))
+	if buffer == nil {
+		cfg := map[string]any{"path": binDir}
+		bb, err := ukey.StructToGob(cfg)
+		if err != nil {
+			return []byte(err.Error())
+		}
+		buffer = bb
 	}
-	return cfg
+	return buffer
 }
 
 //func getAny(binDir string, g igs.IService) any {
