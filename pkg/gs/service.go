@@ -5,9 +5,14 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/internal"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
 	"path/filepath"
 )
+
+func init() {
+	glog.Register(util.MarketName)
+}
 
 func Run(srv igs.IService) error {
 	if len(os.Args) > 1 {

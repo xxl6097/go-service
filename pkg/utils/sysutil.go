@@ -149,10 +149,11 @@ func ExitAnyKey() {
 	os.Exit(0)
 }
 
-func ExitCountDown() {
-	for i := 5; i >= 0; i-- {
+func ExitCountDown(count int) {
+	for i := count; i >= 0; i-- {
 		fmt.Printf("\r%d秒后退出程序..", i)
 		time.Sleep(1 * time.Second)
 	}
+	fmt.Println()
 	os.Exit(0)
 }

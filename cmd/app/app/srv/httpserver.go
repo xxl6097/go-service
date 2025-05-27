@@ -121,7 +121,7 @@ func (this *Service) ApiClear() ([]byte, error) {
 	binDir := filepath.Dir(binPath)
 	clientsDir := filepath.Join(binDir, "clients")
 	err = utils.DeleteAllDirector(clientsDir)
-	err = utils.DeleteAllDirector(glog.GetCrossPlatformDataDir())
+	err = utils.DeleteAllDirector(glog.AppHome())
 	if err != nil {
 		return nil, err
 	} else {
@@ -219,7 +219,7 @@ func Server(p int, t *Service) {
 	assets.Load("")
 
 	staticPrefix := "/log/"
-	baseDir := glog.GetCrossPlatformDataDir()
+	baseDir := glog.AppHome()
 	router.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
 
 	// 注册路由处理函数

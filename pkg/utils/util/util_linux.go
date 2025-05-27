@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DefaultInstallPath = "/usr/local"
+	DefaultInstallPath = "/usr/local/" + MarketName
 )
 
 // GetDiskUsage 获取 Unix 系统磁盘使用情况

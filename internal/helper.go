@@ -177,6 +177,6 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 func (this *CoreService) clear() {
 	glog.CloseLog()
 	_ = utils.DeleteAllDirector(this.workDir)
-	appDir := glog.GetCrossPlatformDataDir()
+	appDir := glog.AppHome()
 	_ = utils.DeleteAllDirector(appDir)
 }

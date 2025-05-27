@@ -19,7 +19,7 @@ func (this *CoreService) menu() error {
 		}
 	}
 	if ukey.CanShowMenu() {
-		glog.Debug("运行菜单", os.Getpid())
+		//glog.Debug("运行菜单", os.Getpid())
 		return this.runMenu()
 	}
 	glog.Debug("运行参数", os.Args, os.Getpid())
@@ -61,7 +61,11 @@ func (this *CoreService) runSwitch(cmd string) error {
 
 func (this *CoreService) runMenu() error {
 	defer func() {
-		utils.ExitAnyKey()
+		if utils.IsWindows() {
+			utils.ExitAnyKey()
+		} else {
+			utils.ExitCountDown(1)
+		}
 	}()
 	keys := []string{"install", "uninstall", "upgrade", "restart", "stop", "status", "v"}
 	fmt.Println("1. 安装程序")

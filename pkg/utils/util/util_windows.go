@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultInstallPath = "C:\\Program Files"
+	DefaultInstallPath = "C:\\Program Files\\" + MarketName
 	//	defaultBinName     = "AAServiceApp.exe"
 )
 

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultInstallPath = "/usr/local"
+	DefaultInstallPath = "/usr/local/" + MarketName
 	//defaultBinName     = "AAServiceApp"
 )
 
