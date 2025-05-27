@@ -50,6 +50,18 @@ func (t *Service) updateHandler(binurl string, ctx context.Context) ([]byte, err
 }
 
 // 处理 GET 请求
+func (t *Service) patchUpdateHandler(binurl string, ctx context.Context) ([]byte, error) {
+	response := fmt.Sprintf("Hello, %s", binurl)
+	glog.Println("patchUpdateHandler", response)
+	if t.gs == nil {
+		return []byte(response), fmt.Errorf("gs is nil")
+	}
+	err := t.gs.Upgrade(ctx, binurl)
+	glog.Println("patchUpdateHandler", err)
+	return []byte(pkg.AppVersion), err
+}
+
+// 处理 GET 请求
 func (t *Service) versionHandler() ([]byte, error) {
 	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), nil
 }
@@ -292,7 +304,18 @@ func (this *Service) handleMessage(body []byte, r *http.Request) ([]byte, error)
 		} else {
 			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
 		}
-
+	case "patch":
+		if msg.Data == nil {
+			return nil, fmt.Errorf("msg.Data is nil")
+		}
+		if msg.Data["data"] == nil {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+		if v, ok := msg.Data["data"].(string); ok {
+			return this.patchUpdateHandler(v, r.Context())
+		} else {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
 	case "version":
 		return this.versionHandler()
 	case "sudo":

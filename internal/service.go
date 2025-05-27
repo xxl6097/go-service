@@ -11,6 +11,10 @@ func (this *CoreService) Upgrade(ctx context.Context, binUrl string) error {
 	return this.upgrade(ctx, binUrl)
 }
 
+func (this *CoreService) PatchUpgrade(ctx context.Context, binUrl string) error {
+	return this.patchUpgrade(ctx, binUrl)
+}
+
 func (this *CoreService) UpgradeByBuffer(buffer []byte) error {
 	return this.changeSelf(buffer)
 }

@@ -126,6 +126,15 @@ func (this *CoreService) uninstall() error {
 	return err
 }
 
+func (this *CoreService) patchUpgrade(ctx context.Context, binUrlOrLocal string) error {
+	downFilePath, err := utils.CheckFileOrDownload(ctx, binUrlOrLocal)
+	if err != nil {
+		glog.Debug("升级失败", err)
+		return err
+	}
+	return this.update(downFilePath, true)
+}
+
 // 1. 检测升级文件是本地还是网络文件（下载）；
 // 2. 升级文件最终需要被删除，所以使用defer删除；
 // 3. 给升级文件赋予0755权限
