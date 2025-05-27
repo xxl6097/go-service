@@ -69,6 +69,23 @@ func (this *CoreService) reqeustWindowsUser() {
 	}
 }
 
+func (this *CoreService) isServiceApp() bool {
+	binPath, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	if strings.Compare(strings.ToLower(this.config.Executable), strings.ToLower(binPath)) == 0 {
+		s, e := this.statusService()
+		if e != nil {
+			return false
+		}
+		if s == service.StatusRunning {
+			return true
+		}
+	}
+	return false
+}
+
 func (this *CoreService) deleteOld() {
 	tempFilePath := filepath.Join(this.workDir, fmt.Sprintf(".%s.old", this.config.Name))
 	if utils.FileExists(tempFilePath) {

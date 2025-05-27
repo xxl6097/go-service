@@ -18,7 +18,7 @@ func (this *CoreService) menu() error {
 			return err
 		}
 	}
-	if ukey.CanShowMenu() {
+	if ukey.CanShowMenu() || !this.isServiceApp() {
 		//glog.Debug("运行菜单", os.Getpid())
 		return this.runMenu()
 	}
