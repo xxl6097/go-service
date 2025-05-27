@@ -114,8 +114,8 @@ func (t *Service) checkVersionHandler() ([]byte, error) {
 		glog.Debug(pathUrl, fullUrl, releaseNotes)
 		if pathUrl != "" {
 			glog.Debug("差量升级")
-			//err := t.gs.Upgrade(context.Background(), utils.DownloadFileWithCancelByUrls(api.GetUrl(pathUrl)))
-			err := t.gs.Upgrade(context.Background(), pathUrl)
+			err := t.gs.Upgrade(context.Background(), utils.DownloadFileWithCancelByUrls(api.GetUrl(pathUrl)))
+			//err := t.gs.Upgrade(context.Background(), pathUrl)
 			glog.Debug("差量升级结果", err)
 		} else if fullUrl != "" {
 			glog.Debug("全量升级")

@@ -27,7 +27,7 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	// Windows需要管理员权限
 	opts := update.Options{
 		TargetPath: targetPath, // 当前可执行文件路径
-		//Middler:    IsMatch,
+		Middler:    IsMatch,
 	}
 	if patcher {
 		opts.Patcher = update.NewBSDiffPatcher()
@@ -49,19 +49,20 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 
 func IsMissMatchOsApp(binPath string) bool {
 	if !FileExists(binPath) {
+		glog.Error("文件不存在")
 		return false
 	}
 	err := os.Chmod(binPath, 0755)
 	if err != nil {
-		glog.Error(err)
+		glog.Error("赋予权限错误", err)
 		return false
 	}
 	o, e := Cmd(binPath, "-v")
 	if e != nil {
-		glog.Error(e)
+		glog.Error("cmd运行错误", e)
 		return false
 	}
-	glog.Debug(o)
+	glog.Debug("运行结果", o)
 	return true
 }
 
