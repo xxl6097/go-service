@@ -9,4 +9,8 @@ require (
 	golang.org/x/sys v0.30.0
 )
 
-require github.com/xxl6097/go-update v0.0.5 // indirect
+require (
+	github.com/akavel/rsrc v0.10.2 // indirect
+	github.com/josephspurrier/goversioninfo v1.5.0 // indirect
+	github.com/xxl6097/go-update v0.0.5 // indirect
+)

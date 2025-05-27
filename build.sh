@@ -342,7 +342,7 @@ function githubActions() {
   describe="一款基于GO语言的服务安装程序"
   echo "===>version:${version}"
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
-  go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
   rm -rf ${builddir}
   buildAll $builddir $appname "$version" $appdir $disname $describe
   mkdir -p ./release/packages
