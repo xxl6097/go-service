@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/utils/util"
@@ -29,6 +30,22 @@ func RestartWindowsApplication() {
 	}
 }
 
+func BlockingFunction[T any](c context.Context, timeout time.Duration, callback func() T) (T, error) {
+	ctx, cancel := context.WithTimeout(c, timeout)
+	defer cancel()
+	resultChan := make(chan T)
+	go func() {
+		result := callback()
+		resultChan <- result
+	}()
+	var zero T // 声明 T 的零值
+	select {
+	case res := <-resultChan:
+		return res, nil
+	case <-ctx.Done():
+		return zero, errors.New("timeout")
+	}
+}
 func DynamicSelect[T any](t []T, fun func(context.Context, int, T) T) T {
 	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
