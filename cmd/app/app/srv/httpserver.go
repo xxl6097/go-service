@@ -294,7 +294,7 @@ func (this *Service) handleMessage(body []byte, r *http.Request) ([]byte, error)
 	case "uninstall":
 		return this.uninstallHandler()
 	case "checkversion":
-		return this.uninstallHandler()
+		return this.checkVersionHandler()
 	case "log":
 		return this.handleLog()
 	case "clear":
