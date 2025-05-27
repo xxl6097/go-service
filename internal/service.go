@@ -15,6 +15,10 @@ func (this *CoreService) UpgradeByBuffer(buffer []byte) error {
 	return this.changeSelf(buffer)
 }
 
+func (this *CoreService) ClearCache() error {
+	return this.clearTemp()
+}
+
 func (this *CoreService) UnInstall() error {
 	//return this.uninstall()
 	return this.RunCMD("uninstall")

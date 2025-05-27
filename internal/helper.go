@@ -218,9 +218,13 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	return this.RunCMD("restart")
 }
 
+func (this *CoreService) clearTemp() error {
+	appDir := glog.AppHome()
+	return utils.DeleteAllDirector(appDir)
+}
+
 func (this *CoreService) clear() {
 	glog.CloseLog()
 	_ = utils.DeleteAllDirector(this.workDir)
-	appDir := glog.AppHome()
-	_ = utils.DeleteAllDirector(appDir)
+	_ = this.clearTemp()
 }
