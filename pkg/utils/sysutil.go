@@ -1,13 +1,16 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
 	"os/exec"
+	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -26,6 +29,33 @@ func RestartWindowsApplication() {
 	}
 }
 
+func DynamicSelect[T any](t []T, fun func(context.Context, int, T) T) T {
+	ctx, cancel := context.WithCancel(context.Background())
+	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
+	var wg sync.WaitGroup
+	for i, v := range t {
+		wg.Add(1)
+		go func(ct context.Context, index int, t T, c chan<- T) {
+			defer wg.Done()
+			c <- fun(ct, index, t)
+		}(ctx, i, v, ch)
+	}
+	var x T
+	for i := 0; i < len(t); i++ {
+		_, value, ok := reflect.Select([]reflect.SelectCase{{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		}})
+		r := value.Interface().(T)
+		if ok {
+			cancel()
+			wg.Wait()
+			return r
+		}
+	}
+	cancel()
+	return x
+}
 func IsWindows() bool {
 	if strings.Compare(runtime.GOOS, "windows") == 0 {
 		return true

@@ -16,6 +16,26 @@ import (
 	"time"
 )
 
+func DownloadFileWithCancelByUrls(urls []string) string {
+	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
+		var dst string
+		select {
+		default:
+			//tid := GetGoroutineID()
+			dstFilePath, err := DownloadWithCancel(ctx, s)
+			if err == nil {
+				return dstFilePath
+			} else if errors.Is(err, context.Canceled) {
+				//fmt.Println("2通道 ", i, err.Error())
+				return dst
+			} else {
+			}
+		}
+		return dst
+	})
+	return newUrl
+}
+
 func DownloadWithCancel(ctx context.Context, url string, args ...string) (string, error) {
 	defer glog.Flush()
 	// 创建可取消的 HTTP 请求
