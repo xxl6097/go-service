@@ -10,7 +10,6 @@ import (
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"os"
-	"time"
 )
 
 type Service struct {
@@ -67,12 +66,13 @@ func (this *Service) OnRun(service igs.Service) error {
 		return err
 	}
 	glog.Debug("程序运行", os.Args)
-	go Server(cfg.ServerPort, this)
-	for {
-		this.timestamp = time.Now().Format(time.RFC3339)
-		glog.Println("run", pkg.AppVersion, pkg.BuildTime, this.timestamp)
-		time.Sleep(time.Second * 10)
-	}
+	Server(cfg.ServerPort, this)
+	//for {
+	//	this.timestamp = time.Now().Format(time.RFC3339)
+	//	glog.Println("run", pkg.AppVersion, pkg.BuildTime, this.timestamp)
+	//	time.Sleep(time.Second * 10)
+	//}
+	return nil
 }
 
 func (this *Service) GetAny(s2 string) []byte {
