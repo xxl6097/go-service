@@ -80,6 +80,10 @@ func request(githubUser, repoName string) ([]byte, error) {
 func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 	//this := &GithubApi{}
 	body, err := request(githubUser, repoName)
+	if err != nil {
+		this.err = err
+		return this
+	}
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
 	if err != nil {
