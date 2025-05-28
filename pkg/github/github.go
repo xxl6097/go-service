@@ -196,13 +196,14 @@ func (this *githubApi) GetModel() *model.GitHubModel {
 	return this.result
 }
 
-func (this *githubApi) SetName(userName, repoName string) {
+func (this *githubApi) SetName(userName, repoName string) *githubApi {
 	if userName != "" {
 		this.userName = userName
 	}
 	if repoName != "" {
 		this.repoName = repoName
 	}
+	return this
 }
 func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
 	if this.result == nil {
