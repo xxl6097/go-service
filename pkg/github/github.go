@@ -97,19 +97,13 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 }
 
 func (this *githubApi) DefaultRequest() *githubApi {
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Error(err)
-			this.err = fmt.Errorf("%v", err)
-		}
-	}()
 	if this.userName == "" {
 		this.err = errors.New("请指定github的用户名")
-		panic(this.err)
+		return this
 	}
 	if this.repoName == "" {
 		this.err = errors.New("请指定github的仓库名")
-		panic(this.err)
+		return this
 	}
 
 	return this.Request(this.userName, this.repoName)
@@ -120,12 +114,6 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 		this.err = errors.New("fullName is empty")
 		return this
 	}
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Error(err)
-			this.err = fmt.Errorf("%v", err)
-		}
-	}()
 	if this.result == nil {
 		this.DefaultRequest()
 	}
@@ -172,15 +160,6 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 }
 
 func (this *githubApi) GetProxyUrls(fileUrl string) []string {
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Error(err)
-			this.err = fmt.Errorf("%v", err)
-		}
-	}()
-	if this.result == nil {
-		this.DefaultRequest()
-	}
 	newProxy := make([]string, 0)
 	if this.proxies == nil || len(this.proxies) <= 0 {
 		newProxy = append(newProxy, fileUrl)
@@ -197,12 +176,6 @@ func (this *githubApi) Result() (any, error) {
 	return this.data, this.err
 }
 func (this *githubApi) GetModel() *model.GitHubModel {
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Error(err)
-			this.err = fmt.Errorf("%v", err)
-		}
-	}()
 	if this.result == nil {
 		this.DefaultRequest()
 	}
@@ -214,25 +187,16 @@ func (this *githubApi) SetName(userName, repoName string) {
 	this.repoName = repoName
 }
 func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Error(err)
-			this.err = fmt.Errorf("%v", err)
-		}
-	}()
 	if this.result == nil {
 		this.DefaultRequest()
 	}
 	if this.result == nil {
 		this.err = fmt.Errorf("this.result is nil")
-		panic(this.err)
-	}
-	for _, asset := range this.result.Assets {
-		//if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(name)) == 0 {
-		//	return asset.BrowserDownloadUrl
-		//}
-		if fn != nil && fn(this.result.TagName, &asset) {
-			return asset.BrowserDownloadUrl
+	} else if this.result.Assets != nil {
+		for _, asset := range this.result.Assets {
+			if fn != nil && fn(this.result.TagName, &asset) {
+				return asset.BrowserDownloadUrl
+			}
 		}
 	}
 	return ""
