@@ -34,7 +34,8 @@ type Message[T any] struct {
 
 type Result struct {
 	Code int    `json:"code"`
-	Data string `json:"data,omitempty"`
+	Msg  string `json:"msg,omitempty"`
+	Data any    `json:"data,omitempty"`
 }
 
 // 处理 GET 请求
@@ -82,12 +83,12 @@ func (t *Service) testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // 处理 GET 请求
-func (t *Service) handleGet() ([]byte, error) {
+func (t *Service) handleGet() (any, error) {
 	return []byte(fmt.Sprintf("%s\ntimestamp: %s", pkg.Version(), t.timestamp)), nil
 }
 
 // 处理 GET 请求
-func (t *Service) handleDelete() ([]byte, error) {
+func (t *Service) handleDelete() (any, error) {
 	// 获取当前可执行文件路径
 	exePath, err := os.Executable()
 	if err != nil {
@@ -108,38 +109,62 @@ func (t *Service) handleDelete() ([]byte, error) {
 }
 
 // 处理 GET 请求
-func (t *Service) restartHandler() ([]byte, error) {
+func (t *Service) restartHandler() (any, error) {
 	//err := t.gs.RunCmd("restart")
 	err := t.gs.Restart()
 	return nil, err
 }
 
 // 处理 GET 请求
-func (t *Service) uninstallHandler() ([]byte, error) {
+func (t *Service) uninstallHandler() (any, error) {
 	err := t.gs.UnInstall()
 	return nil, err
 }
 
 // 处理 GET 请求
-func (t *Service) checkVersionHandler() ([]byte, error) {
-	err := github.Request("xxl6097", "go-service").Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string, api *github.GithubApi) {
+func (t *Service) checkVersionHandler() (any, error) {
+	data, err := github.Api().Request("xxl6097", "go-service").Upgrade(pkg.BinName, func(pathUrl string, fullUrl string, releaseNotes string) {
 		glog.Debug(pathUrl, fullUrl, releaseNotes)
-		if pathUrl != "" {
-			glog.Debug("差量升级")
-			fileLocalUri := utils.DownloadFileWithCancelByUrls(api.GetProxyUrls(pathUrl))
-			err := t.gs.Upgrade(context.Background(), fileLocalUri)
-			//err := t.gs.Upgrade(context.Background(), pathUrl)
-			glog.Debug("差量升级结果", err)
-		} else if fullUrl != "" {
-			glog.Debug("全量升级")
-			//err := t.gs.Upgrade(context.Background(), utils.DownloadFileWithCancelByUrls(api.GetUrl(fullUrl)))
-			fileLocalUri := utils.DownloadFileWithCancelByUrls(api.GetProxyUrls(fullUrl))
-			err := t.gs.Upgrade(context.Background(), fileLocalUri)
-			glog.Debug("全量升级结果", err)
-		}
+		//if pathUrl != "" {
+		//	glog.Debug("差量升级")
+		//	fileLocalUri := utils.DownloadFileWithCancelByUrls(api.GetProxyUrls(pathUrl))
+		//	err := t.gs.Upgrade(context.Background(), fileLocalUri)
+		//	glog.Debug("差量升级结果", err)
+		//} else if fullUrl != "" {
+		//	glog.Debug("全量升级")
+		//	fileLocalUri := utils.DownloadFileWithCancelByUrls(api.GetProxyUrls(fullUrl))
+		//	err := t.gs.Upgrade(context.Background(), fileLocalUri)
+		//	glog.Debug("全量升级结果", err)
+		//}
 
 	}).Result()
-	return nil, err
+	return data, err
+}
+
+// 处理 GET 请求
+func (t *Service) confirmUpgrade(r *http.Request, data any) (any, error) {
+	if data == nil {
+		return nil, fmt.Errorf("msg.Data is nil")
+	}
+	switch v := data.(type) {
+	case map[string]interface{}:
+		if v["data"] == nil {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+		if value, ok := v["data"].(string); ok {
+			fmt.Println(value)
+			urls := github.Api().GetProxyUrls(value)
+			fileUri := utils.DownloadFileWithCancelByUrls(urls)
+			if fileUri != "" {
+				err := t.gs.Upgrade(r.Context(), fileUri)
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")
+		}
+	}
+
+	return data, nil
 }
 
 // 处理 GET 请求
@@ -203,20 +228,30 @@ func (t *Service) handleSudo() ([]byte, error) {
 
 func (this *Service) apiCommand(w http.ResponseWriter, r *http.Request) {
 	var errMsg error
-	var data []byte
+	var data any
 	defer func() {
-		var msg string
-		if data != nil {
-			msg = fmt.Sprintf("data: %s", string(data))
-		}
-		if errMsg != nil {
-			msg = fmt.Sprintf("%s err: %s", msg, errMsg)
-		}
-
 		res := Result{
 			Code: 0,
-			Data: msg,
 		}
+		if data != nil {
+			switch v := data.(type) {
+			case []byte:
+				res.Data = string(v)
+			case string:
+				res.Data = v
+			case error:
+				res.Data = v.Error()
+			case map[string]interface{}:
+				res.Data = v
+			default:
+				res.Data = fmt.Sprintf("%v", v)
+			}
+		}
+		if errMsg != nil {
+			res.Code = -1
+			res.Msg = fmt.Sprintf("%s", errMsg)
+		}
+
 		jsonData, err := json.Marshal(res)
 		if err != nil {
 			glog.Errorf("json marshal err: %v", err)
@@ -286,7 +321,7 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User API Endpoint"))
 }
 
-func (this *Service) handleMessage(body []byte, r *http.Request) ([]byte, error) {
+func (this *Service) handleMessage(body []byte, r *http.Request) (any, error) {
 	var msg Message[map[string]interface{}]
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
@@ -332,6 +367,8 @@ func (this *Service) handleMessage(body []byte, r *http.Request) ([]byte, error)
 		return this.uninstallHandler()
 	case "checkversion":
 		return this.checkVersionHandler()
+	case "confirm-upgrade":
+		return this.confirmUpgrade(r, msg.Data)
 	case "log":
 		return this.handleLog()
 	case "clear":

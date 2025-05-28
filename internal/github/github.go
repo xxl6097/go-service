@@ -10,12 +10,28 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
 
-type GithubApi struct {
+var (
+	instance *githubApi
+	once     sync.Once
+)
+
+type githubApi struct {
 	result  *model.GitHubModel
 	proxies []string
+	data    any
 	err     error
+}
+
+// Api 返回单例实例
+func Api() *githubApi {
+	once.Do(func() {
+		instance = &githubApi{} // 初始化逻辑
+		fmt.Println("github api Singleton instance created")
+	})
+	return instance
 }
 
 func request(githubUser, repoName string) ([]byte, error) {
@@ -45,8 +61,8 @@ func request(githubUser, repoName string) ([]byte, error) {
 	}
 	return body, nil
 }
-func Request(githubUser, repoName string) *GithubApi {
-	this := &GithubApi{}
+func (this *githubApi) Request(githubUser, repoName string) *githubApi {
+	//this := &GithubApi{}
 	body, err := request(githubUser, repoName)
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
@@ -62,26 +78,26 @@ func Request(githubUser, repoName string) *GithubApi {
 	return this
 }
 
-func (this *GithubApi) Upgrade(fullName string, fn func(string, string, string, *GithubApi)) *GithubApi {
+func (this *githubApi) Upgrade(fullName string, fn func(string, string, string)) *githubApi {
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
 	glog.Debug("本地版本:", oldVersion)
 	if hasNewVersion > 0 {
 		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, this.result.TagName)
-		var fullUpUrl, patchUpUrl string
+		var fullUrl, patchUrl string
 		patchName := fmt.Sprintf("%s.patch", newVersionAppName)
 		for _, asset := range this.result.Assets {
 			if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(newVersionAppName)) == 0 {
-				fullUpUrl = asset.BrowserDownloadUrl
+				fullUrl = asset.BrowserDownloadUrl
 			} else if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(patchName)) == 0 {
-				patchUpUrl = asset.BrowserDownloadUrl
+				patchUrl = asset.BrowserDownloadUrl
 			}
 		}
 
 		if hasNewVersion != 1 {
 			//版本之间只有相差一个版本号才能差量升级
-			patchUpUrl = ""
+			patchUrl = ""
 		}
 		index := strings.Index(this.result.Body, "---")
 		releaseNote := this.result.Body
@@ -89,14 +105,19 @@ func (this *GithubApi) Upgrade(fullName string, fn func(string, string, string, 
 			releaseNote = releaseNote[:index]
 		}
 		if fn != nil {
-			fn(patchUpUrl, fullUpUrl, releaseNote, this)
+			fn(patchUrl, fullUrl, releaseNote)
+			this.data = map[string]interface{}{
+				"fullUrl":      fullUrl,
+				"patchUrl":     patchUrl,
+				"releaseNotes": releaseNote,
+			}
 		}
 	}
 
 	return this
 }
 
-func (this *GithubApi) GetProxyUrls(fileUrl string) []string {
+func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 	newProxy := make([]string, 0)
 	if this.proxies == nil || len(this.proxies) <= 0 {
 		newProxy = append(newProxy, fileUrl)
@@ -109,6 +130,6 @@ func (this *GithubApi) GetProxyUrls(fileUrl string) []string {
 	return newProxy
 }
 
-func (this *GithubApi) Result() error {
-	return this.err
+func (this *githubApi) Result() (any, error) {
+	return this.data, this.err
 }

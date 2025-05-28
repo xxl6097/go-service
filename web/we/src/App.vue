@@ -34,7 +34,7 @@
       <div class="line-div">
         <el-button-group class="ml-4">
           <el-button @click="handleCMD('version', '')">获取版本号</el-button>
-          <el-button type="primary" plain @click="handleCMD('checkversion', '')"
+          <el-button type="primary" plain @click="handleCheckVersion"
             >检测版本
           </el-button>
           <el-button @click="handleCMD('sudo', '')">sudo</el-button>
@@ -67,15 +67,19 @@
       </div>
     </div>
   </div>
+
+  <UpgradeDialog ref="upgradeRef" @handle-upgrade="handleUpgrade" />
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { showLoading, syntaxHighlight } from './utils/utils.ts'
+import UpgradeDialog from './components/UpgradeDialog.vue'
 
 const logs = ref<string[]>([])
 const logContainer = ref<HTMLDivElement | null>(null)
 
+const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
 const input1 = ref<string>()
 const input2 = ref<string>()
 const input3 = ref<string>()
@@ -89,9 +93,34 @@ const addLog = (context: string): void => {
     logContainer.value.scrollTop = 0
   }
 }
+const showUpgradeDialog = (
+  patchUrl: string | undefined,
+  fullUrl: string | undefined,
+  releaseNotes: string | undefined,
+) => {
+  if (upgradeRef.value) {
+    upgradeRef.value.openUpgradeDialog(patchUrl, fullUrl, releaseNotes)
+  }
+}
 
 const handleCMD = (action: string | undefined, data: string | undefined) => {
   fetchRunApi(action, { data: data })
+}
+
+const handleCheckVersion = () => {
+  fetchRunApi('checkversion', {}, function (json: any) {
+    if (json && json.code === 0 && json.data) {
+      showUpgradeDialog(
+        json.data.patchUrl,
+        json.data.fullUrl,
+        json.data.releaseNotes,
+      )
+    }
+  })
+}
+
+const handleUpgrade = (binUrl: string) => {
+  fetchRunApi('confirm-upgrade', { data: binUrl })
 }
 
 const handleReadLog = () => {
@@ -105,7 +134,11 @@ const handleClearLog = () => {
   logs.value = []
 }
 
-const fetchRunApi = (action: string | undefined, data: any) => {
+const fetchRunApi = (
+  action: string | undefined,
+  data: any,
+  callback: (json: object) => void = () => {},
+) => {
   const body = {
     action: action,
     data: data,
@@ -123,6 +156,9 @@ const fetchRunApi = (action: string | undefined, data: any) => {
     })
     .then((json) => {
       console.log('fetch result:', json)
+      if (callback) {
+        callback(json)
+      }
       if (json.code === 0) {
         if (typeof json.data === 'string') {
           addLog(json.data)
