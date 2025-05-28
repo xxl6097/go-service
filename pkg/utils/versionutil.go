@@ -57,6 +57,7 @@ func CompareVersions(new, old string) int {
 		data1 += num1 * fang
 		data2 += num2 * fang
 		glog.Debug(num1, num2, fang, seg1, seg2)
+		glog.Debug(data1, data2)
 	}
 	return data1 - data2
 }
