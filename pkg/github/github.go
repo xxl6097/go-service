@@ -167,7 +167,7 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", this.result.TagName, releaseNote),
 		}
 	} else {
-		this.err = fmt.Errorf("【%s】已是最新版本～", oldVersion)
+		this.err = fmt.Errorf("【%s】已是最新版本～%d", oldVersion, hasNewVersion)
 	}
 
 	return this

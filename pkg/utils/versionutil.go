@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/xxl6097/glog/glog"
 	"math"
 	"regexp"
 	"strconv"
@@ -55,6 +56,7 @@ func CompareVersions(new, old string) int {
 		fang := int(math.Pow(100, float64(i)))
 		data1 += num1 * fang
 		data2 += num2 * fang
+		glog.Debug(num1, num2, fang, seg1, seg2)
 	}
 	return data1 - data2
 }
