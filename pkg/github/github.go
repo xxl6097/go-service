@@ -103,7 +103,7 @@ func (this *githubApi) DefaultRequest() *githubApi {
 	return this.Request(userName, repoName)
 }
 
-func (this *githubApi) Upgrade(fullName string, fn func(string, string, string)) *githubApi {
+func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, string)) *githubApi {
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
@@ -131,11 +131,11 @@ func (this *githubApi) Upgrade(fullName string, fn func(string, string, string))
 		}
 		if fn != nil {
 			fn(patchUrl, fullUrl, releaseNote)
-			this.data = map[string]interface{}{
-				"fullUrl":      fullUrl,
-				"patchUrl":     patchUrl,
-				"releaseNotes": releaseNote,
-			}
+		}
+		this.data = map[string]interface{}{
+			"fullUrl":      fullUrl,
+			"patchUrl":     patchUrl,
+			"releaseNotes": releaseNote,
 		}
 	}
 
