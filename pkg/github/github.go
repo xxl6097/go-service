@@ -45,7 +45,7 @@ type githubApi struct {
 func Api() *githubApi {
 	once.Do(func() {
 		instance = &githubApi{} // 初始化逻辑
-		fmt.Println("github api Singleton instance created")
+		//fmt.Println("github api Singleton instance created")
 	})
 	return instance
 }
