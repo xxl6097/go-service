@@ -97,6 +97,7 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 		glog.Error(this.err)
 		return this
 	}
+	this.err = nil
 	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
 	return this
