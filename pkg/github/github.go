@@ -87,7 +87,7 @@ func (this *githubApi) DefaultRequest() *githubApi {
 		}
 	}()
 	data, err := os.ReadFile("go.mod")
-	if err == nil {
+	if err != nil {
 		panic(err)
 	}
 
@@ -104,6 +104,11 @@ func (this *githubApi) DefaultRequest() *githubApi {
 }
 
 func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, string)) *githubApi {
+	defer func() {
+		if err := recover(); err != nil {
+			glog.Error(err)
+		}
+	}()
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
@@ -137,6 +142,8 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 			"patchUrl":     patchUrl,
 			"releaseNotes": releaseNote,
 		}
+	} else {
+		this.err = fmt.Errorf("【%s】已是最新版本～", oldVersion)
 	}
 
 	return this
