@@ -158,10 +158,11 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 		if fn != nil {
 			fn(patchUrl, fullUrl, releaseNote)
 		}
+
 		this.data = map[string]interface{}{
 			"fullUrl":      fullUrl,
 			"patchUrl":     patchUrl,
-			"releaseNotes": releaseNote,
+			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", this.result.TagName, releaseNote),
 		}
 	} else {
 		this.err = fmt.Errorf("【%s】已是最新版本～", oldVersion)
