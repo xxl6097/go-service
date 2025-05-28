@@ -23,7 +23,7 @@ func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("构建签名信息错误: %v", err)
 	}
-	outFilePath := filepath.Join(glog.AppHome("sign", utils.GetID()), filepath.Base(inFilePath))
+	outFilePath := filepath.Join(glog.AppHome("temp", "sign", utils.GetID()), filepath.Base(inFilePath))
 	//安装程序，需要对程序进行签名，那么需要传入两个参数：
 	//1、最原始的key；
 	//2、需写入的data
@@ -52,7 +52,7 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 		glog.Error(err)
 		return "", err
 	}
-	outFilePath := filepath.Join(glog.AppHome("sign", utils.GetID()), filepath.Base(newFilePath))
+	outFilePath := filepath.Join(glog.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
 	glog.Debug("获取配置数据成功，数据大小", len(cfgBufferBytes))
 	//oldBuffer := GetBuffer()
 	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
@@ -138,8 +138,8 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		newFileSize += int64(writeSize)
 		prevBuffer = nil
 	}
-	glog.Printf("原始文件大小：%d  %s\n", indexSize, scrFilePath)
-	glog.Printf("目标文件大小：%d  %s\n", indexSize, dstFilePath)
+	//glog.Printf("原始文件大小：%d  %s\n", indexSize, scrFilePath)
+	//glog.Printf("目标文件大小：%d  %s\n", indexSize, dstFilePath)
 	// 给文件赋予执行权限（0755）
 	errMsg := os.Chmod(dstFilePath, 0755)
 	if errMsg != nil {

@@ -72,7 +72,7 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 			dstName = fmt.Sprintf("%d", fileName)
 		}
 		if dstName != "" {
-			dstFile = filepath.Join(glog.AppHome("upgrade"), tempFolder, dstName)
+			dstFile = filepath.Join(glog.AppHome("temp", "upgrade"), tempFolder, dstName)
 		}
 	} else {
 		dir, f := filepath.Split(dstFile)

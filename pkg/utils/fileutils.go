@@ -29,14 +29,29 @@ func CheckFileOrDownload(ctx context.Context, fileUrlOrLocal string) (string, er
 		return "", errors.New("无法识别的文件" + fileUrlOrLocal)
 	}
 }
+func ByteCountIEC(b uint64) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
+}
 
 // FileExists 用于判断文件是否存在
 func FileExists(filePath string) bool {
 	// 调用 os.Stat 函数获取文件信息
-	_, err := os.Stat(filePath)
+	f, err := os.Stat(filePath)
 	// 判断是否为文件不存在的错误
 	if os.IsNotExist(err) {
 		return false
+	}
+	if f != nil {
+		glog.Debug(ByteCountIEC(uint64(f.Size())), filePath)
 	}
 	// 若有其他错误或无错误，认为文件存在
 	return true
