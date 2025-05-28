@@ -84,11 +84,13 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		this.err = fmt.Errorf("github请求失败 %v", err)
+		glog.Error(this.err)
 		return this
 	}
 	this.result = &result
 	if this.result == nil {
 		this.err = fmt.Errorf("github请求结果空~")
+		glog.Error(this.err)
 		return this
 	}
 	glog.Debug("TagName", this.result.TagName)
@@ -99,10 +101,12 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 func (this *githubApi) DefaultRequest() *githubApi {
 	if this.userName == "" {
 		this.err = errors.New("请指定github的用户名")
+		glog.Error(this.err)
 		return this
 	}
 	if this.repoName == "" {
 		this.err = errors.New("请指定github的仓库名")
+		glog.Error(this.err)
 		return this
 	}
 
@@ -112,13 +116,19 @@ func (this *githubApi) DefaultRequest() *githubApi {
 func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, string)) *githubApi {
 	if fullName == "" {
 		this.err = errors.New("fullName is empty")
+		glog.Error(this.err)
 		return this
 	}
 	if this.result == nil {
 		this.DefaultRequest()
+		if this.err != nil {
+			glog.Error(this.err)
+			return this
+		}
 	}
 	if this.result == nil {
 		this.err = fmt.Errorf("this.result is nil")
+		glog.Error(this.err)
 		return this
 	}
 	oldVersion := utils.GetVersionByFileName(fullName)
@@ -181,6 +191,10 @@ func (this *githubApi) Result() (any, error) {
 func (this *githubApi) GetModel() *model.GitHubModel {
 	if this.result == nil {
 		this.DefaultRequest()
+		if this.err != nil {
+			glog.Error(this.err)
+			return nil
+		}
 	}
 	return this.result
 }
@@ -195,6 +209,7 @@ func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) strin
 	}
 	if this.result == nil {
 		this.err = fmt.Errorf("this.result is nil")
+		glog.Error(this.err)
 	} else if this.result.Assets != nil {
 		for _, asset := range this.result.Assets {
 			if fn != nil && fn(this.result.TagName, &asset) {
