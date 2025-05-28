@@ -101,12 +101,10 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 func (this *githubApi) DefaultRequest() *githubApi {
 	if this.userName == "" {
 		this.err = errors.New("请指定github的用户名")
-		glog.Error(this.err)
 		return this
 	}
 	if this.repoName == "" {
 		this.err = errors.New("请指定github的仓库名")
-		glog.Error(this.err)
 		return this
 	}
 
@@ -122,7 +120,6 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 	if this.result == nil {
 		this.DefaultRequest()
 		if this.err != nil {
-			glog.Error(this.err)
 			return this
 		}
 	}
