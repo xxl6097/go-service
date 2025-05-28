@@ -133,9 +133,11 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 		return this
 	}
 	oldVersion := utils.GetVersionByFileName(fullName)
-	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
 	glog.Debug("本地版本:", oldVersion)
+	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
+	glog.Debug("计算结果:", hasNewVersion)
+
 	if hasNewVersion > 0 {
 		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, this.result.TagName)
 		var fullUrl, patchUrl string

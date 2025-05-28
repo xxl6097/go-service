@@ -44,7 +44,7 @@ func CompareVersionsExt(v1, v2 string) int {
 }
 
 // CompareVersions 0:相等；大于0有新版本，小于零无新版本
-func CompareVersions(new, old string) int {
+func CompareVersions1(new, old string) int {
 	seg1 := SplitVersion(new)
 	seg2 := SplitVersion(old)
 	maxLen := int(math.Max(float64(len(seg1)), float64(len(seg2))))
@@ -60,6 +60,21 @@ func CompareVersions(new, old string) int {
 		glog.Debug(data1, data2)
 	}
 	return data1 - data2
+}
+func CompareVersions(new, old string) int {
+	a := strings.ReplaceAll(new, "v", "")
+	a = strings.ReplaceAll(a, ".", "")
+	data1, err := strconv.ParseInt(a, 10, 64)
+	if err != nil {
+		return CompareVersions1(new, old)
+	}
+	b := strings.ReplaceAll(old, "v", "")
+	b = strings.ReplaceAll(b, ".", "")
+	data2, err := strconv.ParseInt(b, 10, 64)
+	if err != nil {
+		return CompareVersions1(new, old)
+	}
+	return int(data1 - data2)
 }
 
 func GetVersionByFileName(filename string) string {
