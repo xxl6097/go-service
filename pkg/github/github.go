@@ -122,6 +122,14 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 			glog.Error(err)
 		}
 	}()
+	defer func() {
+		if err := recover(); err != nil {
+			glog.Error(err)
+		}
+	}()
+	if this.result == nil {
+		this.DefaultRequest()
+	}
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
@@ -163,6 +171,14 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 }
 
 func (this *githubApi) GetProxyUrls(fileUrl string) []string {
+	defer func() {
+		if err := recover(); err != nil {
+			glog.Error(err)
+		}
+	}()
+	if this.result == nil {
+		this.DefaultRequest()
+	}
 	newProxy := make([]string, 0)
 	if this.proxies == nil || len(this.proxies) <= 0 {
 		newProxy = append(newProxy, fileUrl)
@@ -179,6 +195,14 @@ func (this *githubApi) Result() (any, error) {
 	return this.data, this.err
 }
 func (this *githubApi) GetModel() *model.GitHubModel {
+	defer func() {
+		if err := recover(); err != nil {
+			glog.Error(err)
+		}
+	}()
+	if this.result == nil {
+		this.DefaultRequest()
+	}
 	return this.result
 }
 
