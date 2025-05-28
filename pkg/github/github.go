@@ -88,7 +88,7 @@ func (this *githubApi) Request(githubUser, repoName string) (*model.GitHubModel,
 	return result, nil
 }
 
-func (this *githubApi) DefaultRequest() (*model.GitHubModel, error) {
+func (this *githubApi) defaultRequest() (*model.GitHubModel, error) {
 	if this.userName == "" {
 		return nil, errors.New("请指定github的用户名")
 	}
@@ -103,7 +103,7 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 	if fullName == "" {
 		return nil, errors.New("fullName is empty")
 	}
-	r, e := this.DefaultRequest()
+	r, e := this.defaultRequest()
 	if e != nil {
 		return nil, e
 	}
@@ -159,7 +159,7 @@ func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 }
 
 func (this *githubApi) GetModel() *model.GitHubModel {
-	r, e := this.DefaultRequest()
+	r, e := this.defaultRequest()
 	if e != nil {
 		glog.Error(e)
 		return nil
@@ -177,7 +177,7 @@ func (this *githubApi) SetName(userName, repoName string) *githubApi {
 	return this
 }
 func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
-	r, e := this.DefaultRequest()
+	r, e := this.defaultRequest()
 	if e != nil {
 		glog.Error(e)
 		return ""
@@ -194,7 +194,7 @@ func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) strin
 	return ""
 }
 func (this *githubApi) GetDownloadUrls(fn func(string, *model.Assets) bool) []string {
-	r, e := this.DefaultRequest()
+	r, e := this.defaultRequest()
 	if e != nil {
 		glog.Error(e)
 		return nil
