@@ -35,15 +35,13 @@ var (
 
 type githubApi struct {
 	proxies            []string
-	data               any
 	userName, repoName string
 }
 
 // Api 返回单例实例
 func Api() *githubApi {
 	once.Do(func() {
-		instance = &githubApi{} // 初始化逻辑
-		//fmt.Println("github api Singleton instance created")
+		instance = &githubApi{}
 	})
 	return instance
 }
@@ -81,18 +79,13 @@ func (this *githubApi) Request(githubUser, repoName string) (*model.GitHubModel,
 	if err != nil {
 		return nil, err
 	}
-	var result model.GitHubModel
-	err = json.Unmarshal(body, &result)
+	var result *model.GitHubModel
+	err = json.Unmarshal(body, result)
 	if err != nil {
 		return nil, fmt.Errorf("github请求失败 %v", err)
 	}
-	this.result = &result
-	if this.result == nil {
-		return nil, fmt.Errorf("github请求结果空~")
-	}
-	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
-	return &result, err
+	return result, nil
 }
 
 func (this *githubApi) DefaultRequest() (*model.GitHubModel, error) {
@@ -106,35 +99,25 @@ func (this *githubApi) DefaultRequest() (*model.GitHubModel, error) {
 	return this.Request(this.userName, this.repoName)
 }
 
-func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, string)) *githubApi {
-	this.err = nil
+func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, error) {
 	if fullName == "" {
-		this.err = errors.New("fullName is empty")
-		glog.Error(this.err)
-		return this
+		return nil, errors.New("fullName is empty")
 	}
-	if this.result == nil {
-		this.DefaultRequest()
-		if this.err != nil {
-			return this
-		}
-	}
-	if this.result == nil {
-		this.err = fmt.Errorf("this.result is nil")
-		glog.Error(this.err)
-		return this
+	r, e := this.DefaultRequest()
+	if e != nil {
+		return nil, e
 	}
 	oldVersion := utils.GetVersionByFileName(fullName)
-	glog.Debug("最新版本:", this.result.TagName)
+	glog.Debug("最新版本:", r.TagName)
 	glog.Debug("本地版本:", oldVersion)
-	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
+	hasNewVersion := utils.CompareVersions(r.TagName, oldVersion)
 	glog.Debug("计算结果:", hasNewVersion)
 
 	if hasNewVersion > 0 {
-		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, this.result.TagName)
+		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, r.TagName)
 		var fullUrl, patchUrl string
 		patchName := fmt.Sprintf("%s.patch", newVersionAppName)
-		for _, asset := range this.result.Assets {
+		for _, asset := range r.Assets {
 			if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(newVersionAppName)) == 0 {
 				fullUrl = asset.BrowserDownloadUrl
 			} else if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(patchName)) == 0 {
@@ -146,25 +129,20 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 			//版本之间只有相差一个版本号才能差量升级
 			patchUrl = ""
 		}
-		index := strings.Index(this.result.Body, "---")
-		releaseNote := this.result.Body
+		index := strings.Index(r.Body, "---")
+		releaseNote := r.Body
 		if index > 0 {
 			releaseNote = releaseNote[:index]
 		}
-		if fn != nil {
-			fn(patchUrl, fullUrl, releaseNote)
-		}
 
-		this.data = map[string]interface{}{
+		return map[string]interface{}{
 			"fullUrl":      fullUrl,
 			"patchUrl":     patchUrl,
-			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", this.result.TagName, releaseNote),
-		}
+			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", r.TagName, releaseNote),
+		}, nil
 	} else {
-		this.err = fmt.Errorf("【%s】已是最新版本～%d", oldVersion, hasNewVersion)
+		return nil, fmt.Errorf("【%s】已是最新版本～%d", oldVersion, hasNewVersion)
 	}
-
-	return this
 }
 
 func (this *githubApi) GetProxyUrls(fileUrl string) []string {
@@ -205,7 +183,7 @@ func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) strin
 		return ""
 	}
 	if r == nil {
-		glog.Error("result is nil")
+		glog.Error("this.result is nil")
 	} else if r.Assets != nil {
 		for _, asset := range r.Assets {
 			if fn != nil && fn(r.TagName, &asset) {
@@ -223,6 +201,7 @@ func (this *githubApi) GetDownloadUrls(fn func(string, *model.Assets) bool) []st
 	}
 	if r == nil {
 		glog.Error("this.result is nil")
+		return nil
 	} else if r.Assets != nil {
 		urls := make([]string, 0)
 		for _, asset := range r.Assets {
