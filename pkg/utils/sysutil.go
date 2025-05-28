@@ -220,7 +220,10 @@ func ExitCountDown(count int) {
 func GzipCompress(data []byte) ([]byte, error) {
 	var buf bytes.Buffer
 	// 设置压缩级别（BestSpeed, BestCompression, DefaultCompression）
-	gz, _ := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+	gz, e := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+	if e != nil {
+		return nil, e
+	}
 	if _, err := gz.Write(data); err != nil {
 		return nil, err
 	}
@@ -232,7 +235,10 @@ func GzipCompress(data []byte) ([]byte, error) {
 
 // GzipDecompress 解压
 func GzipDecompress(compressed []byte) ([]byte, error) {
-	r, _ := gzip.NewReader(bytes.NewReader(compressed))
+	r, e := gzip.NewReader(bytes.NewReader(compressed))
+	if e != nil {
+		return nil, e
+	}
 	defer r.Close()
 	return io.ReadAll(r)
 }
