@@ -132,6 +132,10 @@ func (this *CoreService) patchUpgrade(ctx context.Context, binUrlOrLocal string)
 		glog.Debug("升级失败", err)
 		return err
 	}
+
+	if !utils.FileExists(downFilePath) {
+		return fmt.Errorf("差分升级文件不存在 %s", downFilePath)
+	}
 	return this.update(downFilePath, true)
 }
 
@@ -159,6 +163,10 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 			return err
 		}
 		signFilePath = tempFilePath
+	}
+
+	if !utils.FileExists(signFilePath) {
+		return fmt.Errorf("升级文件不存在 %s", signFilePath)
 	}
 
 	return this.update(signFilePath, patch)
@@ -200,6 +208,9 @@ func (this *CoreService) changeSelf(buffer []byte) error {
 		return err
 	}
 	signFilePath := tempFilePath
+	if !utils.FileExists(signFilePath) {
+		return fmt.Errorf("自升级文件不存在 %s", signFilePath)
+	}
 	return this.update(signFilePath, false)
 }
 
