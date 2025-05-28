@@ -123,7 +123,9 @@ func (t *Service) uninstallHandler() (any, error) {
 
 // 处理 GET 请求
 func (t *Service) checkVersionHandler() (any, error) {
-	data, err := github.Api().Request("xxl6097", "go-service").CheckUpgrade(pkg.BinName, nil).Result()
+	//
+	github.Api().SetName("xxl6097", "go-service")
+	data, err := github.Api().CheckUpgrade(pkg.BinName)
 	return data, err
 }
 
