@@ -17,6 +17,9 @@ type Service struct {
 	gs        igs.Service
 }
 
+func (this *Service) OnFinish() {
+}
+
 type Config struct {
 	//ukey.KeyBuffer
 	AppTesting string `json:"appTesting"`

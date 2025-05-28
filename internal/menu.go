@@ -61,6 +61,9 @@ func (this *CoreService) runSwitch(cmd string) error {
 
 func (this *CoreService) runMenu() error {
 	defer func() {
+		if this.iService != nil {
+			this.iService.OnFinish()
+		}
 		if utils.IsWindows() {
 			utils.ExitAnyKey()
 		} else {

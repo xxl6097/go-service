@@ -19,6 +19,7 @@ type IService interface {
 	OnVersion() string
 	OnRun(Service) error
 	GetAny(string) []byte
+	OnFinish()
 }
 
 type Installer interface {
