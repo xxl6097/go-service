@@ -34,10 +34,8 @@ var (
 )
 
 type githubApi struct {
-	result             *model.GitHubModel
 	proxies            []string
 	data               any
-	err                error
 	userName, repoName string
 }
 
@@ -77,41 +75,32 @@ func request(githubUser, repoName string) ([]byte, error) {
 	}
 	return body, nil
 }
-func (this *githubApi) Request(githubUser, repoName string) *githubApi {
+func (this *githubApi) Request(githubUser, repoName string) (*model.GitHubModel, error) {
 	//this := &GithubApi{}
 	body, err := request(githubUser, repoName)
 	if err != nil {
-		this.err = err
-		return this
+		return nil, err
 	}
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		this.err = fmt.Errorf("github请求失败 %v", err)
-		glog.Error(this.err)
-		return this
+		return nil, fmt.Errorf("github请求失败 %v", err)
 	}
 	this.result = &result
 	if this.result == nil {
-		this.err = fmt.Errorf("github请求结果空~")
-		glog.Error(this.err)
-		return this
+		return nil, fmt.Errorf("github请求结果空~")
 	}
-	this.err = nil
 	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
-	return this
+	return &result, err
 }
 
-func (this *githubApi) DefaultRequest() *githubApi {
-	this.err = nil
+func (this *githubApi) DefaultRequest() (*model.GitHubModel, error) {
 	if this.userName == "" {
-		this.err = errors.New("请指定github的用户名")
-		return this
+		return nil, errors.New("请指定github的用户名")
 	}
 	if this.repoName == "" {
-		this.err = errors.New("请指定github的仓库名")
-		return this
+		return nil, errors.New("请指定github的仓库名")
 	}
 
 	return this.Request(this.userName, this.repoName)
@@ -191,19 +180,13 @@ func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 	return newProxy
 }
 
-func (this *githubApi) Result() (any, error) {
-	return this.data, this.err
-}
 func (this *githubApi) GetModel() *model.GitHubModel {
-	this.err = nil
-	if this.result == nil {
-		this.DefaultRequest()
-		if this.err != nil {
-			glog.Error(this.err)
-			return nil
-		}
+	r, e := this.DefaultRequest()
+	if e != nil {
+		glog.Error(e)
+		return nil
 	}
-	return this.result
+	return r
 }
 
 func (this *githubApi) SetName(userName, repoName string) *githubApi {
@@ -216,16 +199,16 @@ func (this *githubApi) SetName(userName, repoName string) *githubApi {
 	return this
 }
 func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
-	this.err = nil
-	if this.result == nil {
-		this.DefaultRequest()
+	r, e := this.DefaultRequest()
+	if e != nil {
+		glog.Error(e)
+		return ""
 	}
-	if this.result == nil {
-		this.err = fmt.Errorf("this.result is nil")
-		glog.Error(this.err)
-	} else if this.result.Assets != nil {
-		for _, asset := range this.result.Assets {
-			if fn != nil && fn(this.result.TagName, &asset) {
+	if r == nil {
+		glog.Error("result is nil")
+	} else if r.Assets != nil {
+		for _, asset := range r.Assets {
+			if fn != nil && fn(r.TagName, &asset) {
 				return asset.BrowserDownloadUrl
 			}
 		}
@@ -233,17 +216,17 @@ func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) strin
 	return ""
 }
 func (this *githubApi) GetDownloadUrls(fn func(string, *model.Assets) bool) []string {
-	this.err = nil
-	if this.result == nil {
-		this.DefaultRequest()
+	r, e := this.DefaultRequest()
+	if e != nil {
+		glog.Error(e)
+		return nil
 	}
-	if this.result == nil {
-		this.err = fmt.Errorf("this.result is nil")
-		glog.Error(this.err)
-	} else if this.result.Assets != nil {
+	if r == nil {
+		glog.Error("this.result is nil")
+	} else if r.Assets != nil {
 		urls := make([]string, 0)
-		for _, asset := range this.result.Assets {
-			if fn != nil && fn(this.result.TagName, &asset) {
+		for _, asset := range r.Assets {
+			if fn != nil && fn(r.TagName, &asset) {
 				urls = append(urls, asset.BrowserDownloadUrl)
 			}
 		}
