@@ -13,4 +13,5 @@ require (
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/josephspurrier/goversioninfo v1.5.0 // indirect
 	github.com/xxl6097/go-update v0.0.5 // indirect
+	golang.org/x/mod v0.24.0 // indirect
 )

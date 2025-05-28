@@ -6,9 +6,11 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"golang.org/x/mod/modfile"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -76,6 +78,29 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
 	return this
+}
+
+func (this *githubApi) DefaultRequest() *githubApi {
+	defer func() {
+		if err := recover(); err != nil {
+			glog.Error(err)
+		}
+	}()
+	data, err := os.ReadFile("go.mod")
+	if err == nil {
+		panic(err)
+	}
+
+	modFile, err := modfile.Parse("go.mod", data, nil)
+	if err != nil {
+		panic(err)
+	}
+	if !strings.Contains(modFile.Module.Mod.Path, "github.com") {
+		panic(fmt.Sprintf("module name not Contains github.com"))
+	}
+	userName := filepath.Base(filepath.Dir(modFile.Module.Mod.Path))
+	repoName := filepath.Base(modFile.Module.Mod.Path)
+	return this.Request(userName, repoName)
 }
 
 func (this *githubApi) Upgrade(fullName string, fn func(string, string, string)) *githubApi {
