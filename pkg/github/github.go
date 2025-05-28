@@ -2,6 +2,7 @@ package github
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/github/model"
@@ -117,11 +118,10 @@ func (this *githubApi) DefaultRequest() *githubApi {
 }
 
 func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, string)) *githubApi {
-	defer func() {
-		if err := recover(); err != nil {
-			glog.Error(err)
-		}
-	}()
+	if fullName == "" {
+		this.err = errors.New("fullName is empty")
+		return this
+	}
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
@@ -130,6 +130,7 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 	if this.result == nil {
 		this.DefaultRequest()
 	}
+
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
