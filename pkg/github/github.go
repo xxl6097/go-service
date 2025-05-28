@@ -117,7 +117,10 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 	if this.result == nil {
 		this.DefaultRequest()
 	}
-
+	if this.result == nil {
+		this.err = fmt.Errorf("this.result is nil")
+		return this
+	}
 	oldVersion := utils.GetVersionByFileName(fullName)
 	hasNewVersion := utils.CompareVersions(this.result.TagName, oldVersion)
 	glog.Debug("最新版本:", this.result.TagName)
