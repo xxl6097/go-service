@@ -178,3 +178,26 @@ func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 func (this *githubApi) Result() (any, error) {
 	return this.data, this.err
 }
+func (this *githubApi) GetModel() *model.GitHubModel {
+	return this.result
+}
+
+func (this *githubApi) GetDownloadUrl(fn func(string) bool) string {
+	defer func() {
+		if err := recover(); err != nil {
+			glog.Error(err)
+		}
+	}()
+	if this.result == nil {
+		this.DefaultRequest()
+	}
+	for _, asset := range this.result.Assets {
+		//if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(name)) == 0 {
+		//	return asset.BrowserDownloadUrl
+		//}
+		if fn != nil && fn(asset.BrowserDownloadUrl) {
+			return asset.BrowserDownloadUrl
+		}
+	}
+	return ""
+}
