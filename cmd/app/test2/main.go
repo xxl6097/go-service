@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		default:
 			tid := utils.GetGoroutineID()
 			fmt.Println("1通道 ", i, s, tid)
-			dstFilePath, err := utils.DownloadFileWithCancel(ctx, s)
+			dstFilePath, err := utils.DownloadWithCancel(ctx, s)
 			if err == nil {
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {

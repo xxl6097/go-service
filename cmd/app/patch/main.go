@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"github.com/kr/binarydist"
+	"github.com/xxl6097/go-update/pkg/binarydist"
 	"os"
 )
 

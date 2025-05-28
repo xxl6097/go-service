@@ -7,7 +7,6 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
-	"golang.org/x/mod/modfile"
 	"io"
 	"net/http"
 	"os"
@@ -35,10 +34,11 @@ var (
 )
 
 type githubApi struct {
-	result  *model.GitHubModel
-	proxies []string
-	data    any
-	err     error
+	result             *model.GitHubModel
+	proxies            []string
+	data               any
+	err                error
+	userName, repoName string
 }
 
 // Api 返回单例实例
@@ -84,10 +84,12 @@ func (this *githubApi) Request(githubUser, repoName string) *githubApi {
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		this.err = fmt.Errorf("github请求失败 %v", err)
+		return this
 	}
 	this.result = &result
 	if this.result == nil {
 		this.err = fmt.Errorf("github请求结果空~")
+		return this
 	}
 	glog.Debug("TagName", this.result.TagName)
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
@@ -98,23 +100,19 @@ func (this *githubApi) DefaultRequest() *githubApi {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
+			this.err = fmt.Errorf("%v", err)
 		}
 	}()
-	data, err := os.ReadFile("go.mod")
-	if err != nil {
-		panic(err)
+	if this.userName == "" {
+		this.err = errors.New("请指定github的用户名")
+		panic(this.err)
+	}
+	if this.repoName == "" {
+		this.err = errors.New("请指定github的仓库名")
+		panic(this.err)
 	}
 
-	modFile, err := modfile.Parse("go.mod", data, nil)
-	if err != nil {
-		panic(err)
-	}
-	if !strings.Contains(modFile.Module.Mod.Path, "github.com") {
-		panic(fmt.Sprintf("module name not Contains github.com"))
-	}
-	userName := filepath.Base(filepath.Dir(modFile.Module.Mod.Path))
-	repoName := filepath.Base(modFile.Module.Mod.Path)
-	return this.Request(userName, repoName)
+	return this.Request(this.userName, this.repoName)
 }
 
 func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, string)) *githubApi {
@@ -125,6 +123,7 @@ func (this *githubApi) CheckUpgrade(fullName string, fn func(string, string, str
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
+			this.err = fmt.Errorf("%v", err)
 		}
 	}()
 	if this.result == nil {
@@ -176,6 +175,7 @@ func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
+			this.err = fmt.Errorf("%v", err)
 		}
 	}()
 	if this.result == nil {
@@ -200,6 +200,7 @@ func (this *githubApi) GetModel() *model.GitHubModel {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
+			this.err = fmt.Errorf("%v", err)
 		}
 	}()
 	if this.result == nil {
@@ -208,14 +209,23 @@ func (this *githubApi) GetModel() *model.GitHubModel {
 	return this.result
 }
 
+func (this *githubApi) SetName(userName, repoName string) {
+	this.userName = userName
+	this.repoName = repoName
+}
 func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
+			this.err = fmt.Errorf("%v", err)
 		}
 	}()
 	if this.result == nil {
 		this.DefaultRequest()
+	}
+	if this.result == nil {
+		this.err = fmt.Errorf("this.result is nil")
+		panic(this.err)
 	}
 	for _, asset := range this.result.Assets {
 		//if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(name)) == 0 {
