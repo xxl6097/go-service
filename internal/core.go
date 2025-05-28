@@ -40,7 +40,6 @@ func (this *CoreService) Run() error {
 	}
 	this.config.Executable = filepath.Join(this.workDir, this.config.Name)
 	this.deleteOld()
-	_ = this.clearCache()
 	binDir := filepath.Dir(os.Args[0])
 	_ = os.Chdir(binDir)
 	e := this.createService()
