@@ -182,7 +182,7 @@ func (this *githubApi) GetModel() *model.GitHubModel {
 	return this.result
 }
 
-func (this *githubApi) GetDownloadUrl(fn func(*model.Assets) bool) string {
+func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
 	defer func() {
 		if err := recover(); err != nil {
 			glog.Error(err)
@@ -195,7 +195,7 @@ func (this *githubApi) GetDownloadUrl(fn func(*model.Assets) bool) string {
 		//if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(name)) == 0 {
 		//	return asset.BrowserDownloadUrl
 		//}
-		if fn != nil && fn(&asset) {
+		if fn != nil && fn(this.result.TagName, &asset) {
 			return asset.BrowserDownloadUrl
 		}
 	}
