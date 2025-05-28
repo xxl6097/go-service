@@ -220,3 +220,21 @@ func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) strin
 	}
 	return ""
 }
+func (this *githubApi) GetDownloadUrls(fn func(string, *model.Assets) bool) []string {
+	if this.result == nil {
+		this.DefaultRequest()
+	}
+	if this.result == nil {
+		this.err = fmt.Errorf("this.result is nil")
+		glog.Error(this.err)
+	} else if this.result.Assets != nil {
+		urls := make([]string, 0)
+		for _, asset := range this.result.Assets {
+			if fn != nil && fn(this.result.TagName, &asset) {
+				urls = append(urls, asset.BrowserDownloadUrl)
+			}
+		}
+		return urls
+	}
+	return nil
+}
