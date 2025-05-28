@@ -15,6 +15,19 @@ import (
 	"sync"
 )
 
+func init() {
+	LoadGithubKey()
+}
+
+func LoadGithubKey() {
+	fpath := filepath.Join(glog.AppHome("obj"), "githubKey.dat")
+	obj, err := utils.LoadWithGob[model.GithubKey](fpath)
+	if err == nil && obj.ClientId != "" && obj.ClientSecret != "" {
+		os.Setenv("GITHUB_CLIENT_ID", obj.ClientId)
+		os.Setenv("GITHUB_CLIENT_SECRET", obj.ClientSecret)
+	}
+}
+
 var (
 	instance *githubApi
 	once     sync.Once

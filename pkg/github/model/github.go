@@ -76,3 +76,8 @@ type GitHubModel struct {
 	ZipballUrl string `json:"zipball_url"`
 	Body       string `json:"body"`
 }
+
+type GithubKey struct {
+	ClientId     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+}
