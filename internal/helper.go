@@ -244,26 +244,6 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	return this.RunCMD("restart")
 }
 
-func (this *CoreService) clearTemp() error {
-	tempDir := glog.TempDir()
-	glog.Debug(tempDir)
-	entries, err := os.ReadDir(tempDir)
-	if err != nil {
-		return fmt.Errorf("读取目录失败: %v", err)
-	}
-
-	for _, entry := range entries {
-		fullPath := filepath.Join(tempDir, entry.Name())
-		err = os.RemoveAll(fullPath)
-		if err != nil {
-			glog.Errorf("删除失败 %s  %v", fullPath, err)
-		} else {
-			glog.Debugf("删除成功 %s", fullPath)
-		}
-	}
-	return err
-}
-
 func (this *CoreService) clearForUninstall() {
 	glog.CloseLog()
 	_ = utils.DeleteAllDirector(this.workDir)

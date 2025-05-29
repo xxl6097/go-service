@@ -20,7 +20,7 @@ func (this *CoreService) UpgradeByBuffer(buffer []byte) error {
 }
 
 func (this *CoreService) ClearTemp() error {
-	return this.clearTemp()
+	return utils.ClearTemp()
 }
 
 func (this *CoreService) ClearAppData() error {

@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"unicode"
 )
 
@@ -142,4 +143,24 @@ func ToUpperFirst(s string) string {
 	// 将首字符转换为大写
 	r[0] = unicode.ToUpper(r[0])
 	return string(r)
+}
+
+func ClearTemp() error {
+	tempDir := glog.TempDir()
+	glog.Debug(tempDir)
+	entries, err := os.ReadDir(tempDir)
+	if err != nil {
+		return fmt.Errorf("读取目录失败: %v", err)
+	}
+
+	for _, entry := range entries {
+		fullPath := filepath.Join(tempDir, entry.Name())
+		err = os.RemoveAll(fullPath)
+		if err != nil {
+			glog.Errorf("删除失败 %s  %v", fullPath, err)
+		} else {
+			glog.Debugf("删除成功 %s", fullPath)
+		}
+	}
+	return err
 }
