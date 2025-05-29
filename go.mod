@@ -9,3 +9,5 @@ require (
 	github.com/xxl6097/go-update v0.0.6
 	golang.org/x/sys v0.30.0
 )
+
+require github.com/h2non/filetype v1.1.3 // indirect

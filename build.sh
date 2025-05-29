@@ -1,6 +1,6 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
-options=("windows:amd64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
+options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 #options=("linux:amd64")
 #options=("linux:amd64" "windows:amd64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
@@ -16,6 +16,7 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/fatedier/frp/pkg/util/version"
 	"runtime"
 	"strings"
 )
@@ -25,6 +26,7 @@ func init() {
 	Arch = runtime.GOARCH
 	GoVersion = runtime.Version()
 	Compiler = runtime.Compiler
+	FrpVersion = version.Full()
 }
 
 var (
@@ -45,6 +47,9 @@ var (
 	GitVersion       string // semantic version, derived by build scripts
 	GitReleaseCommit string
 	BinName          string // 运行文件名称，包含平台架构
+	GithubUser       string // github用户
+	GithubRepo       string // github项目名称
+	FrpVersion       string // FrpVersion
 )
 
 // Version 版本信息
@@ -67,6 +72,9 @@ func Version() string {
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitVersion", GitVersion))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitReleaseCommit", GitReleaseCommit))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "BinName", BinName))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubUser", GithubUser))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubRepo", GithubRepo))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "FrpVersion", FrpVersion))
 	fmt.Println(sb.String())
 	return sb.String()
 }
@@ -325,6 +333,7 @@ function buildInstaller() {
   describe="一款基于GO语言的服务安装程序"
   rm -rf ${builddir}
   buildMenu $builddir $appname "$version" $appdir $disname $describe
+#  buildAll $builddir $appname "$version" $appdir $disname $describe
   install
 }
 
