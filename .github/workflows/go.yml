@@ -47,7 +47,7 @@ jobs:
         run: |
           gh release download "$PREV_VERSION" \
             --pattern "aatest*" \
-            --pattern "!*.patch" \
+            --exclude "*.patch" \
             --dir pre_release_files
           ls -lh pre_release_files
 #      - name: 安装bsdiff工具链
