@@ -80,13 +80,13 @@ func (this *githubApi) Request(githubUser, repoName string) (*model.GitHubModel,
 	if err != nil {
 		return nil, err
 	}
-	var result *model.GitHubModel
-	err = json.Unmarshal(body, result)
+	var result model.GitHubModel
+	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return nil, fmt.Errorf("github请求失败 %v %v", err, string(body))
+		return nil, fmt.Errorf("github请求失败 %v %v", err, len(body))
 	}
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
-	return result, nil
+	return &result, nil
 }
 
 func (this *githubApi) defaultRequest() (*model.GitHubModel, error) {
