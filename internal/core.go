@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
@@ -42,7 +41,7 @@ func (this *CoreService) initLog() {
 
 func (this *CoreService) Run() error {
 	if len(os.Args) > 1 && os.Args[1] == utils.SYSTEM_CPU_INFO {
-		fmt.Printf("%s/%s", pkg.OsType, pkg.Arch)
+		fmt.Println("hello world")
 		return nil
 	}
 	this.initLog()
