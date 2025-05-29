@@ -62,6 +62,7 @@ func request(githubUser, repoName string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
+	glog.Debug("resp github", resp.Status, resp.StatusCode)
 	if resp.StatusCode != 200 {
 		glog.Error(resp.StatusCode, resp.Status)
 		return nil, fmt.Errorf("请求失败 %v %v", resp.StatusCode, resp.Status)
@@ -82,7 +83,7 @@ func (this *githubApi) Request(githubUser, repoName string) (*model.GitHubModel,
 	var result *model.GitHubModel
 	err = json.Unmarshal(body, result)
 	if err != nil {
-		return nil, fmt.Errorf("github请求失败 %v", err)
+		return nil, fmt.Errorf("github请求失败 %v %v", err, string(body))
 	}
 	this.proxies = utils.ParseMarkdownCodeToStringArray(result.Body)
 	return result, nil
