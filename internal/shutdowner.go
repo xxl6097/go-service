@@ -27,7 +27,7 @@ func (c *CoreService) Stop(s service.Service) error {
 	status, err := s.Status()
 	ok := service.Interactive()
 	//注意，这个地方在非windows下不行！
-	//c.clear()
+	//c.clearForUninstall()
 	glog.Println("停止服务", ok, s.String(), s.Platform(), status, err)
 	if ok {
 		glog.Println("停止deamon")

@@ -101,11 +101,11 @@ func (this *CoreService) install() error {
 }
 func (this *CoreService) uninstall() error {
 	defer func() {
-		this.clear()
+		this.clearForUninstall()
 		glog.Debug("1尝试停止服务")
 		err := this.stopService()
 		glog.Debug("2尝试停止服务", err)
-		this.clear()
+		this.clearForUninstall()
 		glog.Flush()
 	}()
 
@@ -245,16 +245,17 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 }
 
 func (this *CoreService) clearTemp() error {
-	appDir := glog.AppHome()
-	return utils.DeleteAllDirector(appDir)
+	tempDir := glog.TempDir()
+	return utils.DeleteAllDirector(tempDir)
 }
 
-func (this *CoreService) clear() {
+func (this *CoreService) clearForUninstall() {
 	glog.CloseLog()
 	_ = utils.DeleteAllDirector(this.workDir)
-	_ = this.clearTemp()
+	appDir := glog.AppHome()
+	_ = utils.DeleteAllDirector(appDir)
 }
-
-func (this *CoreService) clearCache() error {
-	return utils.DeleteAllDirector(glog.AppHome("temp"))
+func (this *CoreService) clearAppData() error {
+	appDir := glog.AppHome()
+	return utils.DeleteAllDirector(appDir)
 }

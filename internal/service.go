@@ -19,8 +19,12 @@ func (this *CoreService) UpgradeByBuffer(buffer []byte) error {
 	return this.changeSelf(buffer)
 }
 
-func (this *CoreService) ClearCache() error {
+func (this *CoreService) ClearTemp() error {
 	return this.clearTemp()
+}
+
+func (this *CoreService) ClearAppData() error {
+	return this.clearAppData()
 }
 
 func (this *CoreService) UnInstall() error {
