@@ -21,13 +21,13 @@ func (this *CoreService) createService() error {
 }
 
 func (this *CoreService) control(cmd string) error {
-	glog.Printf("服务【%s】正在 %s", this.config.Name, cmd)
+	glog.Printf("[%s]正在%s", this.config.Name, cmd)
 	e := service.Control(this.srv, cmd)
 	if e != nil {
-		glog.Printf("【%s】%s 失败 %v", this.config.Name, cmd, e)
+		glog.Printf("[%s]%s失败:%v", this.config.Name, cmd, e)
 		return e
 	}
-	glog.Printf("【%s】%s 成功", this.config.Name, cmd)
+	glog.Printf("[%s]%s成功", this.config.Name, cmd)
 	return nil
 }
 

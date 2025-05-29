@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const SYSTEM_CPU_INFO = "system_cpu_info"
+
 func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	file, err := os.Open(newFilePath)
 	if err != nil {
@@ -49,7 +51,7 @@ func IsMissMatchOsApp(binPath string) error {
 	if err != nil {
 		return fmt.Errorf("赋予权限错误 %v", err)
 	}
-	o, e := Cmd(binPath, "-v")
+	o, e := Cmd(binPath, SYSTEM_CPU_INFO)
 	if e != nil {
 		return fmt.Errorf("cmd运行错误 %v", e)
 	}

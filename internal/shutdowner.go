@@ -10,8 +10,7 @@ func (c *CoreService) Start(s service.Service) error {
 	status, err := s.Status()
 	defer glog.Flush()
 	glog.Printf("启动服务【%s】\r\n", s.String())
-	glog.Println("StatusUnknown=0；StatusRunning=1；StatusStopped=2；status", status, err)
-	glog.Println("Platform", s.Platform())
+	glog.Println("StatusUnknown=0；StatusRunning=1；StatusStopped=2；status", status, s.Platform(), err)
 	go func() {
 		e := c.iService.OnRun(c)
 		if e != nil {

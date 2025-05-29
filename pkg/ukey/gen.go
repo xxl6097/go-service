@@ -75,8 +75,8 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 	var srcFileSize int64
 	if stat, err := srcFile.Stat(); err == nil {
 		srcFileSize = stat.Size()
-		sizeB := float64(stat.Size()) / 1024 / 1024
-		glog.Printf("%s[大小：%.2fMB]%s\n", stat.Name(), sizeB, dstFilePath)
+		//sizeB := float64(stat.Size()) / 1024 / 1024
+		//glog.Printf("%s[大小：%.2fMB]%s\n", stat.Name(), sizeB, dstFilePath)
 	}
 
 	tmpFile, err := os.Create(dstFilePath)

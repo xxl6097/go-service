@@ -15,10 +15,6 @@ import (
 	"sync"
 )
 
-func init() {
-	LoadGithubKey()
-}
-
 func LoadGithubKey() {
 	fpath := filepath.Join(glog.AppHome("obj"), "githubKey.dat")
 	obj, err := utils.LoadWithGob[model.GithubKey](fpath)
@@ -42,6 +38,7 @@ type githubApi struct {
 func Api() *githubApi {
 	once.Do(func() {
 		instance = &githubApi{}
+		LoadGithubKey()
 	})
 	return instance
 }

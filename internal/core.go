@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kardianos/service"
+	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -19,7 +21,31 @@ type CoreService struct {
 	workDir  string
 }
 
+func (this *CoreService) initLog() {
+	if len(os.Args) > 1 {
+		glog.LogDefaultLogSetting(fmt.Sprintf("%s.log", os.Args[1]))
+	} else {
+		bindir, err := os.Executable()
+		var isSrvApp bool
+		if err != nil {
+			glog.LogDefaultLogSetting("app.log")
+		} else {
+			isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
+			if isSrvApp {
+				glog.LogDefaultLogSetting("app.log")
+			} else {
+				glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+			}
+		}
+	}
+}
+
 func (this *CoreService) Run() error {
+	if len(os.Args) > 1 && os.Args[1] == "SYSTEM_CPU_INFO" {
+		fmt.Printf("%s/%s", runtime.GOOS, runtime.GOARCH)
+		return nil
+	}
+	this.initLog()
 	this.config = this.iService.OnConfig()
 	if this.config == nil {
 		return errors.New("请设置服务配置信息～")
@@ -39,6 +65,7 @@ func (this *CoreService) Run() error {
 		this.config.Name = fmt.Sprintf("%s.exe", this.config.Name)
 	}
 	this.config.Executable = filepath.Join(this.workDir, this.config.Name)
+
 	this.deleteOld()
 	binDir := filepath.Dir(os.Args[0])
 	_ = os.Chdir(binDir)
@@ -69,6 +96,7 @@ func (this *CoreService) reqeustWindowsUser() {
 	}
 }
 
+// 在安装目录且服务处于运行状态
 func (this *CoreService) isServiceApp() bool {
 	binPath, err := os.Executable()
 	if err != nil {
