@@ -42,11 +42,11 @@ func Diff(oldDir string, newDir, version string) error {
 		if !utils.FileExists(oldFilePath) {
 			continue
 		}
-		e := diff(oldFilePath, filepath.Join(newDir, newFileName))
+		s, e := diff(oldFilePath, filepath.Join(newDir, newFileName))
 		if e != nil {
 			fmt.Printf("生产差分包失败 %s %v\n", newFileName, e)
 		} else {
-			fmt.Printf("生产差分包成功 %s\n", newFileName)
+			fmt.Printf("生产差分包成功 %s\n", s)
 		}
 	}
 	return err
@@ -82,20 +82,21 @@ func chgOldFileName(filename, v string) string {
 	newName := re.ReplaceAllString(filename, fmt.Sprintf("_%s_", v)) // 替换为单个下划线
 	return newName
 }
-func diff(older, newer string) error {
+func diff(older, newer string) (string, error) {
 	oldFile, err := os.Open(older)
 	if err != nil {
-		return err
+		return "", err
 	}
 	newFile, err := os.Open(newer)
 	if err != nil {
-		return err
+		return "", err
 	}
 	patch := new(bytes.Buffer)
 	err = binarydist.Diff(bufio.NewReader(oldFile), bufio.NewReader(newFile), patch)
 	if err != nil {
-		return err
+		return "", err
 	}
 	pathName := fmt.Sprintf("%s.patch", filepath.Base(newer))
-	return os.WriteFile(filepath.Join(filepath.Dir(newer), pathName), patch.Bytes(), 0644)
+	patchPath := filepath.Join(filepath.Dir(newer), pathName)
+	return patchPath, os.WriteFile(patchPath, patch.Bytes(), 0644)
 }
