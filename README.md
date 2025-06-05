@@ -1,5 +1,5 @@
 go get github.com/kardianos/service
-go get -u github.com/xxl6097/glog@v0.1.44
+go get -u github.com/xxl6097/glog@v0.1.46
 go get -u github.com/xxl6097/go-service@v0.4.13
 go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
 
