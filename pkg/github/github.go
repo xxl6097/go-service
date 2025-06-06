@@ -45,6 +45,13 @@ func Api() *githubApi {
 
 func request(githubUser, repoName string) ([]byte, error) {
 	baseUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", githubUser, repoName)
+	proxy := os.Getenv("GITHUB_API_PROXY")
+	if proxy != "" {
+		if !strings.HasSuffix(proxy, "/") {
+			proxy = fmt.Sprintf("%s/", proxy)
+		}
+		baseUrl = fmt.Sprintf("%s%s", proxy, baseUrl)
+	}
 	glog.Debug("request", baseUrl)
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", baseUrl, nil)
