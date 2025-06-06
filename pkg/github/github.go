@@ -139,7 +139,7 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", r.TagName, releaseNote),
 		}, nil
 	} else {
-		return nil, fmt.Errorf("【%s】已是最新版本～%d", oldVersion, hasNewVersion)
+		return nil, fmt.Errorf("已是最新版本～")
 	}
 }
 
