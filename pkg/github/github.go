@@ -21,6 +21,9 @@ func LoadGithubKey() {
 	if err == nil && obj.ClientId != "" && obj.ClientSecret != "" {
 		os.Setenv("GITHUB_CLIENT_ID", obj.ClientId)
 		os.Setenv("GITHUB_CLIENT_SECRET", obj.ClientSecret)
+	} else {
+		os.Setenv("GITHUB_CLIENT_ID", "")
+		os.Setenv("GITHUB_CLIENT_SECRET", "")
 	}
 }
 
