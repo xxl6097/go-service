@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/h2non/filetype"
 	"github.com/xxl6097/go-service/cmd/app/exe/arch"
 	"os"
 	"path/filepath"
@@ -209,23 +208,23 @@ func parseELFArch(header []byte) string {
 	return "unknown"
 }
 func DetectFileArch(path string) string {
-	buf, _ := os.ReadFile(path)
-	kind, _ := filetype.Match(buf)
+	//buf, _ := os.ReadFile(path)
+	//kind, _ := filetype.Match(buf)
 	var arch string
-	switch kind.Extension {
-	case "elf":
-		arch = parseELFArch(buf)
-		break
-	case "exe", "dll":
-		file, _ := os.Open(path)
-		defer file.Close()
-		arch = parsePEArch(file)
-		break
-	case "macho":
-		arch = parseMachOArch(buf)
-		break
-	}
-	fmt.Println("--->", kind.Extension, arch, path)
+	//switch kind.Extension {
+	//case "elf":
+	//	arch = parseELFArch(buf)
+	//	break
+	//case "exe", "dll":
+	//	file, _ := os.Open(path)
+	//	defer file.Close()
+	//	arch = parsePEArch(file)
+	//	break
+	//case "macho":
+	//	arch = parseMachOArch(buf)
+	//	break
+	//}
+	//fmt.Println("--->", kind.Extension, arch, path)
 	return arch
 }
 func IsArchCompatible(filePath string) bool {
