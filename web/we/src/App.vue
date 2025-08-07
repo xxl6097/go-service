@@ -56,6 +56,7 @@
             >删除缓存
           </el-button>
           <el-button @click="handleTest">测试按钮</el-button>
+          <el-button @click="handleGithub">github</el-button>
         </el-button-group>
       </div>
     </div>
@@ -106,7 +107,9 @@ const showUpgradeDialog = (
 const handleCMD = (action: string | undefined, data: string | undefined) => {
   fetchRunApi(action, { data: data })
 }
-
+const handleGithub = () => {
+  window.open('https://github.com/xxl6097/go-service')
+}
 const handleCheckVersion = () => {
   fetchRunApi('checkversion', {}, function (json: any) {
     if (json && json.code === 0 && json.data) {
