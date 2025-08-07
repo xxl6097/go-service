@@ -147,6 +147,9 @@ func (t *Service) confirmUpgrade(r *http.Request, data any) (any, error) {
 				glog.Debug("升级文件", fileUri)
 				err := t.gs.Upgrade(r.Context(), fileUri)
 				return nil, err
+			} else {
+				glog.Debug("文件地址空fileUri", fileUri)
+				return nil, fmt.Errorf("文件地址空fileUri=%s", fileUri)
 			}
 		} else {
 			return nil, fmt.Errorf("msg.Data[\"data\"] is nil")

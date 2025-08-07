@@ -25,6 +25,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			//tid := GetGoroutineID()
 			dstFilePath, err := DownloadWithCancel(ctx, s)
 			if err == nil {
+				glog.Debug("下载成功", dstFilePath, s)
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {
 				//fmt.Println("2通道 ", i, err.Error())
