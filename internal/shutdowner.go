@@ -12,11 +12,13 @@ func (c *CoreService) Start(s service.Service) error {
 	glog.Printf("启动服务【%s】\r\n", s.String())
 	glog.Println("StatusUnknown=0；StatusRunning=1；StatusStopped=2；status", status, s.Platform(), err)
 	go func() {
-		e := c.iService.OnRun(c)
-		if e != nil {
-			glog.Error("运行失败", e)
-		} else {
-			glog.Debug("运行成功")
+		if c.isrv != nil {
+			e := c.isrv.OnRun(c)
+			if e != nil {
+				glog.Error("运行失败", e)
+			} else {
+				glog.Debug("运行成功")
+			}
 		}
 	}()
 	return nil
@@ -29,6 +31,9 @@ func (c *CoreService) Stop(s service.Service) error {
 	//注意，这个地方在非windows下不行！
 	//c.clearForUninstall()
 	glog.Println("停止服务", ok, s.String(), s.Platform(), status, err)
+	if c.isrv != nil {
+		c.isrv.OnStop()
+	}
 	if ok {
 		glog.Println("停止deamon")
 		os.Exit(0)
@@ -38,6 +43,9 @@ func (c *CoreService) Stop(s service.Service) error {
 
 func (c *CoreService) Shutdown(s service.Service) error {
 	defer glog.Flush()
+	if c.isrv != nil {
+		c.isrv.OnShutdown()
+	}
 	status, err := s.Status()
 	glog.Println("Shutdown")
 	glog.Println("Status", status, err)

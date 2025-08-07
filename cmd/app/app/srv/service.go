@@ -17,6 +17,14 @@ type Service struct {
 	gs        igs.Service
 }
 
+func (t *Service) OnStop() {
+	//TODO implement me
+}
+
+func (t *Service) OnShutdown() {
+	//TODO implement me
+}
+
 func (this *Service) OnFinish() {
 }
 

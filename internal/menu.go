@@ -29,7 +29,7 @@ func (this *CoreService) menu() error {
 func (this *CoreService) runSwitch(cmd string) error {
 	switch cmd {
 	case "-v", "v", "version":
-		fmt.Println(this.iService.OnVersion())
+		fmt.Println(this.isrv.OnVersion())
 		return nil
 	case "install":
 		return this.install()
@@ -54,15 +54,15 @@ func (this *CoreService) runSwitch(cmd string) error {
 		glog.Debug(this.Status())
 		return nil
 	case "r", "run":
-		return this.iService.OnRun(this)
+		return this.isrv.OnRun(this)
 	}
 	return errors.ErrUnsupported
 }
 
 func (this *CoreService) runMenu() error {
 	defer func() {
-		if this.iService != nil {
-			this.iService.OnFinish()
+		if this.isrv != nil {
+			this.isrv.OnFinish()
 		}
 		if utils.IsWindows() {
 			utils.ExitAnyKey()
@@ -119,7 +119,7 @@ func (this *CoreService) runMenu() error {
 //	case 5:
 //		return this.stopService()
 //	case 6:
-//		fmt.Println(this.iService.OnVersion())
+//		fmt.Println(this.isrv.OnVersion())
 //		break
 //	default:
 //		fmt.Println("未知选项", index)
@@ -133,7 +133,7 @@ func (this *CoreService) runMenu() error {
 //		k := os.Args[1]
 //		switch k {
 //		case "-v", "v", "version":
-//			fmt.Println(this.iService.OnVersion())
+//			fmt.Println(this.isrv.OnVersion())
 //			return nil
 //		case "install":
 //			return this.install()
@@ -155,7 +155,7 @@ func (this *CoreService) runMenu() error {
 //		case "restart":
 //			return this.restartService()
 //		case "r", "run":
-//			return this.iService.OnRun(this)
+//			return this.isrv.OnRun(this)
 //		}
 //	}
 //	if ukey.CanShowMenu() {

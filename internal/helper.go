@@ -70,7 +70,7 @@ func (this *CoreService) install() error {
 		return e
 	}
 
-	ee := core.Install(this.iService, currentBinPath, this.config.Executable)
+	ee := core.Install(this.isrv, currentBinPath, this.config.Executable)
 	if ee != nil {
 		glog.Error(ee)
 		return ee

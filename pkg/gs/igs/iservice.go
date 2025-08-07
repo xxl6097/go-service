@@ -19,6 +19,8 @@ type IService interface {
 	OnConfig() *service.Config
 	OnVersion() string
 	OnRun(Service) error
+	OnStop()
+	OnShutdown()
 	GetAny(string) []byte
 	OnFinish()
 }

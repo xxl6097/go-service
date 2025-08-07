@@ -14,10 +14,10 @@ import (
 )
 
 type CoreService struct {
-	iService igs.IService
-	srv      service.Service
-	config   *service.Config
-	workDir  string
+	isrv    igs.IService
+	srv     service.Service
+	config  *service.Config
+	workDir string
 }
 
 func (this *CoreService) initLog() {
@@ -46,7 +46,7 @@ func (this *CoreService) Run() error {
 		return nil
 	}
 	this.initLog()
-	this.config = this.iService.OnConfig()
+	this.config = this.isrv.OnConfig()
 	if this.config == nil {
 		return errors.New("请设置服务配置信息～")
 	}
@@ -122,5 +122,5 @@ func (this *CoreService) deleteOld() {
 }
 
 func NewCore(srv igs.IService) igs.DefaultService {
-	return &CoreService{iService: srv}
+	return &CoreService{isrv: srv}
 }
