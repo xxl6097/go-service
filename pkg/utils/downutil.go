@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -29,6 +30,11 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 				//fmt.Println("2通道 ", i, err.Error())
 				return dst
 			} else {
+				var netErr net.Error
+				if errors.As(err, &netErr) {
+					glog.Println("超时错误:", netErr)
+					time.Sleep(time.Hour)
+				}
 			}
 		}
 		return dst
