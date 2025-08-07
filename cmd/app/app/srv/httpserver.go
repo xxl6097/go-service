@@ -62,9 +62,37 @@ func (t *Service) patchUpdateHandler(binurl string, ctx context.Context) ([]byte
 	return []byte(pkg.AppVersion), err
 }
 
+func GetVersion() map[string]interface{} {
+	hostName, _ := os.Hostname()
+	return map[string]interface{}{
+		"hostName":    hostName,
+		"appName":     pkg.AppName,
+		"appVersion":  pkg.AppVersion,
+		"buildTime":   pkg.BuildTime,
+		"gitRevision": pkg.GitRevision,
+		"gitBranch":   pkg.GitBranch,
+		"goVersion":   pkg.GoVersion,
+		"displayName": pkg.DisplayName,
+		"description": pkg.Description,
+		"osType":      pkg.OsType,
+		"arch":        pkg.Arch,
+	}
+}
+
 // 处理 GET 请求
 func (t *Service) versionHandler() ([]byte, error) {
 	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), nil
+}
+
+// 处理 GET 请求
+func (t *Service) apiVersion(w http.ResponseWriter, r *http.Request) {
+	version := GetVersion()
+	bb, err := json.Marshal(version)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(bb)
 }
 
 // 处理 GET 请求
@@ -285,6 +313,7 @@ func Server(p int, t *Service) {
 
 	// 注册路由处理函数
 	router.HandleFunc("/api/cmd", t.apiCommand)
+	router.HandleFunc("/api/version", t.apiVersion)
 	router.HandleFunc("/api/sse-stream", SseHandler(logQueue))
 
 	addStatic(router.NewRoute().Subrouter())

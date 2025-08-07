@@ -227,7 +227,20 @@ function initSSE() {
   }
 }
 
+const fetchData = () => {
+  fetch('../api/version', { credentials: 'include', method: 'GET' })
+    .then((res) => {
+      return res.json()
+    })
+    .then((json) => {
+      if (json) {
+        document.title = `aatest ${json.appVersion}`
+      }
+    })
+}
+
 initSSE()
+fetchData()
 handleCMD('version', '')
 </script>
 
