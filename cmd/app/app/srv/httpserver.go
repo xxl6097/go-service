@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/assets"
+	"github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/utils"
@@ -262,9 +263,9 @@ func (this *Service) apiCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 func addStatic(subRouter *mux.Router) {
-	subRouter.Handle("/favicon.ico", http.FileServer(assets.FileSystem)).Methods("GET")
+	subRouter.Handle("/favicon.ico", http.FileServer(we.FileSystem)).Methods("GET")
 	subRouter.PathPrefix("/static/").Handler(
-		assets.MakeHTTPGzipHandler(http.StripPrefix("/static/", http.FileServer(assets.FileSystem))),
+		assets.MakeHTTPGzipHandler(http.StripPrefix("/static/", http.FileServer(we.FileSystem))),
 	).Methods("GET")
 	subRouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/static/", http.StatusMovedPermanently)
