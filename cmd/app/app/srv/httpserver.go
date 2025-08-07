@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/assets"
-	_ "github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/utils"
@@ -274,7 +273,6 @@ func addStatic(subRouter *mux.Router) {
 
 func Server(p int, t *Service) {
 	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
-	assets.Load("")
 
 	staticPrefix := "/log/"
 	baseDir := glog.AppHome()

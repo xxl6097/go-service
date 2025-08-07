@@ -15,28 +15,20 @@
 package assets
 
 import (
+	"embed"
+	"github.com/xxl6097/glog/glog"
 	"io/fs"
 	"net/http"
 )
 
-var (
-	content    fs.FS
-	FileSystem http.FileSystem
-	prefixPath string
-)
+//go:embed static/*
+var StaticFS embed.FS
+var FileSystem http.FileSystem
 
-func Load(path string) {
-	prefixPath = path
-	if prefixPath != "" {
-		FileSystem = http.Dir(prefixPath)
-	} else {
-		FileSystem = http.FS(content)
+func init() {
+	subFs, err := fs.Sub(StaticFS, "static")
+	if err != nil {
+		glog.Fatal("静态资源加载失败", err)
 	}
-}
-
-func Register(fileSystem fs.FS) {
-	subFs, err := fs.Sub(fileSystem, "static")
-	if err == nil {
-		content = subFs
-	}
+	FileSystem = http.FS(subFs)
 }
