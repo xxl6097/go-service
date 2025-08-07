@@ -53,12 +53,12 @@ func (t *Service) updateHandler(binurl string, ctx context.Context) ([]byte, err
 // 处理 GET 请求
 func (t *Service) patchUpdateHandler(binurl string, ctx context.Context) ([]byte, error) {
 	response := fmt.Sprintf("Hello, %s", binurl)
-	glog.Println("patchUpdateHandler", response)
+	glog.Println("patchUpdate", response)
 	if t.gs == nil {
 		return []byte(response), fmt.Errorf("gs is nil")
 	}
 	err := t.gs.Upgrade(ctx, binurl)
-	glog.Println("patchUpdateHandler", err)
+	glog.Println("patchUpdate err", err)
 	return []byte(pkg.AppVersion), err
 }
 
@@ -144,6 +144,7 @@ func (t *Service) confirmUpgrade(r *http.Request, data any) (any, error) {
 			urls := github.Api().GetProxyUrls(value)
 			fileUri := utils.DownloadFileWithCancelByUrls(urls)
 			if fileUri != "" {
+				glog.Debug("升级文件", fileUri)
 				err := t.gs.Upgrade(r.Context(), fileUri)
 				return nil, err
 			}
