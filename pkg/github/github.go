@@ -162,6 +162,7 @@ func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 			newUrl := fmt.Sprintf("%s%s", proxy, fileUrl)
 			newProxy = append(newProxy, newUrl)
 		}
+		newProxy = append(newProxy, fileUrl)
 	}
 	return newProxy
 }
