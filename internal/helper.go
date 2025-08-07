@@ -241,7 +241,11 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	} else {
 		glog.Debug(utils.RunCmd("ls", "-l"))
 	}
-	return this.RunCMD("restart")
+	err = this.RunCMD("restart")
+	if !utils.IsWindows() {
+		_ = this.stopService()
+	}
+	return err
 }
 
 func (this *CoreService) clearForUninstall() {

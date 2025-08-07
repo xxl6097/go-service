@@ -18,11 +18,11 @@ type Service struct {
 }
 
 func (t *Service) OnStop() {
-	//TODO implement me
+	glog.Info("service stop")
 }
 
 func (t *Service) OnShutdown() {
-	//TODO implement me
+	glog.Info("OnShutdown ...")
 }
 
 func (this *Service) OnFinish() {
