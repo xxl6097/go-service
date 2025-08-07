@@ -68,8 +68,11 @@ func DynamicSelect[T any](t []T, fun func(context.Context, int, T) T) T {
 		}})
 		r := value.Interface().(T)
 		if ok {
+			fmt.Println("退出 1")
 			cancel()
+			fmt.Println("退出 2")
 			wg.Wait()
+			fmt.Println("退出 3")
 			return r
 		}
 	}

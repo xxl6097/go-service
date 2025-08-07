@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xxl6097/go-service/pkg/utils"
-	"net"
-	"time"
 )
 
 func main() {
@@ -32,9 +30,9 @@ func main() {
 	newUrl := utils.DynamicSelect[string](newProxy, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
-		case <-ctx.Done():
-			fmt.Println("退出 ", s)
-			return dst
+		//case <-ctx.Done():
+		//	fmt.Println("退出 ", s)
+		//	return dst
 		default:
 			tid := utils.GetGoroutineID()
 			fmt.Println("1通道 ", i, s, tid)
@@ -45,12 +43,13 @@ func main() {
 				//fmt.Println("2通道 ", i, err.Error())
 				return dst
 			} else {
-				//fmt.Println("3通道 ", i, err.Error())
-				var netErr net.Error
-				if errors.As(err, &netErr) {
-					fmt.Println("超时错误:", netErr)
-					time.Sleep(time.Hour)
-				}
+				fmt.Println("3通道 ", i, err.Error())
+				<-ctx.Done()
+				//var netErr net.Error
+				//if errors.As(err, &netErr) {
+				//	fmt.Println("超时错误:", netErr)
+				//	time.Sleep(time.Hour)
+				//}
 			}
 		}
 		return dst

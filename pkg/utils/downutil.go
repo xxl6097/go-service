@@ -21,8 +21,6 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
-		case <-ctx.Done():
-			return dst
 		default:
 			//tid := GetGoroutineID()
 			dstFilePath, err := DownloadWithCancel(ctx, s)
@@ -36,8 +34,9 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 				var netErr net.Error
 				if errors.As(err, &netErr) {
 					glog.Println("超时错误:", netErr)
-					time.Sleep(time.Hour)
+					//time.Sleep(time.Hour)
 				}
+				<-ctx.Done()
 			}
 		}
 		return dst
