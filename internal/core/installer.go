@@ -17,10 +17,12 @@ func Install(g igs.IService, binPath, installBinPath string) error {
 	} else {
 		cfg := getAny(filepath.Dir(installBinPath), g)
 		if cfg != nil {
+			glog.Debug("SignFileBySelfKey ", binPath, glog.AppName())
 			newFilePath, e := ukey.SignFileBySelfKey(cfg, binPath)
 			if e != nil {
 				return e
 			}
+			glog.Debug("manualInstall 1", newFilePath)
 			return manualInstall(newFilePath, installBinPath)
 		}
 	}
