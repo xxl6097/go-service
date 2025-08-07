@@ -21,9 +21,20 @@ func main() {
 		"https://ghfast.top/https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
 		"https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
 	}
+
+	newProxy = []string{
+		"https://github.moeyy.xyz/https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
+		"https://github.moeyy.xyz/https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
+		"https://github.moeyy.xyz/https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
+		"https://github.moeyy.xyz/https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
+		"https://github.com/xxl6097/go-service/releases/download/v0.6.49/aatest_v0.6.49_linux_arm64",
+	}
 	newUrl := utils.DynamicSelect[string](newProxy, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
+		case <-ctx.Done():
+			fmt.Println("退出 ", s)
+			return dst
 		default:
 			tid := utils.GetGoroutineID()
 			fmt.Println("1通道 ", i, s, tid)
@@ -45,5 +56,4 @@ func main() {
 		return dst
 	})
 	fmt.Println("下载完成", newUrl)
-	select {}
 }

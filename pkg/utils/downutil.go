@@ -21,6 +21,8 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
+		case <-ctx.Done():
+			return dst
 		default:
 			//tid := GetGoroutineID()
 			dstFilePath, err := DownloadWithCancel(ctx, s)

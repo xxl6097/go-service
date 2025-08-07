@@ -33,6 +33,9 @@
       </div>
       <div class="line-div">
         <el-button-group class="ml-4">
+          <el-button type="primary" plain @click="toggleDark()">
+            <span class="ml-2">{{ isDark ? 'Dark' : 'Light' }}</span>
+          </el-button>
           <el-button @click="handleCMD('version', '')">获取版本号</el-button>
           <el-button type="primary" plain @click="handleCheckVersion"
             >检测版本
@@ -69,6 +72,9 @@
     </div>
   </div>
 
+  <!--  <UseDark v-slot="{ isDark, toggleDark }">-->
+  <!--    <button @click="toggleDark()">Is Dark: {{ isDark }}</button>-->
+  <!--  </UseDark>-->
   <UpgradeDialog ref="upgradeRef" @handle-upgrade="handleUpgrade" />
 </template>
 
@@ -76,7 +82,11 @@
 import { ref } from 'vue'
 import { showLoading, syntaxHighlight } from './utils/utils.ts'
 import UpgradeDialog from './components/UpgradeDialog.vue'
+import { useDark, useToggle } from '@vueuse/core'
+// import { isDark } from '../../.vitepress/theme/composables/dark'
 
+const isDark = useDark()
+const toggleDark = useToggle(isDark)
 const logs = ref<string[]>([])
 const logContainer = ref<HTMLDivElement | null>(null)
 
