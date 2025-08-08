@@ -101,6 +101,9 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 func checkVersion(name string, w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
+	if name == "" {
+		name = glog.AppName()
+	}
 	data, err := github.Api().CheckUpgrade(name)
 	if err != nil {
 		res.Err(err)
