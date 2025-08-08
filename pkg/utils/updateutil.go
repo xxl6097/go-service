@@ -53,7 +53,7 @@ func IsMissMatchOsApp(binPath string) error {
 	}
 	o, e := Cmd(binPath, SYSTEM_CPU_INFO)
 	if e != nil {
-		return fmt.Errorf("cmd运行错误 %v", e)
+		return fmt.Errorf("cmd运行错误 %s %v", binPath, e)
 	}
 	glog.Debug("运行结果", string(o))
 	return nil
