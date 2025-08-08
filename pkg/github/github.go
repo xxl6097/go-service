@@ -124,12 +124,15 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 	if hasNewVersion > 0 {
 		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, r.TagName)
 		var fullUrl, patchUrl string
+		var fullSize, patchSize string
 		patchName := fmt.Sprintf("%s.patch", newVersionAppName)
 		for _, asset := range r.Assets {
 			if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(newVersionAppName)) == 0 {
 				fullUrl = asset.BrowserDownloadUrl
+				fullSize = utils.ByteCountIEC(uint64(asset.Size))
 			} else if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(patchName)) == 0 {
 				patchUrl = asset.BrowserDownloadUrl
+				patchSize = utils.ByteCountIEC(uint64(asset.Size))
 			}
 		}
 
@@ -143,10 +146,21 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 			releaseNote = releaseNote[:index]
 		}
 
+		text := strings.Builder{}
+		if fullSize != "" {
+			text.WriteString("全量包：")
+			text.WriteString(fullSize)
+		}
+
+		if patchSize != "" {
+			text.WriteString(" 差量包：")
+			text.WriteString(patchSize)
+		}
+
 		return map[string]interface{}{
 			"fullUrl":      fullUrl,
 			"patchUrl":     patchUrl,
-			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", r.TagName, releaseNote),
+			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\n* %s\r\n%s", r.TagName, text.String(), releaseNote),
 		}, nil
 	} else {
 		return nil, fmt.Errorf("已是最新版本～")
