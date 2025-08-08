@@ -55,6 +55,8 @@ func IsMissMatchOsApp(binPath string) error {
 	if e != nil {
 		return fmt.Errorf("cmd运行错误 %s %v", binPath, e)
 	}
+
+	glog.Debug(binPath)
 	glog.Debug("运行结果", string(o))
 	return nil
 }
