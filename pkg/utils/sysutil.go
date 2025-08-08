@@ -245,3 +245,23 @@ func GzipDecompress(compressed []byte) ([]byte, error) {
 	defer r.Close()
 	return io.ReadAll(r)
 }
+
+func GetSelfSize() uint64 {
+	// 获取当前可执行文件的路径
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Printf("获取可执行文件路径时出错: %v\n", err)
+		return 0
+	}
+	// 获取文件信息
+	fileInfo, err := os.Stat(exePath)
+	if err != nil {
+		fmt.Printf("获取文件信息时出错: %v\n", err)
+		return 0
+	}
+
+	// 获取文件大小
+	fileSize := fileInfo.Size()
+	fmt.Printf("本程序自身大小为: %v\n", ByteCountIEC(uint64(fileSize)))
+	return uint64(fileSize)
+}
