@@ -3,7 +3,6 @@ package gs
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
@@ -17,18 +16,6 @@ import (
 
 var pool = &sync.Pool{
 	New: func() interface{} { return make([]byte, 32*1024) },
-}
-
-func ApiCheckVersion(w http.ResponseWriter, r *http.Request) {
-	res, f := Response(r)
-	defer f(w)
-	data, err := github.Api().CheckUpgrade(pkg.BinName)
-	if err != nil {
-		res.Err(err)
-	} else {
-		glog.Debug("version:", data)
-		res.Any(data)
-	}
 }
 
 func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
@@ -108,6 +95,24 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 			res.Error(fmt.Sprintf("更新失败～%v", err))
 		}
 
+	}
+}
+
+func checkVersion(name string, w http.ResponseWriter, r *http.Request) {
+	res, f := Response(r)
+	defer f(w)
+	data, err := github.Api().CheckUpgrade(name)
+	if err != nil {
+		res.Err(err)
+	} else {
+		glog.Debug("version:", data)
+		res.Any(data)
+	}
+}
+
+func ApiCheckVersion(binName string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		checkVersion(binName, w, r)
 	}
 }
 
