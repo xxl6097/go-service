@@ -148,19 +148,19 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 
 		text := strings.Builder{}
 		if fullSize != "" {
-			text.WriteString("全量包：")
+			text.WriteString("\r\n* 全量包：")
 			text.WriteString(fullSize)
 		}
 
 		if patchSize != "" {
-			text.WriteString(" 差量包：")
+			text.WriteString("\r\n* 差量包：")
 			text.WriteString(patchSize)
 		}
 
 		return map[string]interface{}{
 			"fullUrl":      fullUrl,
 			"patchUrl":     patchUrl,
-			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s\n* %s\r\n%s", r.TagName, text.String(), releaseNote),
+			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s%s\r\n%s", r.TagName, text.String(), releaseNote),
 		}, nil
 	} else {
 		return nil, fmt.Errorf("已是最新版本～")
