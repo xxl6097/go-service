@@ -235,7 +235,7 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	//同样，更新完后，需要删除签名文件
 	_ = utils.DeleteAllDirector(signFilePath)
 	if err != nil {
-		glog.Error("升级失败", upgradeName, err)
+		glog.Errorf("升级失败[%s] %+v", upgradeName, err)
 		return err
 	}
 	glog.Error(upgradeName, "升级成功")

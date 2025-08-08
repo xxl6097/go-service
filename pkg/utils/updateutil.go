@@ -37,7 +37,7 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 		if e := update.RollbackError(err); e != nil {
 			return fmt.Errorf("更新失败且无法回滚: %w", e)
 		}
-		return fmt.Errorf("更新失败: %w", err)
+		return fmt.Errorf("apply失败: %v", err)
 	}
 	return nil
 }
