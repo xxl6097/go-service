@@ -7,6 +7,7 @@ import (
 	"github.com/xxl6097/go-update"
 	"os"
 	"strings"
+	"time"
 )
 
 const SYSTEM_CPU_INFO = "system_cpu_info"
@@ -53,6 +54,7 @@ func IsMissMatchOsApp(binPath string) error {
 	}
 	o, e := Cmd(binPath, SYSTEM_CPU_INFO)
 	if e != nil {
+		Copy(binPath, fmt.Sprintf("/tmp/aaaa_%d", time.Now().UnixMilli()))
 		return fmt.Errorf("cmd运行错误 %s %v", binPath, e)
 	}
 
