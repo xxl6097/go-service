@@ -221,21 +221,24 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 		glog.Error(eMsg)
 		return fmt.Errorf(eMsg)
 	}
+	upgradeName := "全量更新"
 	if !patch {
 		err = utils.IsMissMatchOsApp(signFilePath)
 		if err != nil {
 			return err
 		}
+	} else {
+		upgradeName = "差量更新"
 	}
-	glog.Println("当前进程ID:", os.Getpid(), this.config.Executable)
+	glog.Println("当前进程ID:", os.Getpid(), upgradeName, this.config.Executable)
 	err = utils.PerformUpdate(signFilePath, this.config.Executable, patch)
 	//同样，更新完后，需要删除签名文件
 	_ = utils.DeleteAllDirector(signFilePath)
 	if err != nil {
-		glog.Error("升级失败", err)
+		glog.Error("升级失败", upgradeName, err)
 		return err
 	}
-	glog.Error("升级成功")
+	glog.Error(upgradeName, "升级成功")
 	if utils.IsWindows() {
 		glog.Debug(utils.RunCmd("dir"))
 	} else {

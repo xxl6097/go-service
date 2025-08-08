@@ -43,6 +43,7 @@ func (this *CoreService) Run() error {
 	defer glog.GlobalRecover()
 	if len(os.Args) > 1 && os.Args[1] == utils.SYSTEM_CPU_INFO {
 		fmt.Println("hello world")
+		fmt.Println(this.isrv.OnVersion())
 		return nil
 	}
 	this.initLog()
