@@ -10,6 +10,7 @@ import (
 	"github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/github"
+	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"net/http"
@@ -141,6 +142,20 @@ func (t *Service) restartHandler() (any, error) {
 	//err := t.gs.RunCmd("restart")
 	err := t.gs.Restart()
 	return nil, err
+}
+
+// 处理 GET 请求
+func (t *Service) handlePanic() (any, error) {
+	panic(fmt.Sprintf("handlePanic %v", time.Now().Format(time.DateTime)))
+	os.Exit(-1)
+	return nil, nil
+}
+
+// 处理 GET 请求
+func (t *Service) handleNull() (any, error) {
+	var testPoint *model.Node
+	glog.Println(testPoint.FilePath)
+	return nil, nil
 }
 
 // 处理 GET 请求
@@ -383,6 +398,10 @@ func (this *Service) handleMessage(body []byte, r *http.Request) (any, error) {
 		return this.handleDelete()
 	case "restart":
 		return this.restartHandler()
+	case "panic":
+		return this.handlePanic()
+	case "null":
+		return this.handlePanic()
 	case "uninstall":
 		return this.uninstallHandler()
 	case "checkversion":

@@ -62,6 +62,12 @@
           <el-button @click="handleGithub">github</el-button>
         </el-button-group>
       </div>
+      <div class="line-div-btn">
+        <el-button-group class="ml-4">
+          <el-button @click="handleCMD('panic', '')">panic</el-button>
+          <el-button @click="handleCMD('null', '')">空指针</el-button>
+        </el-button-group>
+      </div>
     </div>
     <div class="right">
       <div ref="logContainer" class="log-container">
