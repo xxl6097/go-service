@@ -54,6 +54,7 @@ func IsMissMatchOsApp(binPath string) error {
 	o, e := Cmd(binPath, SYSTEM_CPU_INFO)
 	if e != nil {
 		//Copy(binPath, fmt.Sprintf("/tmp/aaaa_%d", time.Now().UnixMilli()))
+		_ = CopyToTemp(binPath)
 		return fmt.Errorf("cmd运行错误 %s %v", binPath, e)
 	}
 

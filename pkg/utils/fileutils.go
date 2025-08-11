@@ -89,6 +89,39 @@ func DeleteAllDirector(filePath string) error {
 	return err
 }
 
+func CopyToTemp(srcFile string) error {
+	src, err := os.Open(srcFile) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
+	if err != nil {
+		fmt.Printf("打开源文件失败：%v\n", err)
+		return err
+	}
+	var fileSize int64
+	var fileName string
+	finfo, err := src.Stat()
+	if err == nil {
+		fileSize = finfo.Size()
+		fileName = finfo.Name()
+	}
+
+	dstFile := filepath.Join(glog.TempDir(), filepath.Base(srcFile))
+	defer src.Close()
+	//将本程序复制到目标为止，目标文件名称为配置文件的名称
+	dst, err := os.OpenFile(dstFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
+	if err != nil {
+		fmt.Printf("创建目标文件失败：%v\n", err)
+		return err
+	}
+	defer dst.Close()
+	sizeB := float64(fileSize) / 1024 / 1024
+	glog.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
+	_, err = io.Copy(dst, src)
+	if err != nil {
+		fmt.Printf("拷贝文件失败：%v\n", err)
+		return err
+	}
+	return nil
+}
+
 func Copy(srcFile, dstFile string) error {
 	src, err := os.Open(srcFile) // can not use args[0], on Windows call openp2p is ok(=openp2p.exe)
 	if err != nil {

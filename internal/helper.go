@@ -154,7 +154,9 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 	if filepath.Ext(downFilePath) == ".patch" {
 		signFilePath = downFilePath
 		patch = true
+		glog.Debug("差量升级文件", downFilePath)
 	} else {
+		glog.Debug("全量升级文件，签名", downFilePath)
 		tempFilePath, e := ukey.SignFileByOldFileKey(this.config.Executable, downFilePath)
 		//签名完后会生产出新的签名文件，那么下载的文件需要被删除
 		_ = utils.DeleteAllDirector(downFilePath)
@@ -233,9 +235,12 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	glog.Println("当前进程ID:", os.Getpid(), upgradeName, this.config.Executable)
 	err = utils.PerformUpdate(signFilePath, this.config.Executable, patch)
 	//同样，更新完后，需要删除签名文件
-	_ = utils.DeleteAllDirector(signFilePath)
+	defer func() {
+		_ = utils.DeleteAllDirector(signFilePath)
+	}()
 	if err != nil {
 		glog.Errorf("升级失败[%s] %+v", upgradeName, err)
+		//_ = utils.CopyToTemp(signFilePath)
 		return err
 	}
 	glog.Error(upgradeName, "升级成功")
