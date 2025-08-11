@@ -250,10 +250,15 @@ handleCMD('version', '')
   overflow: hidden; /* 清除浮动影响 */
 }
 
-.left,
+.left {
+  float: left; /* PC 端左右浮动 */
+  width: 30%;
+  padding: 10px;
+  box-sizing: border-box;
+}
 .right {
   float: left; /* PC 端左右浮动 */
-  width: 50%;
+  width: 70%;
   padding: 10px;
   box-sizing: border-box;
 }

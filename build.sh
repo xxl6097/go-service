@@ -320,6 +320,8 @@ function install() {
 
 # shellcheck disable=SC2120
 function buildInstaller() {
+#  version="v0.6.79"
+  echo "---->${version}"
   showBuildDir ./cmd/app
   builddir="./release"
   #appname=$(basename "$dir")
@@ -354,18 +356,6 @@ function githubActions() {
   mv -fv ./release/${appname}* ./release/packages
 }
 
-function bootstrap() {
-  #printf "\033[1;31m%-10s\033[0m\n" "Error"  # 红色加粗文本
-  if [ $# -ge 2 ] && [ -n "$2" ]; then
-    version=$2
-  fi
-  writeVersionGoFile
-  case $1 in
-  github) (githubActions) ;;
-    *) (buildInstaller)  ;;
-  esac
-}
-
 function showMenu() {
     echo "1. 编译程序"
     echo "2. 安装程序"
@@ -376,6 +366,18 @@ function showMenu() {
     [1]) (bootstrap $1 $2);;
     [2]) (install);;
     *) echo "exit" ;;
+  esac
+}
+
+function bootstrap() {
+  #printf "\033[1;31m%-10s\033[0m\n" "Error"  # 红色加粗文本
+  if [ $# -ge 2 ] && [ -n "$2" ]; then
+    version=$2
+  fi
+  writeVersionGoFile
+  case $1 in
+  github) (githubActions) ;;
+    *) (buildInstaller)  ;;
   esac
 }
 bootstrap $1 $2
