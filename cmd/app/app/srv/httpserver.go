@@ -2,20 +2,25 @@ package srv
 
 import (
 	"context"
+	"crypto/sha1"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/assets"
 	"github.com/xxl6097/go-service/assets/we"
+	"github.com/xxl6097/go-service/cmd/app/app/wx"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -319,6 +324,142 @@ func addStatic(subRouter *mux.Router) {
 	})
 }
 
+// 与你后台配置一致的 Token
+const yourToken = "het002402"
+
+// CheckSignature 验证微信请求签名
+// 参数: signature, timestamp, nonce 来自请求URL, token 为你在微信后台配置的令牌
+// 返回值: 验证通过返回 true，否则返回 false
+func CheckSignature(signature, timestamp, nonce, token string) bool {
+	// 1. 将 token, timestamp, nonce 放入切片
+	params := []string{token, timestamp, nonce}
+	// 2. 按字典序排序
+	sort.Strings(params)
+	// 3. 拼接成一个字符串
+	var combinedStr string
+	for _, s := range params {
+		combinedStr += s
+	}
+	// 4. 对拼接后的字符串进行 sha1 加密
+	hasher := sha1.New()
+	hasher.Write([]byte(combinedStr))
+	calculatedSignature := fmt.Sprintf("%x", hasher.Sum(nil)) // %x 表示格式化为小写十六进制
+	// 5. 将加密后的字符串与 signature 对比
+	return calculatedSignature == signature
+}
+
+func wechatMessageHandler(w http.ResponseWriter, userMsg wx.EventMessage) {
+	// 1. 构造回复消息
+	replyMsg := wx.CreateTextResponse(
+		userMsg.FromUserName, // 接收方：发送消息的用户OpenID
+		userMsg.ToUserName,   // 发送方：公众号ID
+		"您好，这是自动回复：\r\n"+
+			"姓名：夏小力\r\n"+
+			"性别：男\r\n"+
+			"工作：码农", // 回复内容
+	)
+
+	// 2. 将结构体序列化为XML字节切片
+	xmlData, err := xml.Marshal(replyMsg)
+	if err != nil {
+		log.Printf("Error marshaling XML response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. 设置响应头并返回XML
+	w.Header().Set("Content-Type", "application/xml") // 务必设置为 application/xml[1,2](@ref)
+	w.Write(xmlData)
+	log.Println("Text response sent successfully.")
+}
+
+func decodeWxMes(w http.ResponseWriter, body []byte) error {
+	var baseMsg struct {
+		MsgType string `xml:"MsgType"`
+	}
+	if err := xml.Unmarshal(body, &baseMsg); err != nil {
+		// 处理错误
+		return err
+	}
+	switch baseMsg.MsgType {
+	case "text":
+		var textMsg wx.TextMessage
+		err := xml.Unmarshal(body, &textMsg)
+		fmt.Println(textMsg)
+		return err
+	case "event":
+		var eventMsg wx.EventMessage
+		err := xml.Unmarshal(body, &eventMsg)
+		fmt.Println(eventMsg)
+		wechatMessageHandler(w, eventMsg)
+		return err
+	case "image":
+	}
+
+	return nil
+}
+
+// AppID:wxbe2c2961b236427f
+// AppSecret:667fc391b1ca8f4c58d1b5f224356ad5
+// http://v.uuxia.cn/api/wx/push
+// het002402
+// T23zgdkUCPCxaJmTvsqhYRidouCQXPnBgLq2qTdTtjK
+func apiPush(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("%s %s %s\n", r.Method, r.URL.String(), r.Proto)
+	queryParams := r.URL.Query()
+	echostr := queryParams.Get("echostr")
+	nonce := queryParams.Get("nonce")
+	openid := queryParams.Get("openid")
+	signature := queryParams.Get("signature")
+	timestamp := queryParams.Get("timestamp")
+	fmt.Println(echostr, openid, timestamp, signature)
+
+	switch r.Method {
+	case http.MethodPost:
+		ok := CheckSignature(signature, timestamp, nonce, yourToken)
+		fmt.Println(ok)
+		// 验证签名
+		if ok {
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, "Error reading request body", http.StatusInternalServerError)
+				return
+			}
+			defer r.Body.Close() // 确保关闭 Body
+			err = decodeWxMes(w, body)
+			fmt.Printf("%s %v\n", string(body), err)
+			// 若确认此次GET请求来自微信服务器，请原样返回 echostr 参数内容
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(echostr))
+			log.Println("微信服务器验证成功")
+		} else {
+			// 校验失败
+			w.WriteHeader(http.StatusForbidden)
+			log.Println("微信服务器验证失败: 签名无效")
+			return
+		}
+		break
+	case http.MethodGet:
+		ok := CheckSignature(signature, timestamp, echostr, yourToken)
+		fmt.Println(ok)
+		// 验证签名
+		if ok {
+			// 若确认此次GET请求来自微信服务器，请原样返回 echostr 参数内容
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(echostr))
+			log.Println("微信服务器验证成功")
+		} else {
+			// 校验失败
+			w.WriteHeader(http.StatusForbidden)
+			log.Println("微信服务器验证失败: 签名无效")
+			return
+		}
+		break
+	default:
+		break
+	}
+}
+
 func Server(p int, t *Service) {
 	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
 
@@ -329,6 +470,7 @@ func Server(p int, t *Service) {
 	// 注册路由处理函数
 	router.HandleFunc("/api/cmd", t.apiCommand)
 	router.HandleFunc("/api/version", t.apiVersion)
+	router.HandleFunc("/api/wx/push", apiPush)
 	router.HandleFunc("/api/sse-stream", SseHandler(logQueue))
 
 	addStatic(router.NewRoute().Subrouter())

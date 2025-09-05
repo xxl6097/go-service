@@ -72,13 +72,13 @@ func (this *CoreService) install() error {
 
 	ee := core.Install(this.isrv, currentBinPath, this.config.Executable)
 	if ee != nil {
-		glog.Error(ee)
+		glog.Printf("%v", ee)
 		return ee
 	}
 
 	e = os.Chdir(this.workDir)
 	if e != nil {
-		glog.Println("os.Chdir error:", e)
+		glog.Printf("os.Chdir error:%v", e)
 		return e
 	}
 
