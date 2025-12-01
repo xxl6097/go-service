@@ -79,6 +79,12 @@ func DynamicSelect[T any](t []T, fun func(context.Context, int, T) T) T {
 	cancel()
 	return x
 }
+func IsMacOs() bool {
+	if strings.Compare(runtime.GOOS, "darwin") == 0 {
+		return true
+	}
+	return false
+}
 func IsWindows() bool {
 	if strings.Compare(runtime.GOOS, "windows") == 0 {
 		return true
