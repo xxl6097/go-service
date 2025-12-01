@@ -65,6 +65,7 @@ func (this *CoreService) installService(runArgs []string) error {
 	//windows下，服务->登录-登录身份->本地系统账户->允许服务与桌面交互
 	this.config.Option["Interactive"] = true
 	if runArgs != nil && len(runArgs) > 0 {
+		this.config.Arguments = append(this.config.Arguments, runArgs...)
 		s, e := service.New(this, this.config)
 		if e != nil {
 			glog.Error("service New err:%v", e)

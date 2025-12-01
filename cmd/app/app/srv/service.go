@@ -87,7 +87,7 @@ func (this *Service) OnRun(service igs.Service) error {
 }
 
 func (this *Service) GetAny(binDir string) ([]byte, []string) {
-	return this.menu(), nil
+	return this.menu(), []string{"--conf", "hello"}
 }
 
 func (this *Service) menu() []byte {
