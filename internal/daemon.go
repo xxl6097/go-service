@@ -67,7 +67,7 @@ func (this *CoreService) installService(runArgs []string) error {
 	if runArgs != nil && len(runArgs) > 0 {
 		s, e := service.New(this, this.config)
 		if e != nil {
-			glog.Error("service.New err:%v", e)
+			glog.Error("service New err:%v", e)
 			return e
 		}
 		this.srv = s
