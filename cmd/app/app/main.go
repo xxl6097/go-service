@@ -21,7 +21,7 @@ func init() {
 	if IsMacOs() {
 		pkg.AppVersion = "v0.0.3"
 		pkg.BinName = "aatest_v0.0.20_darwin_arm64"
-		fmt.Println("Hello World")
+		fmt.Println("Hello World...1")
 	}
 }
 
