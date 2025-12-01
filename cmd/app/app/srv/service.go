@@ -86,8 +86,8 @@ func (this *Service) OnRun(service igs.Service) error {
 	return nil
 }
 
-func (this *Service) GetAny(s2 string) []byte {
-	return this.menu()
+func (this *Service) GetAny(binDir string) ([]byte, []string) {
+	return this.menu(), nil
 }
 
 func (this *Service) menu() []byte {

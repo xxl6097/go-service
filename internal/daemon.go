@@ -57,13 +57,21 @@ func (this *CoreService) IsRunning() bool {
 func (this *CoreService) uninstallService() error {
 	return this.control(service.ControlAction[4])
 }
-func (this *CoreService) installService() error {
+func (this *CoreService) installService(runArgs []string) error {
 	defer glog.Flush()
 	if this.config.Option == nil {
 		this.config.Option = make(map[string]interface{})
 	}
 	//windows下，服务->登录-登录身份->本地系统账户->允许服务与桌面交互
 	this.config.Option["Interactive"] = true
+	if runArgs != nil && len(runArgs) > 0 {
+		s, e := service.New(this, this.config)
+		if e != nil {
+			glog.Error("service.New err:%v", e)
+			return e
+		}
+		this.srv = s
+	}
 	return this.control(service.ControlAction[3])
 }
 func (this *CoreService) restartService() error {

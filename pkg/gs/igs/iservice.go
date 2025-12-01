@@ -21,7 +21,7 @@ type IService interface {
 	OnRun(Service) error
 	OnStop()
 	OnShutdown()
-	GetAny(string) []byte
+	GetAny(string) ([]byte, []string) //数据；运行参数
 	OnFinish()
 }
 

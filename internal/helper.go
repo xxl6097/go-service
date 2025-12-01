@@ -70,7 +70,7 @@ func (this *CoreService) install() error {
 		return e
 	}
 
-	ee := core.Install(this.isrv, currentBinPath, this.config.Executable)
+	ee, runArgs := core.Install(this.isrv, currentBinPath, this.config.Executable)
 	if ee != nil {
 		glog.Printf("%v", ee)
 		return ee
@@ -82,7 +82,7 @@ func (this *CoreService) install() error {
 		return e
 	}
 
-	err = this.installService()
+	err = this.installService(runArgs)
 	if err == nil {
 		glog.Printf("[%s]安装成功!\n", this.config.DisplayName)
 	} else {

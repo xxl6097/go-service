@@ -11,39 +11,62 @@ import (
 )
 
 // Install 原始的安装文件未被删除
-func Install(g igs.IService, binPath, installBinPath string) error {
+func Install(g igs.IService, binPath, installBinPath string) (error, []string) {
+	var runArgs []string
 	if gs, ok := g.(igs.Installer); ok {
-		return gs.OnInstall(binPath, installBinPath)
+		return gs.OnInstall(binPath, installBinPath), runArgs
 	} else {
-		cfg := getAny(filepath.Dir(installBinPath), g)
+		cfg, args := getAny(filepath.Dir(installBinPath), g)
 		if cfg != nil {
+			runArgs = args
 			glog.Debug("SignFileBySelfKey ", binPath, glog.AppName())
 			newFilePath, e := ukey.SignFileBySelfKey(cfg, binPath)
 			if e != nil {
-				return e
+				return e, runArgs
 			}
-			glog.Debug("manualInstall 1", newFilePath)
-			return manualInstall(newFilePath, installBinPath)
+			glog.Debug("getAny func newFilePath", newFilePath)
+			binPath = newFilePath
+			//return manualInstall(newFilePath, installBinPath)
 		}
 	}
-	return manualInstall(binPath, installBinPath)
+	return manualInstall(binPath, installBinPath), runArgs
 }
 
-func getAny(binDir string, g igs.IService) []byte {
+// 手动安装
+func manualInstall(binPath, installBinPath string) error {
+	if binPath == "" || installBinPath == "" {
+		return fmt.Errorf("安装文件空 binPath:%v installBinPath:%v", binPath, installBinPath)
+	}
+	if strings.Compare(strings.ToLower(binPath), strings.ToLower(installBinPath)) == 0 {
+		return fmt.Errorf("当前文件与安装文件路径一致，不允许安装 binPath:%v installBinPath:%v", binPath, installBinPath)
+	} else {
+		defer func() {
+			_ = utils.DeleteAllDirector(binPath)
+		}()
+	}
+	err := utils.Copy(binPath, installBinPath)
+	if err != nil {
+		glog.Printf("文件拷贝失败，错误信息：%s", err)
+		return err
+	}
+	return nil
+}
+
+func getAny(binDir string, g igs.IService) ([]byte, []string) {
 	if g == nil {
 		glog.Error("igs.IService is nil")
-		return nil
+		return nil, nil
 	}
-	buffer := g.GetAny(binDir)
+	buffer, runArgs := g.GetAny(binDir)
 	if buffer == nil {
 		cfg := map[string]any{"path": binDir}
 		bb, err := ukey.StructToGob(cfg)
 		if err != nil {
-			return []byte(err.Error())
+			return []byte(err.Error()), runArgs
 		}
 		buffer = bb
 	}
-	return buffer
+	return buffer, runArgs
 }
 
 //func getAny(binDir string, g igs.IService) any {
@@ -65,25 +88,6 @@ func getAny(binDir string, g igs.IService) []byte {
 //	}
 //	return cfg
 //}
-
-func manualInstall(binPath, installBinPath string) error {
-	if binPath == "" || installBinPath == "" {
-		return fmt.Errorf("安装文件空 binPath:%v installBinPath:%v", binPath, installBinPath)
-	}
-	if strings.Compare(strings.ToLower(binPath), strings.ToLower(installBinPath)) == 0 {
-		return fmt.Errorf("当前文件与安装文件路径一致，不允许安装 binPath:%v installBinPath:%v", binPath, installBinPath)
-	} else {
-		defer func() {
-			_ = utils.DeleteAllDirector(binPath)
-		}()
-	}
-	err := utils.Copy(binPath, installBinPath)
-	if err != nil {
-		glog.Printf("文件拷贝失败，错误信息：%s", err)
-		return err
-	}
-	return nil
-}
 
 //安装、升级、卸载、开启、关闭、重启分别定义接口并继承BaseService
 //1、安装，无实现，执行默认行为1（复制）；有实现，且参数合法，则执行子类行为，否则执行默认行为1
