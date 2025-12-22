@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
 	"io"
 	"net"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/xxl6097/glog/glog"
 )
 
 func DownloadFileWithCancelByUrls(urls []string) string {
@@ -25,6 +26,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			//tid := GetGoroutineID()
 			dstFilePath, err := DownloadWithCancel(ctx, s)
 			if err == nil {
+				FileSize(dstFilePath)
 				glog.Debug("下载成功", dstFilePath, s)
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {
@@ -47,7 +49,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 func DownloadWithCancel(ctx context.Context, url string, args ...string) (string, error) {
 	defer glog.Flush()
 	// 创建可取消的 HTTP 请求
-	glog.Debug("开始下载", url)
+	//glog.Debug("开始下载", url)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", err
