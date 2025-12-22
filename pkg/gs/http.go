@@ -2,16 +2,17 @@ package gs
 
 import (
 	"fmt"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg/github"
-	"github.com/xxl6097/go-service/pkg/gs/igs"
-	"github.com/xxl6097/go-service/pkg/utils"
-	"github.com/xxl6097/go-service/pkg/utils/util"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-service/pkg/github"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
+	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 )
 
 var pool = &sync.Pool{
@@ -32,9 +33,9 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 	_, _, free, _ := util.GetDiskUsage(updir)
 	if free < utils.GetSelfSize()*2 {
 		if err := utils.ClearTemp(); err != nil {
-			fmt.Println("/tmp清空失败:", err)
+			glog.Println("/tmp清空失败:", err)
 		} else {
-			fmt.Println("/tmp清空完成")
+			glog.Println("/tmp清空完成")
 		}
 	}
 
@@ -53,7 +54,7 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		binUrl := string(body)
-		glog.Debugf("upgrade by url: %s", binUrl)
+		glog.Debugf("升级URL地址: %s", binUrl)
 		newUrl := utils.DownloadFileWithCancelByUrls(github.Api().GetProxyUrls(binUrl))
 		newFilePath = newUrl
 		break
