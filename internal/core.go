@@ -3,14 +3,15 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 type CoreService struct {
@@ -20,7 +21,7 @@ type CoreService struct {
 	workDir string
 }
 
-func (this *CoreService) initLog() {
+func (this *CoreService) initLog1() {
 	if len(os.Args) > 1 {
 		glog.LogDefaultLogSetting(fmt.Sprintf("%s.log", os.Args[1]))
 	} else {
@@ -35,6 +36,21 @@ func (this *CoreService) initLog() {
 			} else {
 				glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
 			}
+		}
+	}
+}
+
+func (this *CoreService) initLog() {
+	bindir, err := os.Executable()
+	var isSrvApp bool
+	if err != nil {
+		glog.LogDefaultLogSetting("app.log")
+	} else {
+		isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
+		if isSrvApp {
+			glog.LogDefaultLogSetting("app.log")
+		} else {
+			glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
 		}
 	}
 }
