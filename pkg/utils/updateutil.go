@@ -3,10 +3,11 @@ package utils
 import (
 	"bufio"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-update"
 	"os"
 	"strings"
+
+	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-update"
 )
 
 const SYSTEM_CPU_INFO = "system_cpu_info"
@@ -14,6 +15,7 @@ const SYSTEM_CPU_INFO = "system_cpu_info"
 func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	file, err := os.Open(newFilePath)
 	if err != nil {
+		glog.Error("升级文件打开失败", err)
 		return fmt.Errorf("升级文件打开失败【%s】: %v", newFilePath, err)
 	}
 	defer func() {
@@ -33,12 +35,16 @@ func PerformUpdate(newFilePath, targetPath string, patcher bool) error {
 	//	TargetPath: os.Args[0], // 当前可执行文件路径
 	//}
 	// 使用 bufio.NewReader 创建带缓冲的读取器
+	glog.Debug("准备升级", patcher, newFilePath, targetPath)
 	if err = update.Apply(bufio.NewReader(file), opts); err != nil {
+		glog.Error("升级失败，回滚", err)
 		if e := update.RollbackError(err); e != nil {
+			glog.Error("更新失败且无法回滚", e)
 			return fmt.Errorf("更新失败且无法回滚: %w", e)
 		}
 		return fmt.Errorf("apply失败: %v", err)
 	}
+	glog.Debug("升级执行完成", patcher, newFilePath, targetPath)
 	return nil
 }
 
