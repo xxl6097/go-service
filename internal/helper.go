@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/internal/core"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 func (this *CoreService) install() error {
@@ -149,6 +150,7 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		glog.Debug("升级失败", err)
 		return err
 	}
+	glog.Debug("升级文件", downFilePath)
 	var signFilePath string
 	patch := false
 	if filepath.Ext(downFilePath) == ".patch" {

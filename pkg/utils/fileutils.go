@@ -44,9 +44,9 @@ func FileSize(file string) {
 
 	// 获取文件大小（字节）
 	size := fileInfo.Size()
-	fmt.Printf("文件大小: %d 字节\n", size)
-	fmt.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
-	fmt.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
+	glog.Printf("文件大小: %d 字节\n", size)
+	glog.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
+	glog.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
 }
 func ByteCountIEC(b uint64) string {
 	const unit = 1024
