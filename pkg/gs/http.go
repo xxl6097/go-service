@@ -33,7 +33,7 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 	_, _, free, _ := util.GetDiskUsage(updir)
 	if free < utils.GetSelfSize()*2 {
 		if err := utils.ClearTemp(); err != nil {
-			glog.Println("/tmp清空失败:", err)
+			glog.Error("/tmp清空失败:", err)
 		} else {
 			glog.Println("/tmp清空完成")
 		}
