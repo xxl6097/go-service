@@ -21,6 +21,7 @@ type CoreService struct {
 	workDir string
 }
 
+// InitLog everyType 0：每天，1：每小时，2：每10分钟，3：每分钟 （切割文件）
 func InitLog(everyType int) {
 	glog.Register(util.MarketName)
 	bindir, err := os.Executable()
