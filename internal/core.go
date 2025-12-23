@@ -21,38 +21,18 @@ type CoreService struct {
 	workDir string
 }
 
-//func (this *CoreService) initLog1() {
-//	if len(os.Args) > 1 {
-//		glog.LogDefaultLogSetting(fmt.Sprintf("%s.log", os.Args[1]))
-//	} else {
-//		bindir, err := os.Executable()
-//		var isSrvApp bool
-//		if err != nil {
-//			glog.LogDefaultLogSetting("app.log")
-//		} else {
-//			isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
-//			if isSrvApp {
-//				glog.LogDefaultLogSetting("app.log")
-//			} else {
-//				glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
-//			}
-//		}
-//	}
-//}
-
-func (this *CoreService) initLog() {
+func InitLog(everyType int) {
+	glog.Register(util.MarketName)
 	bindir, err := os.Executable()
 	var isSrvApp bool
-	if err != nil {
-		glog.LogDefaultLogSetting("app.log")
-	} else {
+	if err == nil {
 		isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
-		if isSrvApp {
-			glog.LogDefaultLogSetting("app.log")
-		} else {
+		if !isSrvApp {
 			glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+			return
 		}
 	}
+	glog.LogDefaultLogSettingEveryType("app.log", everyType)
 }
 
 func (this *CoreService) Run() error {
@@ -62,7 +42,9 @@ func (this *CoreService) Run() error {
 		fmt.Println(this.isrv.OnVersion())
 		return nil
 	}
-	this.initLog()
+	if !glog.IsLogDirExist() {
+		InitLog(0)
+	}
 	this.config = this.isrv.OnConfig()
 	if this.config == nil {
 		return errors.New("请设置服务配置信息～")

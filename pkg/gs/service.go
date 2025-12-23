@@ -3,14 +3,12 @@ package gs
 import (
 	"fmt"
 
-	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/internal"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
-	"github.com/xxl6097/go-service/pkg/utils/util"
 )
 
-func init() {
-	glog.Register(util.MarketName)
+func InitLog(everyType int) {
+	internal.InitLog(everyType)
 }
 
 func Run(srv igs.IService) error {
