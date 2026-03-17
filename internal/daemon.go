@@ -3,8 +3,10 @@ package internal
 import (
 	"errors"
 	"fmt"
+
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"go.uber.org/zap"
 )
 
 func (this *CoreService) createService() error {
@@ -21,13 +23,13 @@ func (this *CoreService) createService() error {
 }
 
 func (this *CoreService) control(cmd string) error {
-	glog.Printf("[%s]正在%s", this.config.Name, cmd)
+	z.L().Debug(fmt.Sprintf("[%s]正在%s", this.config.Name, cmd))
 	e := service.Control(this.srv, cmd)
 	if e != nil {
-		glog.Printf("[%s]%s失败:%v", this.config.Name, cmd, e)
+		z.L().Debug(fmt.Sprintf("[%s]%s失败", this.config.Name, cmd), zap.Error(e))
 		return e
 	}
-	glog.Printf("[%s]%s成功", this.config.Name, cmd)
+	z.L().Debug(fmt.Sprintf("[%s]%s成功", this.config.Name, cmd))
 	return nil
 }
 
@@ -58,7 +60,6 @@ func (this *CoreService) uninstallService() error {
 	return this.control(service.ControlAction[4])
 }
 func (this *CoreService) installService(runArgs []string) error {
-	defer glog.Flush()
 	if this.config.Option == nil {
 		this.config.Option = make(map[string]interface{})
 	}
@@ -68,7 +69,7 @@ func (this *CoreService) installService(runArgs []string) error {
 		this.config.Arguments = append(this.config.Arguments, runArgs...)
 		s, e := service.New(this, this.config)
 		if e != nil {
-			glog.Error("service New err:%v", e)
+			z.L().Error("service New err", zap.Error(e))
 			return e
 		}
 		this.srv = s

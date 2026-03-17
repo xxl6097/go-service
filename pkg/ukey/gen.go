@@ -5,12 +5,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"math"
 	"os"
 	"path/filepath"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
+	"github.com/xxl6097/go-service/pkg/utils"
 )
 
 // SignFileBySelfKey install的时候buffer是为初始化的
@@ -23,12 +25,12 @@ func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("构建签名信息错误: %v", err)
 	}
-	outFilePath := filepath.Join(glog.AppHome("temp", "sign", utils.GetID()), filepath.Base(inFilePath))
+	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(inFilePath))
 	//安装程序，需要对程序进行签名，那么需要传入两个参数：
 	//1、最原始的key；
 	//2、需写入的data
 	keyBuffer := GetBuffer()
-	glog.Printf("buffer大小 %d\n", len(keyBuffer))
+	z.L().Debug(fmt.Sprintf("buffer大小:%d", len(keyBuffer)))
 	err = GenerateBin(inFilePath, outFilePath, keyBuffer, cfgBuffer)
 	if err != nil {
 		return "", fmt.Errorf("签名错误: %v", err)
@@ -37,7 +39,7 @@ func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 }
 
 func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
-	glog.Debugf("\n旧文件：%s\n新文件：%s\n", oldFilePath, newFilePath)
+	z.Debugf("\n旧文件：%s\n新文件：%s\n", oldFilePath, newFilePath)
 	//1、读取老文件特征数据；
 	//2、下载新文件
 	//3、替换新文件特征数据
@@ -49,16 +51,16 @@ func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
 func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error) {
 	if cfgBufferBytes == nil {
 		err := fmt.Errorf("配置buffer is nil")
-		glog.Error(err)
+		z.Error(err)
 		return "", err
 	}
-	outFilePath := filepath.Join(glog.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
-	glog.Debug("获取配置数据成功，数据大小", len(cfgBufferBytes))
+	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
+	z.Debug("获取配置数据成功，数据大小", len(cfgBufferBytes))
 	//oldBuffer := GetBuffer()
 	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
 	if err != nil {
-		glog.Error("签名错误：", err)
+		z.Error("签名错误：", err)
 		return "", err
 	}
 	return outFilePath, nil
@@ -103,7 +105,7 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		index := bytes.Index(tempBuffer, oldBytes)
 		if index > -1 {
 			//glog.Printf("找到位置[%d]了，签名...\n", index)
-			glog.Printf("程序签名成功[%d]\n", index)
+			z.Printf("程序签名成功[%d]\n", index)
 			isReplace = true
 			tempBuffer = bytes.Replace(tempBuffer, oldBytes, newBytes, -1)
 		}
@@ -146,17 +148,17 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		return fmt.Errorf("赋予文件执行权限时出错: %v\n", errMsg)
 	}
 	if !isReplace {
-		glog.Printf("oldBytes[%d]--->%v\n", len(oldBytes), oldBytes)
-		glog.Printf("newBytes[%d]--->%v\n", len(newBytes), newBytes)
+		z.Printf("oldBytes[%d]--->%v\n", len(oldBytes), oldBytes)
+		z.Printf("newBytes[%d]--->%v\n", len(newBytes), newBytes)
 		return errors.New("位置没找到，数据未替换😭")
 	}
 	err1 := srcFile.Close()
 	if err1 != nil {
-		glog.Error("srcFile.Close", err1)
+		z.Warn("srcFile.Close", err1)
 	}
 	err1 = tmpFile.Close()
 	if err1 != nil {
-		glog.Error("tmpFile.Close", err1)
+		z.Warn("tmpFile.Close", err1)
 	}
 
 	return nil

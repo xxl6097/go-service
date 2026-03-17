@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+
 	"github.com/gorilla/mux"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
 	"github.com/xxl6097/go-service/assets"
 	"github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/cmd/app/app/wx"
@@ -15,6 +17,9 @@ import (
 	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	"io"
 	"log"
 	"net/http"
@@ -28,9 +33,18 @@ import (
 var logQueue = NewLogQueue()
 
 func init() {
-	glog.Hook(func(bytes []byte) {
-		logQueue.AddMessage(string(bytes[2:]))
-	})
+	//glog.Hook(func(bytes []byte) {
+	//	logQueue.AddMessage(string(bytes[2:]))
+	//})
+	z.Hook = func(entry zapcore.Entry) error {
+		time := entry.Time.Format(time.DateTime)
+		msg := entry.Message
+		lineNum := entry.Caller.Line
+		filepath.Base(entry.Caller.File)
+		m := fmt.Sprintf("%s %s:%d %s", time, filepath.Base(entry.Caller.File), lineNum, msg)
+		logQueue.AddMessage(m)
+		return nil
+	}
 }
 
 type Message[T any] struct {
@@ -47,24 +61,24 @@ type Result struct {
 // 处理 GET 请求
 func (t *Service) updateHandler(binurl string, ctx context.Context) ([]byte, error) {
 	response := fmt.Sprintf("Hello, %s", binurl)
-	glog.Println("update", response)
+	z.L().Debug("update", zap.String("response", response))
 	if t.gs == nil {
 		return []byte(response), fmt.Errorf("gs is nil")
 	}
 	err := t.gs.Upgrade(ctx, binurl)
-	glog.Println("update", err)
+	z.L().Debug("update", zap.Error(err))
 	return []byte(pkg.AppVersion), err
 }
 
 // 处理 GET 请求
 func (t *Service) patchUpdateHandler(binurl string, ctx context.Context) ([]byte, error) {
 	response := fmt.Sprintf("Hello, %s", binurl)
-	glog.Println("patchUpdate", response)
+	z.L().Debug("patchUpdate", zap.String("response", response))
 	if t.gs == nil {
 		return []byte(response), fmt.Errorf("gs is nil")
 	}
 	err := t.gs.Upgrade(ctx, binurl)
-	glog.Println("patchUpdate err", err)
+	z.L().Debug("patchUpdate err", zap.Error(err))
 	return []byte(pkg.AppVersion), err
 }
 
@@ -159,7 +173,7 @@ func (t *Service) handlePanic() (any, error) {
 // 处理 GET 请求
 func (t *Service) handleNull() (any, error) {
 	var testPoint *model.Node
-	glog.Println(testPoint.FilePath)
+	z.L().Debug("handleNull", zap.String("FilePath", testPoint.FilePath))
 	return nil, nil
 }
 
@@ -192,11 +206,11 @@ func (t *Service) confirmUpgrade(r *http.Request, data any) (any, error) {
 			urls := github.Api().GetProxyUrls(value)
 			fileUri := utils.DownloadFileWithCancelByUrls(urls)
 			if fileUri != "" {
-				glog.Debug("升级文件", fileUri)
+				z.L().Debug("升级文件", zap.String("fileUri", fileUri))
 				err := t.gs.Upgrade(r.Context(), fileUri)
 				return nil, err
 			} else {
-				glog.Debug("文件地址空fileUri", fileUri)
+				z.L().Debug("文件地址空fileUri", zap.String("fileUri", fileUri))
 				return nil, fmt.Errorf("文件地址空fileUri=%s", fileUri)
 			}
 		} else {
@@ -221,7 +235,8 @@ func (this *Service) ApiClear() ([]byte, error) {
 	binDir := filepath.Dir(binPath)
 	clientsDir := filepath.Join(binDir, "clients")
 	err = utils.DeleteAllDirector(clientsDir)
-	err = utils.DeleteAllDirector(glog.AppHome())
+
+	err = utils.DeleteAllDirector(zutil.AppHome())
 	if err != nil {
 		return nil, err
 	} else {
@@ -237,7 +252,7 @@ func (this *Service) ApiCMD(arg string) ([]byte, error) {
 	if args == nil || len(args) == 0 {
 		return nil, fmt.Errorf("args is empty")
 	}
-	glog.Infof("args: %s", args)
+	z.L().Info("args", zap.Strings("args", args))
 	return utils.RunCmdWithSudo(args...)
 }
 
@@ -249,7 +264,7 @@ func (this *Service) ApiSelfCMD(arg string) ([]byte, error) {
 	if args == nil || len(args) == 0 {
 		return nil, fmt.Errorf("args is empty")
 	}
-	glog.Infof("args: %s", args)
+	z.L().Info("args", zap.Strings("args", args))
 	err := this.gs.RunCMD(args...)
 	return nil, err
 }
@@ -258,11 +273,11 @@ func (this *Service) ApiSelfCMD(arg string) ([]byte, error) {
 func (t *Service) handleSudo() ([]byte, error) {
 	if err := utils.RunWithSudo(); err != nil {
 		msg := fmt.Sprintf("获取管理员权限失败: %v\n", err)
-		glog.Println(msg)
+		z.L().Debug(msg)
 		return []byte(msg), err
 	}
 	msg := "已获取管理员权限，正在执行敏感操作..."
-	glog.Println(msg)
+	z.L().Debug(msg)
 	return []byte(msg), nil
 }
 
@@ -294,11 +309,11 @@ func (this *Service) apiCommand(w http.ResponseWriter, r *http.Request) {
 
 		jsonData, err := json.Marshal(res)
 		if err != nil {
-			glog.Errorf("json marshal err: %v", err)
+			z.L().Error("json marshal err", zap.Error(err))
 			return
 		}
 		//glog.Debug(string(jsonData))
-		glog.Debug("Code", res.Code)
+		z.L().Debug("code", zap.Int("code", res.Code))
 		_, _ = w.Write(jsonData)
 	}()
 	body, err := io.ReadAll(r.Body)
@@ -464,7 +479,7 @@ func Server(p int, t *Service) {
 	router := mux.NewRouter() // 创建路由器实例[1,5](@ref)
 
 	staticPrefix := "/log/"
-	baseDir := glog.AppHome()
+	baseDir := zutil.AppHome()
 	router.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
 
 	// 注册路由处理函数
@@ -482,12 +497,12 @@ func Server(p int, t *Service) {
 	port := fmt.Sprintf(":%d", p)
 	address := "http://localhost" + port
 	// 启动 HTTP 服务器
-	glog.Printf("Starting server at %s\n", address)
+	z.L().Info("Server started at " + port)
 
 	fmt.Println(address)
 	// 启动服务器
 	err := http.ListenAndServe(port, router)
-	glog.Fatal(err)
+	z.L().Fatal("Server stopped listening.", zap.Error(err))
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -504,7 +519,7 @@ func (this *Service) handleMessage(body []byte, r *http.Request) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("解析Json对象失败 %v", err)
 	}
-	glog.Debugf("body:%s", string(body))
+	z.L().Debug("body", zap.String("body", string(body)))
 	switch msg.Action {
 	case "update":
 		if msg.Data == nil {

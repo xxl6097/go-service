@@ -1,23 +1,26 @@
 package internal
 
 import (
+	"fmt"
+
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"go.uber.org/zap"
+
 	"os"
 )
 
 func (c *CoreService) Start(s service.Service) error {
 	status, err := s.Status()
-	defer glog.Flush()
-	glog.Printf("启动服务【%s】\r\n", s.String())
-	glog.Println("StatusUnknown=0；StatusRunning=1；StatusStopped=2；status", status, s.Platform(), err)
+	//defer glog.Flush()
+	z.L().Info(fmt.Sprintf("启动服务【%s】", s.String()), zap.Any("status", status), zap.Any("Platform", s.Platform()), zap.Error(err))
 	go func() {
 		if c.isrv != nil {
 			e := c.isrv.OnRun(c)
 			if e != nil {
-				glog.Error("运行失败", e)
+				z.L().Warn("运行失败", zap.Error(e))
 			} else {
-				glog.Debug("运行成功")
+				z.L().Info("运行成功")
 			}
 		}
 	}()
@@ -25,31 +28,29 @@ func (c *CoreService) Start(s service.Service) error {
 }
 
 func (c *CoreService) Stop(s service.Service) error {
-	defer glog.Flush()
+	//defer glog.Flush()
 	status, err := s.Status()
 	ok := service.Interactive()
 	//注意，这个地方在非windows下不行！
 	//c.clearForUninstall()
-	glog.Println("停止服务", ok, s.String(), s.Platform(), status, err)
+	z.L().Info(fmt.Sprintf("停止服务【%s】", s.String()), zap.Any("status", status), zap.Any("Platform", s.Platform()), zap.Error(err))
+
 	if c.isrv != nil {
 		c.isrv.OnStop()
 	}
 	if ok {
-		glog.Println("停止deamon")
+		z.L().Warn("停止deamon")
 		os.Exit(0)
 	}
 	return nil
 }
 
 func (c *CoreService) Shutdown(s service.Service) error {
-	defer glog.Flush()
+	//defer glog.Flush()
 	if c.isrv != nil {
 		c.isrv.OnShutdown()
 	}
 	status, err := s.Status()
-	glog.Println("Shutdown")
-	glog.Println("Status", status, err)
-	glog.Println("Platform", s.Platform())
-	glog.Println("String", s.String())
+	z.L().Info(fmt.Sprintf("Shutdown【%s】", s.String()), zap.Any("status", status), zap.Any("Platform", s.Platform()), zap.Error(err))
 	return nil
 }

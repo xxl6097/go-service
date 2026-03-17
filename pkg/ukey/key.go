@@ -7,11 +7,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"math/big"
 	"os"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/go-service/pkg/utils"
 )
 
 const B = 0x2B
@@ -48,12 +49,12 @@ func GetBuffer() []byte {
 func GetCfgBufferFromFile(filePath string) []byte {
 	srcFile, err := os.Open(filePath)
 	if err != nil {
-		glog.Errorf("无法打开文件: %v[%s]", err, filePath)
+		z.Errorf("无法打开文件: %v[%s]", err, filePath)
 		return nil
 	}
 	rawKey, err := GetRawKey()
 	if err != nil {
-		glog.Errorf("GetRawKey: %v[%s]", err, filePath)
+		z.Errorf("GetRawKey: %v[%s]", err, filePath)
 		return nil
 	}
 	defer srcFile.Close()
@@ -65,7 +66,7 @@ func GetCfgBufferFromFile(filePath string) []byte {
 		thisBuffer := make([]byte, Divide(cfgBufferSize, 1024))
 		n, err2 := reader.Read(thisBuffer)
 		if err2 != nil && err2 != io.EOF {
-			glog.Errorf("读取文件时出错: %v", err2)
+			z.Errorf("读取文件时出错: %v", err2)
 			return nil
 		}
 		//indexSize += int64(n)
@@ -75,10 +76,10 @@ func GetCfgBufferFromFile(filePath string) []byte {
 		if index > -1 {
 			tempBuffer1 := tempBuffer[index:]
 			if len(tempBuffer1) >= cfgBufferSize {
-				glog.Printf("找到位置[%d]了，签名 %s \n", index, filePath)
+				z.Printf("找到位置[%d]了，签名 %s \n", index, filePath)
 				return tempBuffer[index : index+cfgBufferSize]
 			} else {
-				glog.Println("长度缺失，继续...")
+				z.Println("长度缺失，继续...")
 			}
 		}
 
@@ -192,11 +193,11 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 		return nil, fmt.Errorf("原始配置信息字节数组不能空")
 	}
 
-	glog.Printf("配置buffer原始大小：%d", len(cfgBuffer))
+	z.Printf("配置buffer原始大小：%d", len(cfgBuffer))
 	temp, e := utils.GzipCompress(cfgBuffer)
 	if e == nil && temp != nil {
 		cfgBuffer = temp
-		glog.Printf("配置buffer压缩后大小：%d", len(cfgBuffer))
+		z.Printf("配置buffer压缩后大小：%d", len(cfgBuffer))
 	}
 	md5Keys := utils.GetUUID()
 	cfgBytes, err := utils.EncAES(cfgBuffer, md5Keys)
@@ -218,7 +219,7 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 	bodyLen := len(body)
 	bodyLenBytes := big.NewInt(int64(bodyLen)).Bytes()
 	bodyLenBytes = append(bytes.Repeat([]byte{'\x00'}, BufferLenType-len(bodyLenBytes)), bodyLenBytes...)
-	glog.Printf("body信息长度：%d，占字节数：%v\n", bodyLen, bodyLenBytes)
+	z.Printf("body信息长度：%d，占字节数：%v\n", bodyLen, bodyLenBytes)
 
 	//data=bodyLen+body
 	data := append(bodyLenBytes, body...)
@@ -241,7 +242,7 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 
 func genKey(key, sec []byte) []byte {
 	b1 := utils.PrintByteArrayAsConstant(key)
-	glog.Printf("var buffer-%d = %s\n", len(b1), b1)
+	z.Printf("var buffer-%d = %s\n", len(b1), b1)
 	//wstext := utils.BytesToHexEscape(key)
 	//glog.Printf("var buffer1 = \"%s\"\n", wstext)
 	md5KeyBytes, _ := utils.GetMD5(sec)
@@ -266,7 +267,7 @@ func TestKey() {
 	sec2 := "我是你的宝贝，你的大福宝～"
 	b := genKey([]byte(key1), []byte(sec2))
 	b1 := utils.PrintByteArrayAsConstant(b)
-	glog.Printf("var key = %s\n", b1)
+	z.Printf("var key = %s\n", b1)
 	//b2 := DecKey(b)
 	//b3 := utils.PrintByteArrayAsConstant(b2)
 	//glog.Printf("var buffer = %s\n", b3)
@@ -275,7 +276,7 @@ func TestKey() {
 func GenSign(raw, key []byte) {
 	b := genKey(raw, key)
 	b1 := utils.PrintByteArrayAsConstant(b)
-	glog.Printf("var key-%d = %s\n", len(b1), b1)
+	z.Printf("var key-%d = %s\n", len(b1), b1)
 }
 
 //type ClientCommonConfig struct {

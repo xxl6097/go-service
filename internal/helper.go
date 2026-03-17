@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
 	"github.com/xxl6097/go-service/internal/core"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
+	"go.uber.org/zap"
 )
 
 func (this *CoreService) install() error {
@@ -27,9 +29,9 @@ func (this *CoreService) install() error {
 			isRemoved = true
 			e := this.uninstall()
 			if e != nil {
-				glog.Error("卸载失败", this.config.Name, e)
+				z.L().Warn("卸载失败", zap.Any("config", this.config), zap.Error(e))
 			} else {
-				glog.Error("卸载成功", this.config.Name)
+				z.L().Info("卸载成功", zap.Any("config", this.config))
 			}
 			break
 		case "u", "U", "Update", "UPDATE":
@@ -37,11 +39,11 @@ func (this *CoreService) install() error {
 			e := this.stopService()
 			if err != nil {
 				//return err
-				glog.Error(e)
+				z.L().Error("升级", zap.Error(e))
 			}
 			break
 		default:
-			glog.Debug("结束安装.")
+			z.L().Debug("结束安装")
 			time.Sleep(time.Second * 3)
 			os.Exit(0)
 			return err
@@ -49,13 +51,13 @@ func (this *CoreService) install() error {
 	} else if s != service.StatusUnknown {
 		e := this.uninstallService()
 		if e != nil {
-			glog.Error("卸载失败", e)
+			z.L().Warn("卸载失败", zap.Error(e))
 		}
 	}
 	util.SetFirewall(this.config.Name, this.config.Executable)
 	e1 := util.SetRLimit()
 	if e1 != nil {
-		glog.Error("SetRLimit", e1)
+		z.L().Warn("SetRLimit", zap.Error(e1))
 	}
 
 	if isRemoved {
@@ -67,62 +69,61 @@ func (this *CoreService) install() error {
 	//这个地方是取的当前运行的执行文件
 	currentBinPath, e := os.Executable()
 	if e != nil {
-		glog.Fatal("os.Executable() error", e)
+		z.L().Fatal("s.Executable() error", zap.Error(e))
 		return e
 	}
 
 	ee, runArgs := core.Install(this.isrv, currentBinPath, this.config.Executable)
 	if ee != nil {
-		glog.Printf("%v", ee)
+		z.L().Error("Install err", zap.Error(ee))
 		return ee
 	}
 
 	e = os.Chdir(this.workDir)
 	if e != nil {
-		glog.Printf("os.Chdir error:%v", e)
+		z.L().Error("Chdir err", zap.Error(e))
 		return e
 	}
 
 	err = this.installService(runArgs)
 	if err == nil {
-		glog.Printf("[%s]安装成功!\n", this.config.DisplayName)
+		z.L().Debug(fmt.Sprintf("[%s]安装成功!", this.config.DisplayName))
 	} else {
-		glog.Printf("[%s]安装失败，错误信息:%v\n", this.config.DisplayName, err)
+		z.L().Warn(fmt.Sprintf("[%s]安装失败", this.config.DisplayName), zap.Error(err))
 	}
 	time.Sleep(time.Second * 1)
 	err = this.startService()
 	if err != nil {
-		glog.Printf("[%s]启动失败，错误信息:%v\n", this.config.DisplayName, err)
+		z.L().Warn(fmt.Sprintf("[%s]启动失败，错误信息:%v\n", this.config.DisplayName), zap.Error(err))
 	} else {
-		glog.Printf("[%s]启动成功!\n", this.config.DisplayName)
+		z.L().Debug(fmt.Sprintf("[%s]启动成功!", this.config.DisplayName))
 	}
 	time.Sleep(time.Second * 1)
-	glog.Info(this.Status())
+	z.L().Info(this.Status())
 	return nil
 }
 func (this *CoreService) uninstall() error {
 	defer func() {
 		this.clearForUninstall()
-		glog.Debug("1尝试停止服务")
+		z.L().Debug("尝试停止服务")
 		err := this.stopService()
-		glog.Debug("2尝试停止服务", err)
+		z.L().Debug("2尝试停止服务", zap.Error(err))
 		this.clearForUninstall()
-		glog.Flush()
 	}()
 
 	if utils.IsOpenWRT() {
 		err := this.stopService()
 		if err != nil {
-			glog.Errorf("[%s]停止失败 %v", this.config.Name, err)
+			z.L().Warn(fmt.Sprintf("[%s]停止失败", this.config.Name), zap.Error(err))
 		} else {
-			glog.Errorf("[%s]停止成功", this.config.Name)
+			z.L().Info(fmt.Sprintf("[%s]停止成功", this.config.Name))
 		}
 	}
 	err := this.uninstallService()
 	if err != nil {
-		glog.Printf("[%s]卸载失败 %v\n", this.config.Name, err)
+		z.L().Warn(fmt.Sprintf("[%s]卸载失败 ", this.config.Name), zap.Error(err))
 	} else {
-		glog.Printf("[%s]成功卸载\n", this.config.Name)
+		z.L().Info(fmt.Sprintf("[%s]成功卸载", this.config.Name))
 	}
 	return err
 }
@@ -130,7 +131,7 @@ func (this *CoreService) uninstall() error {
 func (this *CoreService) patchUpgrade(ctx context.Context, binUrlOrLocal string) error {
 	downFilePath, err := utils.CheckFileOrDownload(ctx, binUrlOrLocal)
 	if err != nil {
-		glog.Debug("升级失败", err)
+		z.L().Warn("升级失败", zap.Error(err))
 		return err
 	}
 
@@ -144,26 +145,25 @@ func (this *CoreService) patchUpgrade(ctx context.Context, binUrlOrLocal string)
 // 2. 升级文件最终需要被删除，所以使用defer删除；
 // 3. 给升级文件赋予0755权限
 func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) error {
-	defer glog.Flush()
 	downFilePath, err := utils.CheckFileOrDownload(ctx, binUrlOrLocal)
 	if err != nil {
-		glog.Debug("升级失败", err)
+		z.L().Warn("升级失败", zap.Error(err))
 		return err
 	}
-	glog.Debug("升级文件", downFilePath)
+	z.L().Debug("升级文件", zap.String("downFilePath", downFilePath))
 	var signFilePath string
 	patch := false
 	if filepath.Ext(downFilePath) == ".patch" {
 		signFilePath = downFilePath
 		patch = true
-		glog.Debug("差量升级文件", downFilePath)
+		z.L().Debug("差量升级文件", zap.String("downFilePath", downFilePath))
 	} else {
-		glog.Debug("全量升级文件，签名", downFilePath)
+		z.L().Debug("全量升级文件，签名", zap.String("downFilePath", downFilePath))
 		tempFilePath, e := ukey.SignFileByOldFileKey(this.config.Executable, downFilePath)
 		//签名完后会生产出新的签名文件，那么下载的文件需要被删除
 		_ = utils.DeleteAllDirector(downFilePath)
 		if e != nil {
-			glog.Debug("升级签名错误", e)
+			z.L().Error("升级签名错误", zap.Error(e))
 			return err
 		}
 		signFilePath = tempFilePath
@@ -208,7 +208,7 @@ func (this *CoreService) changeSelf(buffer []byte) error {
 
 	tempFilePath, e := ukey.SignFileByBuffer(buffer, binFilePath)
 	if e != nil {
-		glog.Debug("升级签名错误", e)
+		z.L().Error("升级签名错误", zap.Error(e))
 		return err
 	}
 	signFilePath := tempFilePath
@@ -222,7 +222,7 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	err := os.Chmod(signFilePath, 0755)
 	if err != nil {
 		eMsg := fmt.Sprintf("赋权限错误: %s %v\n", signFilePath, err)
-		glog.Error(eMsg)
+		z.L().Error(eMsg)
 		return fmt.Errorf(eMsg)
 	}
 	upgradeName := "全量更新"
@@ -234,22 +234,22 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	} else {
 		upgradeName = "差量更新"
 	}
-	glog.Println("当前进程ID:", os.Getpid(), upgradeName, this.config.Executable)
+	z.L().Debug("当前进程", zap.Int("pid", os.Getpid()), zap.String("upgradeName", upgradeName), zap.String("executable", this.config.Executable))
 	err = utils.PerformUpdate(signFilePath, this.config.Executable, patch)
 	//同样，更新完后，需要删除签名文件
 	defer func() {
 		_ = utils.DeleteAllDirector(signFilePath)
 	}()
 	if err != nil {
-		glog.Errorf("升级失败[%s] %+v", upgradeName, err)
+		z.L().Error("升级失败", zap.String("upgradeName", upgradeName), zap.Error(err))
 		//_ = utils.CopyToTemp(signFilePath)
 		return err
 	}
-	glog.Error(upgradeName, "升级成功")
+	z.L().Debug("升级成功", zap.String("upgradeName", upgradeName))
 	if utils.IsWindows() {
-		glog.Debug(utils.RunCmd("dir"))
+		z.L().Debug(utils.RunCmd("dir"))
 	} else {
-		glog.Debug(utils.RunCmd("ls", "-l"))
+		z.L().Debug(utils.RunCmd("ls", "-l"))
 	}
 	err = this.RunCMD("restart")
 	if !utils.IsWindows() {
@@ -259,12 +259,11 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 }
 
 func (this *CoreService) clearForUninstall() {
-	glog.CloseLog()
 	_ = utils.DeleteAllDirector(this.workDir)
-	appDir := glog.AppHome()
+	appDir := zutil.AppHome()
 	_ = utils.DeleteAllDirector(appDir)
 }
 func (this *CoreService) clearAppData() error {
-	appDir := glog.AppHome()
+	appDir := zutil.AppHome()
 	return utils.DeleteAllDirector(appDir)
 }

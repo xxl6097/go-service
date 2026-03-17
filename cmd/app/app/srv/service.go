@@ -2,13 +2,16 @@ package srv
 
 import (
 	"fmt"
+
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
 	_ "github.com/xxl6097/go-service/assets/buffer"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
+
 	"os"
 )
 
@@ -18,11 +21,11 @@ type Service struct {
 }
 
 func (t *Service) OnStop() {
-	glog.Info("service stop")
+	z.L().Info("service stop")
 }
 
 func (t *Service) OnShutdown() {
-	glog.Info("OnShutdown ...")
+	z.L().Info("OnShutdown")
 }
 
 func (this *Service) OnFinish() {
@@ -35,7 +38,6 @@ type Config struct {
 }
 
 func load() (*Config, error) {
-	defer glog.Flush()
 	byteArray, err := ukey.Load()
 	if err != nil {
 		return nil, err
@@ -44,7 +46,7 @@ func load() (*Config, error) {
 	err = ukey.GobToStruct(byteArray, &cfg)
 	//err = json.Unmarshal(byteArray, &cfg)
 	if err != nil {
-		glog.Println("ClientConfig解析错误", err)
+		z.L().Error("ClientConfig解析错误", zap.Error(err))
 		return nil, err
 	}
 	pkg.Version()
@@ -65,7 +67,7 @@ func (this *Service) OnVersion() string {
 	pkg.Version()
 	cfg, err := load()
 	if err == nil {
-		glog.Debugf("cfg:%+v", cfg)
+		z.L().Debug("cfg", zap.Any("cfg", cfg))
 	}
 	return pkg.AppVersion
 }
@@ -76,7 +78,7 @@ func (this *Service) OnRun(service igs.Service) error {
 	if err != nil {
 		return err
 	}
-	glog.Debug("程序运行", os.Args)
+	z.L().Debug("程序运行", zap.Strings("args", os.Args))
 	Server(cfg.ServerPort, this)
 	//for {
 	//	this.timestamp = time.Now().Format(time.RFC3339)

@@ -16,9 +16,10 @@ package we
 
 import (
 	"embed"
-	"github.com/xxl6097/glog/glog"
 	"io/fs"
 	"net/http"
+
+	"github.com/xxl6097/glog/pkg/z"
 )
 
 //go:embed static/*
@@ -28,7 +29,7 @@ var FileSystem http.FileSystem
 func init() {
 	subFs, err := fs.Sub(StaticFS, "static")
 	if err != nil {
-		glog.Fatal("静态资源加载失败", err)
+		z.Fatal("静态资源加载失败", err)
 	}
 	FileSystem = http.FS(subFs)
 }

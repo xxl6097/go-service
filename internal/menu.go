@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
+
+	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
+
 	"os"
 )
 
@@ -22,7 +25,7 @@ func (this *CoreService) menu() error {
 		//glog.Debug("运行菜单", os.Getpid())
 		return this.runMenu()
 	}
-	glog.Debug("运行参数", os.Args, os.Getpid())
+	z.L().Debug("运行参数", zap.Strings("Args", os.Args), zap.Int("pid", os.Getpid()))
 	return this.runService()
 }
 
@@ -51,7 +54,7 @@ func (this *CoreService) runSwitch(cmd string) error {
 	case "restart":
 		return this.restartService()
 	case "status":
-		glog.Debug(this.Status())
+		z.L().Debug(this.Status())
 		return nil
 	case "r", "run":
 		return this.isrv.OnRun(this)

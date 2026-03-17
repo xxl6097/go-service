@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/xxl6097/glog/glog"
+
+	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/cmd/app/app/srv"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
 )
 
 func init() {
@@ -28,6 +30,6 @@ func main() {
 		return
 	}
 	err := gs.Run(&s)
-	glog.Debug("程序结束", err)
+	z.L().Debug("程序结束", zap.Error(err))
 
 }

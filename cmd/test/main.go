@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg/utils"
 	"path/filepath"
+
+	"github.com/xxl6097/glog/pkg/zutil"
+	"github.com/xxl6097/go-service/pkg/utils"
 )
 
 func main() {
 	inFilePath := "/root/files/aatest_v0.6.43_linux_arm64"
 
-	dstFile := filepath.Join(glog.TempDir(), filepath.Base(inFilePath))
+	dstFile := filepath.Join(zutil.TempDir(), filepath.Base(inFilePath))
 	fmt.Println(dstFile)
-	outFilePath := filepath.Join(glog.AppHome("temp", "sign", utils.GetID()), filepath.Base(inFilePath))
+	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(inFilePath))
 	fmt.Println("--", outFilePath)
 }

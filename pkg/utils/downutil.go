@@ -15,7 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
 )
 
 func DownloadFileWithCancelByUrls(urls []string) string {
@@ -27,7 +28,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			dstFilePath, err := DownloadWithCancel(ctx, s)
 			if err == nil {
 				FileSize(dstFilePath)
-				glog.Debug("下载成功", dstFilePath, s)
+				z.Debug("下载成功", dstFilePath, s)
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {
 				//fmt.Println("2通道 ", i, err.Error())
@@ -35,7 +36,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			} else {
 				var netErr net.Error
 				if errors.As(err, &netErr) {
-					glog.Println("超时错误:", netErr)
+					z.Println("超时错误:", netErr)
 					//time.Sleep(time.Hour)
 				}
 				<-ctx.Done()
@@ -47,7 +48,6 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 }
 
 func DownloadWithCancel(ctx context.Context, url string, args ...string) (string, error) {
-	defer glog.Flush()
 	// 创建可取消的 HTTP 请求
 	//glog.Debug("开始下载", url)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -82,7 +82,7 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 			dstName = fmt.Sprintf("%d", fileName)
 		}
 		if dstName != "" {
-			dstFile = filepath.Join(glog.AppHome("temp", "upgrade"), tempFolder, dstName)
+			dstFile = filepath.Join(zutil.AppHome("temp", "upgrade"), tempFolder, dstName)
 		}
 	} else {
 		dir, f := filepath.Split(dstFile)
@@ -119,7 +119,7 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 			}
 			if n == 0 {
 				_ = outFile.Close()
-				glog.Println("文件下载完成：", dstFile)
+				z.Println("文件下载完成：", dstFile)
 				return dstFile, nil // 正常完成
 			}
 

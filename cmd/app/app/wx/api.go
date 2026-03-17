@@ -2,9 +2,11 @@ package wx
 
 import (
 	"fmt"
-	"github.com/xxl6097/glog/glog"
 	"sync"
 	"time"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"go.uber.org/zap"
 )
 
 var (
@@ -33,9 +35,9 @@ func (this *WxApi) Load(appID, appSecret string) {
 	this.appSecret = appSecret
 	token := this.GetToken()
 	if token == "" {
-		glog.Fatal("load app access token err:")
+		z.L().Fatal("load app access token err")
 	} else {
-		glog.Info("Token:", this.cachedToken)
+		z.L().Info("token", zap.String("token", this.cachedToken))
 	}
 }
 

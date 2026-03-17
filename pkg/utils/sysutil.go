@@ -6,8 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/pkg/utils/util"
 	"io"
 	"os"
 	"os/exec"
@@ -16,6 +14,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 )
 
 func RestartWindowsApplication() {
@@ -27,7 +28,7 @@ func RestartWindowsApplication() {
 		cmd.Stderr = os.Stderr
 		err := cmd.Start()
 		if err != nil {
-			glog.Error(err)
+			z.Error(err)
 		}
 		os.Exit(0)
 	}
@@ -118,28 +119,28 @@ func RunChildProcess(executable string, args ...string) error {
 	}
 	cmd = exec.Command(executable, args...)
 	util.SetPlatformSpecificAttrs(cmd)
-	glog.Printf("运行子进程 %s %v\n", executable, args)
+	fmt.Printf("运行子进程 %s %v\n", executable, args)
 	return cmd.Start()
 }
 
 func RunCmdBySelf(name string, args ...string) error {
-	defer glog.Flush()
+	//defer glog.Flush()
 	//binpath, err := os.Executable()
 	//if err != nil {
 	//	return err
 	//}
-	glog.Debug("RunCmdBySelf", name, args)
+	z.Debug("RunCmdBySelf", name, args)
 	err := RunChildProcess(name, args...)
 	if err != nil {
-		glog.Errorf("RunChildProcess错误: %v\n", err)
+		z.Errorf("RunChildProcess错误: %v\n", err)
 		return fmt.Errorf("RunChildProcess错误: %v\n", err)
 	}
-	glog.Println("子进程启动成功", name)
+	z.Println("子进程启动成功", name)
 	return err
 }
 
 func RunCmdWithSudo(args ...string) ([]byte, error) {
-	glog.Debug("run", args)
+	z.Debug("run", args)
 	cmd := exec.Command("sudo", args...)
 	output, err := cmd.CombinedOutput() // 捕获标准输出和错误
 	if err != nil {
@@ -165,7 +166,7 @@ func RunCmd(name string, args ...string) string {
 }
 
 func Cmd(name string, args ...string) ([]byte, error) {
-	glog.Debug("run", name, args)
+	z.Debug("run", name, args)
 	cmd := exec.Command(name, args...)
 	output, err := cmd.CombinedOutput() // 捕获标准输出和错误
 	if err != nil {

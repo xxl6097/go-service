@@ -10,24 +10,24 @@ import (
 	"path/filepath"
 	"unicode"
 
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
 )
 
 func CheckFileOrDownload(ctx context.Context, fileUrlOrLocal string) (string, error) {
-	defer glog.Flush()
 	if IsURL(fileUrlOrLocal) {
 		filePath, err := DownloadWithCancel(ctx, fileUrlOrLocal)
 		if err != nil {
-			glog.Error("下载失败", fileUrlOrLocal, err)
+			z.Error("下载失败", fileUrlOrLocal, err)
 			return "", err
 		}
-		glog.Debug("下载成功", filePath)
+		z.Debug("下载成功", filePath)
 		return filePath, nil
 	} else if FileExists(fileUrlOrLocal) {
-		glog.Debug("检测为本地文件", fileUrlOrLocal)
+		z.Debug("检测为本地文件", fileUrlOrLocal)
 		return fileUrlOrLocal, nil
 	} else {
-		glog.Error("无法识别的文件", fileUrlOrLocal)
+		z.Error("无法识别的文件", fileUrlOrLocal)
 		return "", errors.New("无法识别的文件" + fileUrlOrLocal)
 	}
 }
@@ -44,9 +44,9 @@ func FileSize(file string) {
 
 	// 获取文件大小（字节）
 	size := fileInfo.Size()
-	glog.Printf("文件大小: %d 字节\n", size)
-	glog.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
-	glog.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
+	z.Printf("文件大小: %d 字节\n", size)
+	z.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
+	z.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
 }
 func ByteCountIEC(b uint64) string {
 	const unit = 1024
@@ -70,7 +70,7 @@ func FileExists(filePath string) bool {
 		return false
 	}
 	if f != nil {
-		glog.Debug(ByteCountIEC(uint64(f.Size())), filePath)
+		z.Debug(ByteCountIEC(uint64(f.Size())), filePath)
 	}
 	// 若有其他错误或无错误，认为文件存在
 	return true
@@ -96,14 +96,13 @@ func ResetDirector(path string) error {
 }
 
 func DeleteAllDirector(filePath string) error {
-	defer glog.Flush()
 	err := os.RemoveAll(filePath)
 	if err != nil {
 		msg := fmt.Errorf("删除失败[%v]: %s,%v\n", os.Getpid(), filePath, err)
-		glog.Error(msg)
+		z.Error(msg)
 		return msg
 	}
-	glog.Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
+	z.Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
 	return err
 }
 
@@ -121,7 +120,7 @@ func CopyToTemp(srcFile string) error {
 		fileName = finfo.Name()
 	}
 
-	dstFile := filepath.Join(glog.TempDir(), filepath.Base(srcFile))
+	dstFile := filepath.Join(zutil.TempDir(), filepath.Base(srcFile))
 	defer src.Close()
 	//将本程序复制到目标为止，目标文件名称为配置文件的名称
 	dst, err := os.OpenFile(dstFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
@@ -131,7 +130,7 @@ func CopyToTemp(srcFile string) error {
 	}
 	defer dst.Close()
 	sizeB := float64(fileSize) / 1024 / 1024
-	glog.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
+	z.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
 	_, err = io.Copy(dst, src)
 	if err != nil {
 		fmt.Printf("拷贝文件失败：%v\n", err)
@@ -162,7 +161,7 @@ func Copy(srcFile, dstFile string) error {
 	}
 	defer dst.Close()
 	sizeB := float64(fileSize) / 1024 / 1024
-	glog.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
+	z.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
 	_, err = io.Copy(dst, src)
 	if err != nil {
 		fmt.Printf("拷贝文件失败：%v\n", err)
@@ -197,8 +196,8 @@ func ToUpperFirst(s string) string {
 }
 
 func ClearTemp() error {
-	tempDir := glog.TempDir()
-	glog.Debug(tempDir)
+	tempDir := zutil.TempDir()
+	z.Debug(tempDir)
 	entries, err := os.ReadDir(tempDir)
 	if err != nil {
 		return fmt.Errorf("读取目录失败: %v", err)
@@ -208,9 +207,9 @@ func ClearTemp() error {
 		fullPath := filepath.Join(tempDir, entry.Name())
 		err = os.RemoveAll(fullPath)
 		if err != nil {
-			glog.Errorf("删除失败 %s  %v", fullPath, err)
+			z.Warnf("删除失败 %s  %v", fullPath, err)
 		} else {
-			glog.Debugf("删除成功 %s", fullPath)
+			z.Debugf("删除成功 %s", fullPath)
 		}
 	}
 	return err

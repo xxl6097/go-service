@@ -2,12 +2,15 @@ package core
 
 import (
 	"fmt"
+
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
+	"go.uber.org/zap"
+
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,6 +21,21 @@ type SvrInstall struct {
 	cfg     *service.Config
 }
 
+func (t *SvrInstall) GetAny(s string) ([]byte, []string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *SvrInstall) OnStop() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *SvrInstall) OnShutdown() {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (t *SvrInstall) OnConfig() *service.Config {
 	arr := t.menu()
 	t.cfg = &service.Config{
@@ -26,11 +44,6 @@ func (t *SvrInstall) OnConfig() *service.Config {
 		Description: arr[2],
 	}
 	return t.cfg
-}
-
-func (t *SvrInstall) GetAny(s string) any {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (t *SvrInstall) OnFinish() {
@@ -64,7 +77,7 @@ func (t *SvrInstall) copyCfg(binDir string) {
 func (t *SvrInstall) copyBin(binDir string) error {
 	curBinPath := os.Args[1]
 	fmt.Println("curBinPath", curBinPath, utils.IsPathExist(curBinPath))
-	appName := glog.GetNameByPath(curBinPath)
+	appName := filepath.Base(curBinPath)
 	if utils.IsWindows() {
 		appName = appName + ".exe"
 	}
@@ -104,7 +117,7 @@ func (t *SvrInstall) OnRun(s igs.Service) error {
 	arg = append(arg, "upgrade")
 	cmd := exec.Command(executable, arg...)
 	util.SetPlatformSpecificAttrs(cmd)
-	glog.Printf("运行进程 %s %v\n", executable, arg)
+	z.L().Debug("运行进程", zap.String("executable", executable), zap.Strings("args", arg))
 	err := cmd.Start()
 	err = cmd.Wait()
 	fmt.Println(err)
@@ -121,7 +134,7 @@ func (t *SvrInstall) menu() []string {
 		panic(fmt.Sprintf("无效文件路径:%s", os.Args[1]))
 	}
 
-	appName := glog.GetNameByPath(os.Args[1])
+	appName := filepath.Base(os.Args[1])
 	appName = utils.InputStringEmpty(fmt.Sprintf("请输入应用名称(%s)：", appName), appName)
 	displayName := utils.InputStringEmpty(fmt.Sprintf("请输入应用显示名(%s)：", appName), appName)
 	describe := utils.InputStringEmpty(fmt.Sprintf("请输入应用描述(%s)：", appName), appName)

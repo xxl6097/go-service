@@ -2,8 +2,10 @@ package gs
 
 import (
 	"encoding/json"
-	"github.com/xxl6097/glog/glog"
 	"net/http"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"go.uber.org/zap"
 )
 
 type GeneralResponse struct {
@@ -29,11 +31,11 @@ func (g *GeneralResponse) StatusCode(code int) *GeneralResponse {
 	return g.response(code, "", nil)
 }
 func (g *GeneralResponse) Err(err error) *GeneralResponse {
-	glog.Error(err)
+	//glog.Error(err)
 	return g.Response(-1, err.Error())
 }
 func (g *GeneralResponse) Error(msg string) *GeneralResponse {
-	glog.Error(msg)
+	//glog.Error(msg)
 	return g.Response(-1, msg)
 }
 func (g *GeneralResponse) Any(data any) *GeneralResponse {
@@ -54,7 +56,7 @@ func Response(r *http.Request) (*GeneralResponse, func(w http.ResponseWriter)) {
 	return res, func(w http.ResponseWriter) {
 		defer func() {
 			if res.Code != 0 {
-				glog.Errorf("Http response [%s]: res: %+v", r.URL.Path, res)
+				z.L().Warn("Http response error", zap.String("URL", r.URL.Path), zap.Any("res", res))
 			}
 		}()
 
@@ -65,12 +67,12 @@ func Response(r *http.Request) (*GeneralResponse, func(w http.ResponseWriter)) {
 		}
 		if res.Raw != nil {
 			data = res.Raw
-			glog.Infof("Http response [%s %s]: raw: %s", r.Method, r.URL.Path, string(res.Raw))
+			z.L().Info("Http response", zap.String("Method", r.Method), zap.String("URL", r.URL.Path), zap.String("raw", string(res.Raw)))
 		} else {
 			//glog.Infof("Http response [%s %s]: res: %v", r.Method, r.URL.Path, res)
 			bb, err := json.Marshal(res)
 			if err != nil {
-				glog.Errorf("marshal result error: %v", err)
+				z.L().Error("marshal error", zap.Error(err))
 				w.WriteHeader(400)
 				return
 			}

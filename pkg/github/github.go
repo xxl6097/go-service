@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/xxl6097/glog/glog"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
+
 	"io"
 	"net/http"
 	"os"
@@ -16,7 +20,7 @@ import (
 )
 
 func LoadGithubKey() {
-	fpath := filepath.Join(glog.AppHome("obj"), "githubKey.dat")
+	fpath := filepath.Join(zutil.AppHome("obj"), "githubKey.dat")
 	obj, err := utils.LoadWithGob[model.GithubKey](fpath)
 	if err == nil && obj.ClientId != "" && obj.ClientSecret != "" {
 		os.Setenv("GITHUB_CLIENT_ID", obj.ClientId)
@@ -55,7 +59,7 @@ func request(githubUser, repoName string) ([]byte, error) {
 		}
 		baseUrl = fmt.Sprintf("%s%s", proxy, baseUrl)
 	}
-	glog.Debug("request", baseUrl)
+	z.L().Info("request", zap.String("url", baseUrl))
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", baseUrl, nil)
 	clientId := os.Getenv("GITHUB_CLIENT_ID")
@@ -65,18 +69,18 @@ func request(githubUser, repoName string) ([]byte, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		glog.Errorf("请求失败:%v\n", err)
+		z.L().Warn("请求失败", zap.Error(err))
 		return nil, err
 	}
 	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
-	glog.Debug("resp github", resp.Status, resp.StatusCode)
+	z.L().Debug("请求Github", zap.Any("resp", resp))
 	if resp.StatusCode != 200 {
-		glog.Error(resp.StatusCode, resp.Status)
+		z.L().Warn("请求失败", zap.Any("resp", resp))
 		return nil, fmt.Errorf("请求失败 %v %v", resp.StatusCode, resp.Status)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		glog.Error("github请求失败", err)
+		z.L().Warn("github请求失败", zap.Error(err))
 		return nil, err
 	}
 	return body, nil
@@ -116,10 +120,9 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 		return nil, e
 	}
 	oldVersion := utils.GetVersionByFileName(fullName)
-	glog.Debug("最新版本:", r.TagName)
-	glog.Debug("本地版本:", oldVersion)
+	z.L().Debug("升级", zap.String("最新版本", r.TagName), zap.String("本地版本", oldVersion))
 	hasNewVersion := utils.CompareVersions(r.TagName, oldVersion)
-	glog.Debug("计算结果:", hasNewVersion)
+	z.L().Debug("计算结果", zap.Int("hasNewVersion", hasNewVersion))
 
 	if hasNewVersion > 0 {
 		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, r.TagName)
@@ -184,7 +187,7 @@ func (this *githubApi) GetProxyUrls(fileUrl string) []string {
 func (this *githubApi) GetModel() *model.GitHubModel {
 	r, e := this.defaultRequest()
 	if e != nil {
-		glog.Error(e)
+		z.L().Warn("GetModel", zap.Error(e))
 		return nil
 	}
 	return r
@@ -202,11 +205,11 @@ func (this *githubApi) SetName(userName, repoName string) *githubApi {
 func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) string {
 	r, e := this.defaultRequest()
 	if e != nil {
-		glog.Error(e)
+		z.L().Warn("GetDownloadUrl", zap.Error(e))
 		return ""
 	}
 	if r == nil {
-		glog.Error("this.result is nil")
+		z.L().Warn("this.result is nil")
 	} else if r.Assets != nil {
 		for _, asset := range r.Assets {
 			if fn != nil && fn(r.TagName, &asset) {
@@ -219,11 +222,11 @@ func (this *githubApi) GetDownloadUrl(fn func(string, *model.Assets) bool) strin
 func (this *githubApi) GetDownloadUrls(fn func(string, *model.Assets) bool) []string {
 	r, e := this.defaultRequest()
 	if e != nil {
-		glog.Error(e)
+		z.L().Warn("GetDownloadUrls", zap.Error(e))
 		return nil
 	}
 	if r == nil {
-		glog.Error("this.result is nil")
+		z.L().Warn("this.result is nil")
 		return nil
 	} else if r.Assets != nil {
 		urls := make([]string, 0)

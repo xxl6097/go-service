@@ -2,9 +2,11 @@ package srv
 
 import (
 	"fmt"
-	"github.com/xxl6097/glog/glog"
 	"net/http"
 	"sync"
+
+	"github.com/xxl6097/glog/pkg/z"
+	"go.uber.org/zap"
 )
 
 // LogQueue 定义日志队列
@@ -49,7 +51,7 @@ func (q *LogQueue) UnregisterClient(client chan string) {
 	defer q.mu.Unlock()
 	close(client)
 	delete(q.clients, client)
-	glog.Debug("UnregisterClient", client)
+	z.L().Debug("UnregisterClient", zap.Any("client", client))
 }
 
 // SseHandler 处理函数
@@ -67,7 +69,7 @@ func SseHandler(queue *LogQueue) http.HandlerFunc {
 			return
 		}
 
-		glog.Infof("sse客户端上线 %+v", r.RemoteAddr)
+		z.L().Debug("sse客户端上线", zap.String("RemoteAddr", r.RemoteAddr))
 		// 为客户端创建一个消息通道
 		client := make(chan string)
 		queue.RegisterClient(client)

@@ -8,7 +8,8 @@ import (
 	"strings"
 
 	"github.com/kardianos/service"
-	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/glog/pkg/z"
+	"github.com/xxl6097/glog/pkg/zutil"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
@@ -23,17 +24,36 @@ type CoreService struct {
 
 // InitLog everyType 0：每天，1：每小时，2：每10分钟，3：每分钟 （切割文件）
 func InitLog(everyType int) {
-	glog.Register(util.MarketName)
+	//glog.Register(util.MarketName)
 	bindir, err := os.Executable()
 	var isSrvApp bool
 	if err == nil {
 		isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
 		if !isSrvApp {
-			glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+			//glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+			z.LoadLogger(func(conf *z.LogConfig) {
+				conf.Path = filepath.Join(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+			})
 			return
 		}
 	}
-	glog.LogDefaultLogSettingEveryType("app.log", everyType)
+	//glog.LogDefaultLogSettingEveryType("app.log", everyType)
+	z.LoadLogger(func(conf *z.LogConfig) {
+		baseDir := zutil.AppHome("log")
+		conf.Path = filepath.Join(baseDir, "app.log")
+	})
+}
+
+func IsLogDirExist() bool {
+	logDir := zutil.AppHome("log")
+	info, err := os.Stat(logDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+		return false
+	}
+	return info.IsDir()
 }
 
 func (this *CoreService) Run() error {
@@ -43,7 +63,7 @@ func (this *CoreService) Run() error {
 		fmt.Println(this.isrv.OnVersion())
 		return nil
 	}
-	if !glog.IsLogDirExist() {
+	if !IsLogDirExist() {
 		InitLog(0)
 	}
 	this.config = this.isrv.OnConfig()

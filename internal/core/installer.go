@@ -2,10 +2,13 @@ package core
 
 import (
 	"fmt"
-	"github.com/xxl6097/glog/glog"
+
+	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
+
 	"path/filepath"
 	"strings"
 )
@@ -19,12 +22,12 @@ func Install(g igs.IService, binPath, installBinPath string) (error, []string) {
 		cfg, args := getAny(filepath.Dir(installBinPath), g)
 		if cfg != nil {
 			runArgs = args
-			glog.Debug("SignFileBySelfKey ", binPath, glog.AppName())
+			z.L().Debug("SignFileBySelfKey", zap.String("binPath", binPath), zap.Any("cfg", cfg))
 			newFilePath, e := ukey.SignFileBySelfKey(cfg, binPath)
 			if e != nil {
 				return e, runArgs
 			}
-			glog.Debug("getAny func newFilePath", newFilePath)
+			z.L().Debug("getAny func newFilePath", zap.String("newFilePath", newFilePath))
 			binPath = newFilePath
 			//return manualInstall(newFilePath, installBinPath)
 		}
@@ -46,7 +49,7 @@ func manualInstall(binPath, installBinPath string) error {
 	}
 	err := utils.Copy(binPath, installBinPath)
 	if err != nil {
-		glog.Printf("文件拷贝失败，错误信息：%s", err)
+		z.L().Error("文件拷贝失败", zap.Error(err))
 		return err
 	}
 	return nil
@@ -54,7 +57,7 @@ func manualInstall(binPath, installBinPath string) error {
 
 func getAny(binDir string, g igs.IService) ([]byte, []string) {
 	if g == nil {
-		glog.Error("igs.IService is nil")
+		z.L().Error("igs.IService is nil")
 		return nil, nil
 	}
 	buffer, runArgs := g.GetAny(binDir)
