@@ -57,8 +57,8 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 	}
 	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
 	z.L().Debug("获取配置数据成功", zap.Int("数据大小", len(cfgBufferBytes)))
-	//oldBuffer := GetBuffer()
-	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
+	oldBuffer := GetBuffer()
+	//oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
 	if err != nil {
 		z.L().Warn("签名错误", zap.Error(err))
@@ -149,8 +149,8 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		return fmt.Errorf("赋予文件执行权限时出错: %v\n", errMsg)
 	}
 	if !isReplace {
-		z.L().Warn("oldBytes", zap.Int("size", len(oldBytes)))
-		z.L().Warn("newBytes", zap.Int("size", len(newBytes)))
+		z.L().Warn("oldBytes", zap.Int("size", len(oldBytes)), zap.ByteString("oldBytes", oldBytes))
+		z.L().Warn("newBytes", zap.Int("size", len(newBytes)), zap.ByteString("newBytes", newBytes))
 		return errors.New("位置没找到，数据未替换😭")
 	}
 	err1 := srcFile.Close()
