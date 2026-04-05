@@ -42,10 +42,10 @@ func InitLog(everyType int) {
 	//	baseDir := zutil.AppHome("log")
 	//	conf.Path = filepath.Join(baseDir, "app.log")
 	//})
-	z.LoadLogger(func(conf *z.LogConfig) {
-		baseDir := zutil.AppHome(util.MarketName, "log")
-		conf.Path = filepath.Join(baseDir, "app.log")
-	})
+	//z.LoadLogger(func(conf *z.LogConfig) {
+	//	baseDir := zutil.AppHome(util.MarketName, "log")
+	//	conf.Path = filepath.Join(baseDir, "app.log")
+	//})
 }
 
 func IsLogDirExist() bool {
