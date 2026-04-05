@@ -17,7 +17,8 @@ import (
 
 func init() {
 	if !IsLogDirExist() {
-		InitLog(0)
+		fmt.Println("初始化日志模块。。。")
+		InitLog()
 	}
 }
 
@@ -28,14 +29,14 @@ type CoreService struct {
 	workDir string
 }
 
-// InitLog everyType 0：每天，1：每小时，2：每10分钟，3：每分钟 （切割文件）
-func InitLog(everyType int) {
+func InitLog() {
 	//glog.Register(util.MarketName)
 	bindir, err := os.Executable()
 	var isSrvApp bool
 	if err == nil {
 		isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
 		if !isSrvApp {
+			fmt.Println("非服务程序。。。")
 			//glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
 			z.LoadLogger(func(conf *z.LogConfig) {
 				conf.Path = filepath.Join(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
@@ -43,26 +44,26 @@ func InitLog(everyType int) {
 			return
 		}
 	}
+	fmt.Println("服务程序。。。")
 	//glog.LogDefaultLogSettingEveryType("app.log", everyType)
 	z.LoadLogger(func(conf *z.LogConfig) {
 		baseDir := zutil.AppHome("log")
 		conf.Path = filepath.Join(baseDir, "app.log")
 	})
-	//z.LoadLogger(func(conf *z.LogConfig) {
-	//	baseDir := zutil.AppHome(util.MarketName, "log")
-	//	conf.Path = filepath.Join(baseDir, "app.log")
-	//})
 }
 
 func IsLogDirExist() bool {
 	logDir := zutil.AppHome("log")
 	info, err := os.Stat(logDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
+	// 1. 不存在：返回 false, nil
+	if os.IsNotExist(err) {
 		return false
 	}
+	// 2. 其他错误（权限不足等）
+	if err != nil {
+		return false
+	}
+	// 3. 存在，但要判断是不是文件夹
 	return info.IsDir()
 }
 
