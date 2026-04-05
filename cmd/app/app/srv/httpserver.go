@@ -7,6 +7,15 @@ import (
 	"encoding/xml"
 	"fmt"
 
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/glog/pkg/zutil"
@@ -18,16 +27,6 @@ import (
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
-	"io"
-	"log"
-	"net/http"
-	"os"
-	"path/filepath"
-	"sort"
-	"strings"
-	"time"
 )
 
 var logQueue = NewLogQueue()
@@ -37,17 +36,17 @@ func init() {
 	//	logQueue.AddMessage(string(bytes[2:]))
 	//})
 
-	z.LoadLogger(func(conf *z.LogConfig) {
-		conf.Hook = func(entry zapcore.Entry) error {
-			time := entry.Time.Format(time.DateTime)
-			msg := entry.Message
-			lineNum := entry.Caller.Line
-			filepath.Base(entry.Caller.File)
-			m := fmt.Sprintf("%s %s:%d %s", time, filepath.Base(entry.Caller.File), lineNum, msg)
-			logQueue.AddMessage(m)
-			return nil
-		}
-	})
+	//z.LoadLogger(func(conf *z.LogConfig) {
+	//	conf.Hook = func(entry zapcore.Entry) error {
+	//		time := entry.Time.Format(time.DateTime)
+	//		msg := entry.Message
+	//		lineNum := entry.Caller.Line
+	//		filepath.Base(entry.Caller.File)
+	//		m := fmt.Sprintf("%s %s:%d %s", time, filepath.Base(entry.Caller.File), lineNum, msg)
+	//		logQueue.AddMessage(m)
+	//		return nil
+	//	}
+	//})
 }
 
 type Message[T any] struct {

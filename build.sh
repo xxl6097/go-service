@@ -311,8 +311,8 @@ function install() {
 # host="192.168.10.7"
 # host="uuxia.cn"
 # host="10.6.14.26"
- host="192.168.1.3"
- bash <(curl -s -S -L http://${host}:8087/up) ${dstFilePath} /soft/${appname}/${version}
+# host="192.168.1.3"
+# bash <(curl -s -S -L http://${host}:8087/up) ${dstFilePath} /soft/${appname}/${version}
 # sudo ${builddir}/${appname}_${version}_${os}_${arch} install
 # ${builddir}/${appname}_${version}_${os}_${arch} install
 }

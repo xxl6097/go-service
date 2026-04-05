@@ -16,10 +16,8 @@ import (
 )
 
 func init() {
-	if !IsLogDirExist() {
-		fmt.Println("初始化日志模块。。。")
-		InitLog()
-	}
+	fmt.Println("初始化日志模块。。。")
+	InitLog()
 }
 
 type CoreService struct {
@@ -46,15 +44,15 @@ func InitLog() {
 	}
 	fmt.Println("服务程序。。。")
 	//glog.LogDefaultLogSettingEveryType("app.log", everyType)
-	z.LoadLogger(func(conf *z.LogConfig) {
-		baseDir := zutil.AppHome("log")
-		conf.Path = filepath.Join(baseDir, "app.log")
+	z.LoadLogger(func(cfg *z.LogConfig) {
+		cfg.LogDir = zutil.AppHome("log")
 	})
 }
 
 func IsLogDirExist() bool {
 	logDir := zutil.AppHome("log")
 	info, err := os.Stat(logDir)
+	fmt.Println("日志路径", logDir, info, err)
 	// 1. 不存在：返回 false, nil
 	if os.IsNotExist(err) {
 		return false

@@ -11,10 +11,8 @@ import (
 )
 
 func init() {
-	if !IsLogDirExist() {
-		fmt.Println("初始化日志模块。。。")
-		InitLog()
-	}
+	fmt.Println("初始化日志模块。。。")
+	InitLog()
 }
 
 func (c *CoreService) Start(s service.Service) error {
