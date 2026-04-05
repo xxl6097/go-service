@@ -13,6 +13,7 @@ import (
 
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
 )
 
 const B = 0x2B
@@ -192,12 +193,11 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 		//glog.Printf("原始配置信息[%d]:%s\n", len(cfgJsonBytes), string(cfgJsonBytes))
 		return nil, fmt.Errorf("原始配置信息字节数组不能空")
 	}
-
-	z.Printf("配置buffer原始大小：%d", len(cfgBuffer))
+	z.L().Debug("配置buffer信息", zap.Int("size", len(cfgBuffer)))
 	temp, e := utils.GzipCompress(cfgBuffer)
 	if e == nil && temp != nil {
 		cfgBuffer = temp
-		z.Printf("配置buffer压缩后大小：%d", len(cfgBuffer))
+		z.L().Debug("配置buffer压缩后", zap.Int("size", len(cfgBuffer)))
 	}
 	md5Keys := utils.GetUUID()
 	cfgBytes, err := utils.EncAES(cfgBuffer, md5Keys)
@@ -219,7 +219,8 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 	bodyLen := len(body)
 	bodyLenBytes := big.NewInt(int64(bodyLen)).Bytes()
 	bodyLenBytes = append(bytes.Repeat([]byte{'\x00'}, BufferLenType-len(bodyLenBytes)), bodyLenBytes...)
-	z.Printf("body信息长度：%d，占字节数：%v\n", bodyLen, bodyLenBytes)
+
+	z.L().Debug("body信息", zap.Int("size", bodyLen), zap.ByteString("body", bodyLenBytes))
 
 	//data=bodyLen+body
 	data := append(bodyLenBytes, body...)
@@ -242,7 +243,7 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 
 func genKey(key, sec []byte) []byte {
 	b1 := utils.PrintByteArrayAsConstant(key)
-	z.Printf("var buffer-%d = %s\n", len(b1), b1)
+	z.L().Debug("buffer", zap.Int("size", len(b1)), zap.String("b1", b1))
 	//wstext := utils.BytesToHexEscape(key)
 	//glog.Printf("var buffer1 = \"%s\"\n", wstext)
 	md5KeyBytes, _ := utils.GetMD5(sec)

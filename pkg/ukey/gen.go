@@ -40,7 +40,7 @@ func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 }
 
 func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
-	z.Debugf("\n旧文件：%s\n新文件：%s\n", oldFilePath, newFilePath)
+	z.L().Info("文件打印", zap.String("旧文件", oldFilePath), zap.String("新文件", newFilePath))
 	//1、读取老文件特征数据；
 	//2、下载新文件
 	//3、替换新文件特征数据
@@ -52,11 +52,11 @@ func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
 func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error) {
 	if cfgBufferBytes == nil {
 		err := fmt.Errorf("配置buffer is nil")
-		z.Error(err)
+		z.L().Error("签名失败", zap.Error(err))
 		return "", err
 	}
 	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
-	z.Debug("获取配置数据成功，数据大小", len(cfgBufferBytes))
+	z.L().Debug("获取配置数据成功", zap.Int("数据大小", len(cfgBufferBytes)))
 	//oldBuffer := GetBuffer()
 	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
@@ -106,7 +106,7 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		index := bytes.Index(tempBuffer, oldBytes)
 		if index > -1 {
 			//glog.Printf("找到位置[%d]了，签名...\n", index)
-			z.Printf("程序签名成功[%d]\n", index)
+			z.Debug("程序签名成功", zap.Int("index", index))
 			isReplace = true
 			tempBuffer = bytes.Replace(tempBuffer, oldBytes, newBytes, -1)
 		}
@@ -155,11 +155,11 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 	}
 	err1 := srcFile.Close()
 	if err1 != nil {
-		z.Warn("srcFile.Close", err1)
+		z.L().Warn("srcFile.Close", zap.Error(err1))
 	}
 	err1 = tmpFile.Close()
 	if err1 != nil {
-		z.Warn("tmpFile.Close", err1)
+		z.L().Warn("tmpFile.Close", zap.Error(err1))
 	}
 
 	return nil
