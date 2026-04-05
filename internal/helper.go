@@ -208,7 +208,7 @@ func (this *CoreService) changeSelf(buffer []byte) error {
 
 	tempFilePath, e := ukey.SignFileByBuffer(buffer, binFilePath)
 	if e != nil {
-		z.L().Error("升级签名错误", zap.Error(e))
+		z.L().Warn("升级签名错误", zap.Error(e))
 		return err
 	}
 	signFilePath := tempFilePath
@@ -222,7 +222,7 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	err := os.Chmod(signFilePath, 0755)
 	if err != nil {
 		eMsg := fmt.Sprintf("赋权限错误: %s %v\n", signFilePath, err)
-		z.L().Error(eMsg)
+		z.L().Warn(eMsg)
 		return fmt.Errorf(eMsg)
 	}
 	upgradeName := "全量更新"

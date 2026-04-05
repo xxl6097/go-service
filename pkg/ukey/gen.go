@@ -13,6 +13,7 @@ import (
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/glog/pkg/zutil"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"go.uber.org/zap"
 )
 
 // SignFileBySelfKey install的时候buffer是为初始化的
@@ -60,7 +61,7 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
 	if err != nil {
-		z.Error("签名错误：", err)
+		z.L().Warn("签名错误", zap.Error(err))
 		return "", err
 	}
 	return outFilePath, nil
@@ -148,8 +149,8 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		return fmt.Errorf("赋予文件执行权限时出错: %v\n", errMsg)
 	}
 	if !isReplace {
-		z.Printf("oldBytes[%d]--->%v\n", len(oldBytes), oldBytes)
-		z.Printf("newBytes[%d]--->%v\n", len(newBytes), newBytes)
+		z.L().Warn("oldBytes", zap.Int("size", len(oldBytes)))
+		z.L().Warn("newBytes", zap.Int("size", len(newBytes)))
 		return errors.New("位置没找到，数据未替换😭")
 	}
 	err1 := srcFile.Close()
