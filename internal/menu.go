@@ -13,6 +13,10 @@ import (
 	"os"
 )
 
+func init() {
+	InitLog(0)
+}
+
 func (this *CoreService) menu() error {
 	if len(os.Args) > 1 {
 		k := os.Args[1]
