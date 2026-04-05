@@ -15,6 +15,12 @@ import (
 	"github.com/xxl6097/go-service/pkg/utils/util"
 )
 
+func init() {
+	if !IsLogDirExist() {
+		InitLog(0)
+	}
+}
+
 type CoreService struct {
 	isrv    igs.IService
 	srv     service.Service
@@ -66,9 +72,6 @@ func (this *CoreService) Run() error {
 		fmt.Println("hello world")
 		fmt.Println(this.isrv.OnVersion())
 		return nil
-	}
-	if !IsLogDirExist() {
-		InitLog(0)
 	}
 	this.config = this.isrv.OnConfig()
 	if this.config == nil {
