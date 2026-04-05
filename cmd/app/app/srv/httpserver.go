@@ -36,15 +36,18 @@ func init() {
 	//glog.Hook(func(bytes []byte) {
 	//	logQueue.AddMessage(string(bytes[2:]))
 	//})
-	z.Hook = func(entry zapcore.Entry) error {
-		time := entry.Time.Format(time.DateTime)
-		msg := entry.Message
-		lineNum := entry.Caller.Line
-		filepath.Base(entry.Caller.File)
-		m := fmt.Sprintf("%s %s:%d %s", time, filepath.Base(entry.Caller.File), lineNum, msg)
-		logQueue.AddMessage(m)
-		return nil
-	}
+
+	z.LoadLogger(func(conf *z.LogConfig) {
+		conf.Hook = func(entry zapcore.Entry) error {
+			time := entry.Time.Format(time.DateTime)
+			msg := entry.Message
+			lineNum := entry.Caller.Line
+			filepath.Base(entry.Caller.File)
+			m := fmt.Sprintf("%s %s:%d %s", time, filepath.Base(entry.Caller.File), lineNum, msg)
+			logQueue.AddMessage(m)
+			return nil
+		}
+	})
 }
 
 type Message[T any] struct {
