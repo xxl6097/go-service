@@ -8,8 +8,8 @@ import (
 )
 
 // InitLog everyType 0：每天，1：每小时，2：每10分钟，3：每分钟 （切割文件）
-func InitLog(everyType int) {
-	internal.InitLog(everyType)
+func InitLog() {
+	internal.InitLog()
 }
 
 func Run(srv igs.IService) error {
