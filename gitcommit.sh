@@ -7,7 +7,6 @@ version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 #git tag -l "v[0-99][0-99].[0-99][0-99].[0-99][0-99]" --sort=-v:refname | head -n 1
 #git tag -l "v*.*.*" --sort=-v:refname | head -n 1
 # git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1
-
 function todir() {
   pwd
 }
