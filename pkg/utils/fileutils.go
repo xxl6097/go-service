@@ -44,9 +44,9 @@ func FileSize(file string) {
 
 	// 获取文件大小（字节）
 	size := fileInfo.Size()
-	z.Printf("文件大小: %d 字节\n", size)
-	z.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
-	z.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
+	fmt.Printf("文件大小: %d 字节\n", size)
+	fmt.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
+	fmt.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
 }
 func ByteCountIEC(b uint64) string {
 	const unit = 1024
@@ -70,7 +70,7 @@ func FileExists(filePath string) bool {
 		return false
 	}
 	if f != nil {
-		z.Debug(ByteCountIEC(uint64(f.Size())), filePath)
+		fmt.Println(ByteCountIEC(uint64(f.Size())), filePath)
 	}
 	// 若有其他错误或无错误，认为文件存在
 	return true
@@ -130,7 +130,7 @@ func CopyToTemp(srcFile string) error {
 	}
 	defer dst.Close()
 	sizeB := float64(fileSize) / 1024 / 1024
-	z.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
+	fmt.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
 	_, err = io.Copy(dst, src)
 	if err != nil {
 		fmt.Printf("拷贝文件失败：%v\n", err)
@@ -161,7 +161,7 @@ func Copy(srcFile, dstFile string) error {
 	}
 	defer dst.Close()
 	sizeB := float64(fileSize) / 1024 / 1024
-	z.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
+	fmt.Printf("正在拷贝%s[大小：%.2fMB]到%s\n", fileName, sizeB, dstFile)
 	_, err = io.Copy(dst, src)
 	if err != nil {
 		fmt.Printf("拷贝文件失败：%v\n", err)
@@ -197,7 +197,6 @@ func ToUpperFirst(s string) string {
 
 func ClearTemp() error {
 	tempDir := zutil.TempDir()
-	z.Debug(tempDir)
 	entries, err := os.ReadDir(tempDir)
 	if err != nil {
 		return fmt.Errorf("读取目录失败: %v", err)
@@ -207,9 +206,9 @@ func ClearTemp() error {
 		fullPath := filepath.Join(tempDir, entry.Name())
 		err = os.RemoveAll(fullPath)
 		if err != nil {
-			z.Warnf("删除失败 %s  %v", fullPath, err)
+			z.Printf("删除失败 %s  %v", fullPath, err)
 		} else {
-			z.Debugf("删除成功 %s", fullPath)
+			z.Printf("删除成功 %s", fullPath)
 		}
 	}
 	return err
