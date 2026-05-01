@@ -213,3 +213,14 @@ func ClearTemp() error {
 	}
 	return err
 }
+
+func EnsureDir(filePath string) error {
+	// 获取文件所在的**目录路径**
+	dir := filepath.Dir(filePath)
+
+	// MkdirAll 会自动：
+	// 1. 目录不存在 → 创建
+	// 2. 目录已存在 → 不报错、不覆盖
+	// 0755 是常用的目录权限
+	return os.MkdirAll(dir, 0755)
+}

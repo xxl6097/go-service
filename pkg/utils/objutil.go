@@ -8,10 +8,14 @@ import (
 
 // SaveToFile 序列化并保存
 func SaveToFile[T any](obj T, filename string) error {
+	if err := EnsureDir(filename); err != nil {
+		return err
+	}
 	data, err := json.Marshal(obj)
 	if err != nil {
 		return err
 	}
+
 	return os.WriteFile(filename, data, 0644)
 }
 
@@ -29,6 +33,9 @@ func LoadFromFile[T any](filename string) (T, error) {
 }
 
 func SaveWithGob[T any](obj T, filename string) error {
+	if err := EnsureDir(filename); err != nil {
+		return err
+	}
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
