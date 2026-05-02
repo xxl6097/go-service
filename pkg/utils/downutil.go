@@ -29,7 +29,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			dstFilePath, err := DownloadWithCancel(ctx, s)
 			FileSize(dstFilePath)
 			if err == nil {
-				z.L().Sugar().Debug("下载成功", dstFilePath, s)
+				z.L().Debug("下载成功", zap.String("本地路径", dstFilePath), zap.String("url", s))
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {
 				//fmt.Println("2通道 ", i, err.Error())
@@ -37,7 +37,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			} else {
 				var netErr net.Error
 				if errors.As(err, &netErr) {
-					z.L().Sugar().Error("超时错误:", dstFilePath, zap.Error(netErr))
+					z.L().Error("超时错误", zap.String("本地路径", dstFilePath), zap.Error(netErr))
 					time.Sleep(time.Hour)
 				}
 				<-ctx.Done()
