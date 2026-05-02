@@ -298,7 +298,7 @@ function showBuildDir() {
           break
 #          return $dir
       else
-          echo "无效输入！请输入有效序号。"
+          echo "无效输入！请输入有效序号"
       fi
   done
 }
