@@ -17,6 +17,7 @@ import (
 
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/glog/pkg/zutil"
+	"go.uber.org/zap"
 )
 
 func DownloadFileWithCancelByUrls(urls []string) string {
@@ -26,9 +27,9 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 		default:
 			//tid := GetGoroutineID()
 			dstFilePath, err := DownloadWithCancel(ctx, s)
+			FileSize(dstFilePath)
 			if err == nil {
-				FileSize(dstFilePath)
-				z.Debug("下载成功", dstFilePath, s)
+				z.L().Sugar().Debug("下载成功", dstFilePath, s)
 				return dstFilePath
 			} else if errors.Is(err, context.Canceled) {
 				//fmt.Println("2通道 ", i, err.Error())
@@ -36,8 +37,8 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 			} else {
 				var netErr net.Error
 				if errors.As(err, &netErr) {
-					z.Println("超时错误:", netErr)
-					//time.Sleep(time.Hour)
+					z.L().Sugar().Error("超时错误:", dstFilePath, zap.Error(netErr))
+					time.Sleep(time.Hour)
 				}
 				<-ctx.Done()
 			}

@@ -12,22 +12,23 @@ import (
 
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/glog/pkg/zutil"
+	"go.uber.org/zap"
 )
 
 func CheckFileOrDownload(ctx context.Context, fileUrlOrLocal string) (string, error) {
 	if IsURL(fileUrlOrLocal) {
 		filePath, err := DownloadWithCancel(ctx, fileUrlOrLocal)
 		if err != nil {
-			z.Error("下载失败", fileUrlOrLocal, err)
+			z.L().Error("下载失败", zap.String("fileUrlOrLocal", fileUrlOrLocal), zap.Error(err))
 			return "", err
 		}
-		z.Debug("下载成功", filePath)
+		z.L().Sugar().Debug("下载成功", filePath)
 		return filePath, nil
 	} else if FileExists(fileUrlOrLocal) {
-		z.Debug("检测为本地文件", fileUrlOrLocal)
+		z.L().Sugar().Debug("检测为本地文件", fileUrlOrLocal)
 		return fileUrlOrLocal, nil
 	} else {
-		z.Error("无法识别的文件", fileUrlOrLocal)
+		z.L().Sugar().Error("无法识别的文件", fileUrlOrLocal)
 		return "", errors.New("无法识别的文件" + fileUrlOrLocal)
 	}
 }
@@ -44,9 +45,9 @@ func FileSize(file string) {
 
 	// 获取文件大小（字节）
 	size := fileInfo.Size()
-	fmt.Printf("文件大小: %d 字节\n", size)
-	fmt.Printf("格式化显示: %.2f KB\n", float64(size)/1024)
-	fmt.Printf("格式化显示: %.2f MB\n", float64(size)/(1024*1024))
+	z.L().Debug(fmt.Sprintf("文件大小: %d 字节", size))
+	z.L().Debug(fmt.Sprintf("格式化显示: %.2f KB", float64(size)/1024))
+	z.L().Debug(fmt.Sprintf("格式化显示: %.2f MB", float64(size)/(1024*1024)))
 }
 func ByteCountIEC(b uint64) string {
 	const unit = 1024
@@ -99,10 +100,10 @@ func DeleteAllDirector(filePath string) error {
 	err := os.RemoveAll(filePath)
 	if err != nil {
 		msg := fmt.Errorf("删除失败[%v]: %s,%v\n", os.Getpid(), filePath, err)
-		z.Error(msg)
+		z.L().Sugar().Error(msg)
 		return msg
 	}
-	z.Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
+	z.L().Sugar().Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
 	return err
 }
 
@@ -206,9 +207,9 @@ func ClearTemp() error {
 		fullPath := filepath.Join(tempDir, entry.Name())
 		err = os.RemoveAll(fullPath)
 		if err != nil {
-			z.Printf("删除失败 %s  %v", fullPath, err)
+			z.L().Sugar().Debugf("删除失败 %s  %v", fullPath, err)
 		} else {
-			z.Printf("删除成功 %s", fullPath)
+			z.L().Sugar().Debugf("删除成功 %s", fullPath)
 		}
 	}
 	return err
