@@ -33,7 +33,7 @@ func InitLog() {
 	if err == nil {
 		isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
 		if !isSrvApp {
-			fmt.Println("非服务程序。。。")
+			//fmt.Println("非服务程序。。。")
 			//glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
 			z.LoadLogger(func(conf *z.LogConfig) {
 				conf.Path = filepath.Join(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
