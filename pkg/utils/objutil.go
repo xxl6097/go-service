@@ -11,12 +11,13 @@ func SaveToFile[T any](obj T, filename string) error {
 	if err := EnsureDir(filename); err != nil {
 		return err
 	}
-	data, err := json.Marshal(obj)
+	//data, err := json.Marshal(obj)
+	bytes, err := json.MarshalIndent(obj, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(filename, data, 0644)
+	return os.WriteFile(filename, bytes, 0644)
 }
 
 // LoadFromFile 从文件加载并反序列化
