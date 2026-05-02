@@ -16,7 +16,6 @@ import (
 )
 
 func init() {
-	fmt.Println("初始化日志模块。。。")
 	InitLog()
 }
 
@@ -42,7 +41,6 @@ func InitLog() {
 			return
 		}
 	}
-	fmt.Println("服务程序。。。")
 	//glog.LogDefaultLogSettingEveryType("app.log", everyType)
 	z.LoadLogger(func(cfg *z.LogConfig) {
 		cfg.LogDir = zutil.AppHome("log")

@@ -11,7 +11,6 @@ import (
 )
 
 func init() {
-	fmt.Println("初始化日志模块。。。")
 	InitLog()
 }
 
