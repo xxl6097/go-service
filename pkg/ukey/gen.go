@@ -109,7 +109,7 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		index := bytes.Index(tempBuffer, oldBytes)
 		if index > -1 {
 			//glog.Printf("找到位置[%d]了，签名...\n", index)
-			z.Debug("程序签名成功", zap.Int("index", index))
+			z.L().Sugar().Debugf("程序签名成功 %d %s", index, dstFilePath)
 			isReplace = true
 			tempBuffer = bytes.Replace(tempBuffer, oldBytes, newBytes, -1)
 		}

@@ -166,7 +166,7 @@ func RunCmd(name string, args ...string) string {
 }
 
 func Cmd(name string, args ...string) ([]byte, error) {
-	z.Debug("run", name, args)
+	z.L().Sugar().Debug("run", name, args)
 	cmd := exec.Command(name, args...)
 	output, err := cmd.CombinedOutput() // 捕获标准输出和错误
 	if err != nil {
