@@ -89,7 +89,7 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 		res.Error("位置请求方法")
 	}
 	if newFilePath != "" {
-		z.L().Debug("开始升级", zap.String("newFilePath", newFilePath))
+		z.L().Sugar().Info("开始升级 ", newFilePath)
 		err := srv.Upgrade(ctx, newFilePath)
 		z.L().Warn("升级结果", zap.Error(err))
 		if err == nil {

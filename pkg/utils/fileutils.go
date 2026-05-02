@@ -45,6 +45,8 @@ func FileSize(file string) {
 
 	// 获取文件大小（字节）
 	size := fileInfo.Size()
+
+	z.L().Debug(fmt.Sprintf("文件 %s", file))
 	z.L().Debug(fmt.Sprintf("文件大小: %d 字节", size))
 	z.L().Debug(fmt.Sprintf("格式化显示: %.2f KB", float64(size)/1024))
 	z.L().Debug(fmt.Sprintf("格式化显示: %.2f MB", float64(size)/(1024*1024)))
@@ -103,7 +105,7 @@ func DeleteAllDirector(filePath string) error {
 		z.L().Sugar().Error(msg)
 		return msg
 	}
-	z.L().Sugar().Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
+	//z.L().Sugar().Infof("删除成功[%v]: %s\n", os.Getpid(), filePath)
 	return err
 }
 

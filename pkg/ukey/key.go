@@ -50,12 +50,12 @@ func GetBuffer() []byte {
 func GetCfgBufferFromFile(filePath string) []byte {
 	srcFile, err := os.Open(filePath)
 	if err != nil {
-		z.Errorf("无法打开文件: %v[%s]", err, filePath)
+		z.L().Sugar().Error("无法打开文件", filePath, zap.Error(err))
 		return nil
 	}
 	rawKey, err := GetRawKey()
 	if err != nil {
-		z.Errorf("GetRawKey: %v[%s]", err, filePath)
+		z.L().Sugar().Error("GetRawKey", filePath, zap.Error(err))
 		return nil
 	}
 	defer srcFile.Close()
@@ -67,7 +67,7 @@ func GetCfgBufferFromFile(filePath string) []byte {
 		thisBuffer := make([]byte, Divide(cfgBufferSize, 1024))
 		n, err2 := reader.Read(thisBuffer)
 		if err2 != nil && err2 != io.EOF {
-			z.Errorf("读取文件时出错: %v", err2)
+			z.L().Sugar().Error("读取文件时出错", zap.Error(err))
 			return nil
 		}
 		//indexSize += int64(n)
@@ -77,10 +77,10 @@ func GetCfgBufferFromFile(filePath string) []byte {
 		if index > -1 {
 			tempBuffer1 := tempBuffer[index:]
 			if len(tempBuffer1) >= cfgBufferSize {
-				z.Printf("找到位置[%d]了，签名 %s \n", index, filePath)
+				z.L().Sugar().Debugf("找到位置[%d]了，签名 %s \n", index, filePath)
 				return tempBuffer[index : index+cfgBufferSize]
 			} else {
-				z.Println("长度缺失，继续...")
+				z.L().Debug("长度缺失，继续...")
 			}
 		}
 

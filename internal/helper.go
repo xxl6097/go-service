@@ -150,15 +150,15 @@ func (this *CoreService) upgrade(ctx context.Context, binUrlOrLocal string) erro
 		z.L().Warn("升级失败", zap.Error(err))
 		return err
 	}
-	z.L().Debug("升级文件", zap.String("downFilePath", downFilePath))
+	z.L().Sugar().Debug("升级文件 ", downFilePath)
 	var signFilePath string
 	patch := false
 	if filepath.Ext(downFilePath) == ".patch" {
 		signFilePath = downFilePath
 		patch = true
-		z.L().Debug("差量升级文件", zap.String("downFilePath", downFilePath))
+		z.L().Sugar().Debug("差量升级文件 ", downFilePath)
 	} else {
-		z.L().Debug("全量升级文件，签名", zap.String("downFilePath", downFilePath))
+		z.L().Sugar().Debug("全量升级文件，签名  ", downFilePath)
 		tempFilePath, e := ukey.SignFileByOldFileKey(this.config.Executable, downFilePath)
 		//签名完后会生产出新的签名文件，那么下载的文件需要被删除
 		_ = utils.DeleteAllDirector(downFilePath)

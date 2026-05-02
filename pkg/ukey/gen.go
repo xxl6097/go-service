@@ -40,7 +40,7 @@ func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 }
 
 func SignFileByOldFileKey(oldFilePath, newFilePath string) (string, error) {
-	z.L().Info("文件打印", zap.String("旧文件", oldFilePath), zap.String("新文件", newFilePath))
+	z.L().Sugar().Infof("\n旧文件：%s\n新文件：%s\n", oldFilePath, newFilePath)
 	//1、读取老文件特征数据；
 	//2、下载新文件
 	//3、替换新文件特征数据
@@ -56,7 +56,7 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 		return "", err
 	}
 	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
-	z.L().Debug("获取配置数据成功", zap.Int("数据大小", len(cfgBufferBytes)))
+	z.L().Sugar().Debugf("获取配置数据成功 大小：%d", len(cfgBufferBytes))
 	oldBuffer := GetBuffer()
 	//oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
