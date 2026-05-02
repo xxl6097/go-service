@@ -57,11 +57,14 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 	}
 	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
 	z.L().Sugar().Debugf("获取配置数据成功 大小：%d", len(cfgBufferBytes))
-	oldBuffer := GetBuffer()
-	//oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
+	//oldBuffer := GetBuffer()
+	oldBuffer := bytes.Repeat([]byte{byte(B)}, len(GetBuffer()))
+	if oldBuffer != nil {
+		z.L().Sugar().Debug("oldBuffer size ", len(oldBuffer))
+	}
 	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
 	if err != nil {
-		z.L().Warn("签名错误", zap.Error(err))
+		z.L().Sugar().Warn("签名错误", err)
 		return "", err
 	}
 	return outFilePath, nil
