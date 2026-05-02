@@ -46,6 +46,7 @@ func InitLog() {
 	//glog.LogDefaultLogSettingEveryType("app.log", everyType)
 	z.LoadLogger(func(cfg *z.LogConfig) {
 		cfg.LogDir = zutil.AppHome("log")
+		cfg.MaxSize = 5
 	})
 }
 
