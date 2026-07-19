@@ -104,6 +104,7 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 	// 分块读取并写入文件
 	buf := make([]byte, 4096) // 4KB 缓冲区
 	var preProgress float64 = -3.1
+	var written int64 // 累计已写入字节数，不依赖文件句柄（避免对已关闭句柄取 Stat 崩溃）
 	for {
 		select {
 		case <-ctx.Done(): // 检查取消信号
@@ -120,30 +121,31 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 			}
 			if n == 0 {
 				_ = outFile.Close()
-				// 校验下载完整性：若服务端给出了 Content-Length，实际大小必须一致，
-				// 否则可能是网络截断或磁盘/内存（OpenWRT 的 tmpfs）写满导致的截断文件，
-				// 直接返回截断的二进制会在后续试跑时崩溃（SIGSEGV）。
-				if totalSize > 0 {
-					got := getFileSize(outFile)
-					if got != totalSize {
-						_ = DeleteAllDirector(dir)
-						return "", fmt.Errorf("下载文件不完整：期望 %d 字节，实际 %d 字节（可能磁盘/内存空间不足或网络中断）", totalSize, got)
-					}
+				// 校验下载完整性：仅当服务端给出了有效 Content-Length 时才比对
+				// （差量 .patch 等场景 ContentLength 可能为 0/-1，此时跳过校验）。
+				// 不一致多为网络截断或磁盘/内存（OpenWRT 的 tmpfs）写满导致的截断文件，
+				// 直接返回截断二进制会在后续试跑时崩溃（SIGSEGV）。
+				if totalSize > 0 && written != totalSize {
+					_ = DeleteAllDirector(dir)
+					return "", fmt.Errorf("下载文件不完整：期望 %d 字节，实际 %d 字节（可能磁盘/内存空间不足或网络中断）", totalSize, written)
 				}
 				z.Println("文件下载完成：", dstFile)
 				return dstFile, nil // 正常完成
 			}
 
-			if _, e := outFile.Write(buf[:n]); e != nil {
+			w, e := outFile.Write(buf[:n])
+			if e != nil {
 				_ = outFile.Close()
 				_ = DeleteAllDirector(dir)
 				return "", fmt.Errorf("写入升级文件失败（可能空间不足）: %w", e)
 			}
-			fileSize := getFileSize(outFile)
-			progress := float64(fileSize) / float64(totalSize) * 100
-			if progress-preProgress > 3 {
-				fmt.Printf("[%d]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", goroutineId, float64(totalSize)/1e6, float64(fileSize)/1e6, progress)
-				preProgress = progress
+			written += int64(w)
+			if totalSize > 0 {
+				progress := float64(written) / float64(totalSize) * 100
+				if progress-preProgress > 3 {
+					fmt.Printf("[%d]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", goroutineId, float64(totalSize)/1e6, float64(written)/1e6, progress)
+					preProgress = progress
+				}
 			}
 		}
 	}
@@ -181,11 +183,6 @@ func GetGoroutineID() uint64 {
 	var id uint64
 	fmt.Sscanf(idField, "%d", &id)
 	return id
-}
-
-func getFileSize(f *os.File) int64 {
-	info, _ := f.Stat()
-	return info.Size()
 }
 
 // IsURL 判断给定的字符串是否是一个有效的URL
