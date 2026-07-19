@@ -120,12 +120,24 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 			}
 			if n == 0 {
 				_ = outFile.Close()
+				// 校验下载完整性：若服务端给出了 Content-Length，实际大小必须一致，
+				// 否则可能是网络截断或磁盘/内存（OpenWRT 的 tmpfs）写满导致的截断文件，
+				// 直接返回截断的二进制会在后续试跑时崩溃（SIGSEGV）。
+				if totalSize > 0 {
+					got := getFileSize(outFile)
+					if got != totalSize {
+						_ = DeleteAllDirector(dir)
+						return "", fmt.Errorf("下载文件不完整：期望 %d 字节，实际 %d 字节（可能磁盘/内存空间不足或网络中断）", totalSize, got)
+					}
+				}
 				z.Println("文件下载完成：", dstFile)
 				return dstFile, nil // 正常完成
 			}
 
 			if _, e := outFile.Write(buf[:n]); e != nil {
-				return "", e
+				_ = outFile.Close()
+				_ = DeleteAllDirector(dir)
+				return "", fmt.Errorf("写入升级文件失败（可能空间不足）: %w", e)
 			}
 			fileSize := getFileSize(outFile)
 			progress := float64(fileSize) / float64(totalSize) * 100
