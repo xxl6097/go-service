@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -107,20 +108,48 @@ func IsOpenWRT() bool {
 }
 
 func RunChildProcess(executable string, args ...string) error {
-	//args = append([]string{executable}, args...)
-	//cmd := exec.Command("sudo", args...)
-	var cmd *exec.Cmd
-	if !IsWindows() {
-		arg := []string{executable}
-		arg = append(arg, args...)
-		cmd = exec.Command("sudo", arg...)
-	} else {
-		cmd = exec.Command(executable, args...)
+	// 在 systemd 环境下，若直接 fork 子进程去执行 restart，子进程会与当前服务
+	// 处于同一个 service cgroup；一旦 restart 触发 systemctl stop，systemd 默认的
+	// KillMode=control-group 会把整个 cgroup（含这个正在执行 restart 的子进程）一起
+	// SIGTERM，导致「stop 成功、start 未完成」，服务停在停止态。
+	// 用 systemd-run 把子进程放进独立的 transient scope（独立 cgroup）即可规避连坐。
+	if useSystemdRun() {
+		runArgs := []string{
+			"--scope",
+			"--collect", // 运行结束后自动清理该 transient unit
+			fmt.Sprintf("--unit=%s-restart-%d", filepath.Base(executable), time.Now().UnixNano()),
+			executable,
+		}
+		runArgs = append(runArgs, args...)
+		cmd := exec.Command("systemd-run", runArgs...)
+		util.SetPlatformSpecificAttrs(cmd)
+		fmt.Printf("运行子进程(systemd-run) %s %v\n", executable, args)
+		if err := cmd.Start(); err == nil {
+			return nil
+		} else {
+			// systemd-run 启动失败则回退到普通方式
+			z.Errorf("systemd-run 启动失败，回退普通子进程: %v", err)
+		}
 	}
-	cmd = exec.Command(executable, args...)
+	cmd := exec.Command(executable, args...)
 	util.SetPlatformSpecificAttrs(cmd)
 	fmt.Printf("运行子进程 %s %v\n", executable, args)
 	return cmd.Start()
+}
+
+// useSystemdRun 判断当前是否为可用 systemd-run 的 Linux systemd 环境。
+func useSystemdRun() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+	// systemd 运行时目录存在即视为 systemd 系统
+	if _, err := os.Stat("/run/systemd/system"); err != nil {
+		return false
+	}
+	if _, err := exec.LookPath("systemd-run"); err != nil {
+		return false
+	}
+	return true
 }
 
 func RunCmdBySelf(name string, args ...string) error {
