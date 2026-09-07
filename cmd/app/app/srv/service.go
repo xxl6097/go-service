@@ -31,28 +31,6 @@ func (t *Service) OnShutdown() {
 func (this *Service) OnFinish() {
 }
 
-type Config struct {
-	//ukey.KeyBuffer
-	AppTesting string `json:"appTesting"`
-	ServerPort int    `json:"serverPort"`
-}
-
-func load() (*Config, error) {
-	byteArray, err := ukey.Load()
-	if err != nil {
-		return nil, err
-	}
-	var cfg Config
-	err = ukey.GobToStruct(byteArray, &cfg)
-	//err = json.Unmarshal(byteArray, &cfg)
-	if err != nil {
-		z.L().Error("ClientConfig解析错误", zap.Error(err))
-		return nil, err
-	}
-	pkg.Version()
-	return &cfg, nil
-}
-
 func (this *Service) OnConfig() *service.Config {
 	cfg := service.Config{
 		Name: pkg.AppName,
