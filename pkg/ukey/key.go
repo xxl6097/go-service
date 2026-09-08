@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -301,22 +300,22 @@ func GobToStruct(data []byte, s interface{}) error {
 	return decoder.Decode(s)
 }
 
-func StructToAesGcm(s interface{}) ([]byte, error) {
-	jsonData, err := json.Marshal(s)
-	if err != nil {
-		return nil, err
-	}
-	plain, err := utils.EncAES(jsonData, utils.KEY)
-	if err != nil {
-		return nil, err
-	}
-	return plain, err
-}
-
-func AesGcmToStruct(raw []byte, s interface{}) error {
-	raw, err := utils.DecAES(raw, utils.KEY)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(raw, s)
-}
+//func StructToAesGcm(s interface{}) ([]byte, error) {
+//	jsonData, err := json.Marshal(s)
+//	if err != nil {
+//		return nil, err
+//	}
+//	plain, err := utils.EncAES(jsonData, utils.KEY)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return plain, err
+//}
+//
+//func AesGcmToStruct(raw []byte, s interface{}) error {
+//	raw, err := utils.DecAES(raw, utils.KEY)
+//	if err != nil {
+//		return err
+//	}
+//	return json.Unmarshal(raw, s)
+//}
