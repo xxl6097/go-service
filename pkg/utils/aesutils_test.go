@@ -13,15 +13,15 @@ type TestNode struct {
 }
 
 func TestEnDeCode(t *testing.T) {
-	tesetString := "xiaxiaoli"
+	tesetString := "aaaaa"
 	data := TestNode{
 		Label:    tesetString,
 		Value:    tesetString,
-		FilePath: "/Users/xiaxiaoli/Desktop/test.txt",
+		FilePath: "/Users/aaaa/Desktop/test.txt",
 	}
 	jsonData, _ := json.Marshal(data)
 	fmt.Println(string(jsonData))
-	plarin := Set(string(jsonData))
+	plarin, _ := Set(string(jsonData))
 	fmt.Println(plarin)
 
 	fmt.Println(Get(plarin))

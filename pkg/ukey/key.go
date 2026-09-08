@@ -299,3 +299,20 @@ func GobToStruct(data []byte, s interface{}) error {
 	decoder := gob.NewDecoder(buf)
 	return decoder.Decode(s)
 }
+
+func StructToAesGcm(s interface{}) ([]byte, error) {
+	bytesData, err := StructToGob(s)
+	if err != nil {
+		return nil, err
+	}
+	raw, err := utils.Set(string(bytesData))
+	return []byte(raw), err
+}
+
+func AesGcmToStruct(raw []byte, s interface{}) error {
+	str, err := utils.Get(string(raw))
+	if err != nil {
+		return err
+	}
+	return GobToStruct([]byte(str), s)
+}

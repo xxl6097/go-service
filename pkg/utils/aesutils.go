@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
-	"log"
 )
 
 var (
@@ -111,18 +110,18 @@ func AesGCMDecrypt(encrypted string, key []byte) (string, error) {
 	return string(plain), nil
 }
 
-func Get(acm_str string) string {
+func Get(acm_str string) (string, error) {
 	v, err := AesGCMDecrypt(acm_str, KEY)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	return v
+	return v, nil
 }
 
-func Set(acm_str string) string {
+func Set(acm_str string) (string, error) {
 	v, err := AesGCMEncrypt(acm_str, KEY)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	return v
+	return v, nil
 }
