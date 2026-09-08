@@ -8,7 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"io"
+	"fmt"
 )
 
 var (
@@ -65,8 +65,11 @@ func GetMD5(data []byte) ([]byte, string) {
 	return result, hex.EncodeToString(result)
 }
 
-// aes‑256‑gcm key必须32字节；aes‑128为16字节
-func AesGcmEncrypt(plainText, key []byte) ([]byte, error) {
+// AES‑256‑GCM 加密：返回 nonce(12) + cipher+tag
+func Aes256GcmEncrypt(plain []byte, key []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, fmt.Errorf("key must be 32 bytes for aes‑256")
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -76,14 +79,16 @@ func AesGcmEncrypt(plainText, key []byte) ([]byte, error) {
 		return nil, err
 	}
 	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+	if _, err = rand.Read(nonce); err != nil {
 		return nil, err
 	}
-	// nonce(12字节) + ciphertext + tag，拼接返回
-	return gcm.Seal(nonce, nonce, plainText, nil), nil
+	return gcm.Seal(nonce, nonce, plain, nil), nil
 }
 
-func AesGcmDecrypt(cipherData, key []byte) ([]byte, error) {
+func Aes256GcmDecrypt(cipherData []byte, key []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, fmt.Errorf("key must be 32 bytes for aes‑256")
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -93,6 +98,9 @@ func AesGcmDecrypt(cipherData, key []byte) ([]byte, error) {
 		return nil, err
 	}
 	nonceSize := gcm.NonceSize()
+	if len(cipherData) < nonceSize+16 {
+		return nil, fmt.Errorf("cipher data too short")
+	}
 	nonce, ct := cipherData[:nonceSize], cipherData[nonceSize:]
 	return gcm.Open(nil, nonce, ct, nil)
 }
