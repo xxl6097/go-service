@@ -16,7 +16,7 @@ var (
 	ErrEntityInvalid      = errors.New(`common.ENTITY_INVALID`)
 	ErrFailedVerification = errors.New(`common.ENTITY_CHECK_FAILED`)
 )
-var KEY = []byte("a1d3c56b8dabcdefe1f3d5f7a9abcdef")
+var KEY = []byte("0123456789abcdef0123456789abcdef")
 
 func EncAES(data []byte, key []byte) ([]byte, error) {
 	hash, _ := GetMD5(data)
