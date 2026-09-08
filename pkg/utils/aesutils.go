@@ -6,7 +6,6 @@ import (
 	"crypto/cipher"
 	"crypto/md5"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"io"
@@ -66,62 +65,34 @@ func GetMD5(data []byte) ([]byte, string) {
 	return result, hex.EncodeToString(result)
 }
 
-// AesGCMEncrypt 加密任意字符串，输出 base64(nonce(12) || ciphertext || tag(16))
-// key 必须为 16/24/32 字节（32 = AES-256）
-func AesGCMEncrypt(plaintext string, key []byte) (string, error) {
+// aes‑256‑gcm key必须32字节；aes‑128为16字节
+func AesGcmEncrypt(plainText, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	nonce := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
 	}
-	sealed := gcm.Seal(nil, nonce, []byte(plaintext), nil)
-	return base64.StdEncoding.EncodeToString(append(nonce, sealed...)), nil
+	// nonce(12字节) + ciphertext + tag，拼接返回
+	return gcm.Seal(nonce, nonce, plainText, nil), nil
 }
 
-// aesGCMDecrypt 解密 aesGCMEncrypt 的输出
-func AesGCMDecrypt(encrypted string, key []byte) (string, error) {
-	raw, err := base64.StdEncoding.DecodeString(encrypted)
-	if err != nil {
-		return "", err
-	}
+func AesGcmDecrypt(cipherData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if len(raw) < gcm.NonceSize() {
-		return "", errors.New("ciphertext too short")
-	}
-	nonce, sealed := raw[:gcm.NonceSize()], raw[gcm.NonceSize():]
-	plain, err := gcm.Open(nil, nonce, sealed, nil)
-	if err != nil {
-		return "", err
-	}
-	return string(plain), nil
-}
-
-func Get(acm_str string) (string, error) {
-	v, err := AesGCMDecrypt(acm_str, KEY)
-	if err != nil {
-		return "", err
-	}
-	return v, nil
-}
-
-func Set(acm_str string) (string, error) {
-	v, err := AesGCMEncrypt(acm_str, KEY)
-	if err != nil {
-		return "", err
-	}
-	return v, nil
+	nonceSize := gcm.NonceSize()
+	nonce, ct := cipherData[:nonceSize], cipherData[nonceSize:]
+	return gcm.Open(nil, nonce, ct, nil)
 }
