@@ -306,17 +306,17 @@ func StructToAesGcm(s interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	plain, err := utils.Set(string(jsonData))
+	plain, err := utils.EncAES(jsonData, utils.KEY)
 	if err != nil {
 		return nil, err
 	}
-	return []byte(plain), err
+	return plain, err
 }
 
 func AesGcmToStruct(raw []byte, s interface{}) error {
-	str, err := utils.Get(string(raw))
+	raw, err := utils.DecAES(raw, utils.KEY)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal([]byte(str), s)
+	return json.Unmarshal(raw, s)
 }
