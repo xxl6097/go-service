@@ -28,19 +28,19 @@ type CoreService struct {
 
 func InitLog() {
 	//glog.Register(util.MarketName)
-	bindir, err := os.Executable()
-	var isSrvApp bool
-	if err == nil {
-		isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
-		if !isSrvApp {
-			//fmt.Println("非服务程序。。。")
-			//glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
-			z.LoadLogger(func(conf *z.LogConfig) {
-				conf.Path = filepath.Join(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
-			})
-			return
-		}
-	}
+	//bindir, err := os.Executable()
+	//var isSrvApp bool
+	//if err == nil {
+	//	isSrvApp = strings.HasPrefix(strings.ToLower(bindir), strings.ToLower(util.DefaultInstallPath))
+	//	if !isSrvApp {
+	//		//fmt.Println("非服务程序。。。")
+	//		//glog.SetLogFile(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+	//		z.LoadLogger(func(conf *z.LogConfig) {
+	//			conf.Path = filepath.Join(filepath.Dir(bindir), fmt.Sprintf("install-%s.log", filepath.Base(bindir)))
+	//		})
+	//		return
+	//	}
+	//}
 	//glog.LogDefaultLogSettingEveryType("app.log", everyType)
 	z.LoadLogger(func(cfg *z.LogConfig) {
 		cfg.LogDir = zutil.AppHome("log")

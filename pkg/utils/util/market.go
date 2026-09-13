@@ -1,3 +1,3 @@
 package util
 
-const MarketName = "aamarket"
+const MarketName = "xbin"
