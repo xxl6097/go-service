@@ -22,9 +22,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"strings"
+
+	"github.com/xxl6097/go-service/pkg/utils"
 )
 
 const (
@@ -61,6 +64,14 @@ func Encrypt(plain, key []byte) ([]byte, error) {
 	return gcm.Seal(out, nonce, plain, nil), nil
 }
 
+func AesGCMEncryptBase64(plaintext string, key []byte) (string, error) {
+	raw, err := Encrypt([]byte(plaintext), key)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(raw), nil
+}
+
 // Decrypt 用 AES-256-GCM 解密 Encrypt 产生的密文。
 func Decrypt(data, key []byte) ([]byte, error) {
 	gcm, err := gcmCipher(key) // 先校验密钥，再校验数据
@@ -75,6 +86,15 @@ func Decrypt(data, key []byte) ([]byte, error) {
 		return nil, ErrDecrypt // GCM 认证失败 = 密钥错误或数据被篡改
 	}
 	return plain, nil
+}
+
+func AesGCMDecryptBase64(encrypted string, key []byte) (string, error) {
+	raw, err := base64.StdEncoding.DecodeString(encrypted)
+	if err != nil {
+		return "", err
+	}
+	plain, err := Decrypt(raw, key)
+	return string(plain), nil
 }
 
 // NewKey 生成 32 字节随机密钥（AES-256）。可配合 KeyHex 转 hex 保存。
@@ -114,4 +134,14 @@ func gcmCipher(key []byte) (cipher.AEAD, error) {
 		return nil, err
 	}
 	return cipher.NewGCM(block)
+}
+
+// GetOrPlain 兼容两种取值：能按密文解出明文就返回解密结果，否则原样返回。
+// 用于既可能是签名加密值、也可能是用户直接输入的配置项（如 AttenConfig.Host）。
+// 与 Get 不同，解密失败不会终止进程。
+func GetOrPlain(acm_str string) string {
+	if v, err := AesGCMDecryptBase64(acm_str, utils.KEY); err == nil {
+		return v
+	}
+	return acm_str
 }

@@ -20,9 +20,8 @@ func TestEnDeCode(t *testing.T) {
 		FilePath: "/Users/aaaa/Desktop/test.txt",
 	}
 	jsonData, _ := json.Marshal(data)
-	fmt.Println(string(jsonData))
-	plarin, _ := Set(string(jsonData))
-	fmt.Println(plarin)
-
-	fmt.Println(Get(plarin))
+	raw, _ := Aes256GcmEncrypt(jsonData, KEY)
+	fmt.Println(string(raw))
+	plain, _ := Aes256GcmDecrypt(raw, KEY)
+	fmt.Println(string(plain))
 }
