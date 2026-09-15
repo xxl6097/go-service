@@ -25,6 +25,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"log"
 	"strings"
 
 	"github.com/xxl6097/go-service/pkg/utils"
@@ -144,4 +145,12 @@ func GetOrPlain(acm_str string) string {
 		return v
 	}
 	return acm_str
+}
+
+func Get(acm_str string) string {
+	v, err := AesGCMDecryptBase64(acm_str, utils.KEY)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return v
 }
