@@ -22,6 +22,35 @@ func TcpPing(ip string, port int, timeout time.Duration) (bool, error) {
 	return true, nil
 }
 
+func PingHost(addr string, timeout time.Duration) (bool, error) {
+	conn, err := net.DialTimeout("tcp", addr, timeout)
+	if err != nil {
+		// 连接失败：端口不通/主机不可达/超时
+		return false, fmt.Errorf("connect %s failed: %w", addr, err)
+	}
+	defer conn.Close()
+	return true, nil
+}
+func BatchHostPing(list []string, timeout time.Duration) map[string]bool {
+	result := make(map[string]bool)
+	for _, item := range list {
+		ok, _ := PingHost(item, timeout)
+		result[item] = ok
+	}
+	return result
+}
+
+func BatchGoodHost(list []string, timeout time.Duration) map[string]bool {
+	result := make(map[string]bool)
+	for _, item := range list {
+		ok, _ := PingHost(item, timeout)
+		if ok {
+			result[item] = ok
+		}
+	}
+	return result
+}
+
 // BatchTcpPing 批量检测多个ip端口，同步串行
 func BatchTcpPing(list []struct {
 	IP   string
