@@ -40,12 +40,12 @@ func BatchHostPing(list []string, timeout time.Duration) map[string]bool {
 	return result
 }
 
-func BatchGoodHost(list []string, timeout time.Duration) map[string]bool {
-	result := make(map[string]bool)
+func BatchGoodHost(list []string, timeout time.Duration) []string {
+	result := make([]string, 0)
 	for _, item := range list {
 		ok, _ := PingHost(item, timeout)
 		if ok {
-			result[item] = ok
+			result = append(result, item)
 		}
 	}
 	return result
