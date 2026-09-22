@@ -247,11 +247,11 @@ func ExitAnyKey() {
 }
 
 func ExitCountDown(count int) {
-	for i := count; i >= 0; i-- {
-		fmt.Printf("\r%d秒后退出程序..", i)
-		time.Sleep(1 * time.Second)
-	}
-	fmt.Println()
+	//for i := count; i >= 0; i-- {
+	//	fmt.Printf("\r%d秒后退出程序..", i)
+	//	time.Sleep(1 * time.Second)
+	//}
+	fmt.Println("")
 	os.Exit(0)
 }
 

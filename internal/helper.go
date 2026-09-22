@@ -100,8 +100,10 @@ func (this *CoreService) install() error {
 	}
 	time.Sleep(time.Second * 1)
 	z.L().Info(this.Status())
-	fmt.Println("currentBinPath", currentBinPath)
-	fmt.Println("Executable", this.config.Executable)
+	err = os.RemoveAll(currentBinPath)
+	if err != nil {
+		fmt.Println("delete error", currentBinPath, err)
+	}
 	return nil
 }
 func (this *CoreService) uninstall() error {
