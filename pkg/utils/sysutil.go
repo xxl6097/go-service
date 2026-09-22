@@ -251,7 +251,7 @@ func ExitCountDown(count int) {
 	//	fmt.Printf("\r%d秒后退出程序..", i)
 	//	time.Sleep(1 * time.Second)
 	//}
-	fmt.Println("")
+	fmt.Println("✅ 安装完成，退出！")
 	os.Exit(0)
 }
 
