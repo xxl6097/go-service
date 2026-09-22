@@ -100,6 +100,8 @@ func (this *CoreService) install() error {
 	}
 	time.Sleep(time.Second * 1)
 	z.L().Info(this.Status())
+	fmt.Println("currentBinPath", currentBinPath)
+	fmt.Println("Executable", this.config.Executable)
 	return nil
 }
 func (this *CoreService) uninstall() error {
