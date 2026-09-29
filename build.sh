@@ -11,7 +11,7 @@ function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
     mkdir "./pkg"
   fi
-cat <<EOF > ./pkg/version.go
+cat <<EOF > ./pkg/version/version.go
 package pkg
 
 import (

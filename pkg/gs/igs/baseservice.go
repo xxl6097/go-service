@@ -15,3 +15,6 @@ func (q *BaseService) OnShutdown() {
 func (q *BaseService) OnFinish() {
 	z.L().Sugar().Debugln("service OnFinish")
 }
+func (q *BaseService) UnInstall() {
+	z.L().Sugar().Debugln("service UnInstall")
+}

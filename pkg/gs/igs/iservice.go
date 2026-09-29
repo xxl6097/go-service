@@ -2,6 +2,7 @@ package igs
 
 import (
 	"context"
+
 	"github.com/kardianos/service"
 )
 
@@ -23,6 +24,7 @@ type IService interface {
 	OnShutdown()
 	GetAny(string) ([]byte, []string) //数据；运行参数
 	OnFinish()
+	UnInstall()
 }
 
 type Installer interface {

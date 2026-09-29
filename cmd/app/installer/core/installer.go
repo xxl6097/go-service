@@ -5,10 +5,10 @@ import (
 
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/pkg/z"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
+	"github.com/xxl6097/go-service/pkg/version"
 	"go.uber.org/zap"
 
 	"os"
@@ -50,8 +50,8 @@ func (t *SvrInstall) OnFinish() {
 }
 
 func (t *SvrInstall) OnVersion() string {
-	pkg.Version()
-	return pkg.AppVersion
+	version.Version()
+	return version.AppVersion
 }
 
 func (t *SvrInstall) copyCfg(binDir string) {

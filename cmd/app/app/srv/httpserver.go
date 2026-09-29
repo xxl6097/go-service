@@ -22,10 +22,10 @@ import (
 	"github.com/xxl6097/go-service/assets"
 	"github.com/xxl6097/go-service/assets/we"
 	"github.com/xxl6097/go-service/cmd/app/app/wx"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/version"
 	"go.uber.org/zap"
 )
 
@@ -69,7 +69,7 @@ func (t *Service) updateHandler(binurl string, ctx context.Context) ([]byte, err
 	}
 	err := t.gs.Upgrade(ctx, binurl)
 	z.L().Debug("update", zap.Error(err))
-	return []byte(pkg.AppVersion), err
+	return []byte(version.AppVersion), err
 }
 
 // 处理 GET 请求
@@ -81,29 +81,29 @@ func (t *Service) patchUpdateHandler(binurl string, ctx context.Context) ([]byte
 	}
 	err := t.gs.Upgrade(ctx, binurl)
 	z.L().Debug("patchUpdate err", zap.Error(err))
-	return []byte(pkg.AppVersion), err
+	return []byte(version.AppVersion), err
 }
 
 func GetVersion() map[string]interface{} {
 	hostName, _ := os.Hostname()
 	return map[string]interface{}{
 		"hostName":    hostName,
-		"appName":     pkg.AppName,
-		"appVersion":  pkg.AppVersion,
-		"buildTime":   pkg.BuildTime,
-		"gitRevision": pkg.GitRevision,
-		"gitBranch":   pkg.GitBranch,
-		"goVersion":   pkg.GoVersion,
-		"displayName": pkg.DisplayName,
-		"description": pkg.Description,
-		"osType":      pkg.OsType,
-		"arch":        pkg.Arch,
+		"appName":     version.AppName,
+		"appVersion":  version.AppVersion,
+		"buildTime":   version.BuildTime,
+		"gitRevision": version.GitRevision,
+		"gitBranch":   version.GitBranch,
+		"goVersion":   version.GoVersion,
+		"displayName": version.DisplayName,
+		"description": version.Description,
+		"osType":      version.OsType,
+		"arch":        version.Arch,
 	}
 }
 
 // 处理 GET 请求
 func (t *Service) versionHandler() ([]byte, error) {
-	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), nil
+	return []byte(fmt.Sprintf("\r\n%s", version.Version())), nil
 }
 
 // 处理 GET 请求
@@ -134,7 +134,7 @@ func (t *Service) testHandler(w http.ResponseWriter, r *http.Request) {
 
 // 处理 GET 请求
 func (t *Service) handleGet() (any, error) {
-	return []byte(fmt.Sprintf("%s\ntimestamp: %s", pkg.Version(), t.timestamp)), nil
+	return []byte(fmt.Sprintf("%s\ntimestamp: %s", version.Version(), t.timestamp)), nil
 }
 
 // 处理 GET 请求
@@ -189,7 +189,7 @@ func (t *Service) uninstallHandler() (any, error) {
 func (t *Service) checkVersionHandler() (any, error) {
 	//
 	github.Api().SetName("xxl6097", "go-service")
-	data, err := github.Api().CheckUpgrade(pkg.BinName)
+	data, err := github.Api().CheckUpgrade(version.BinName)
 	return data, err
 }
 
@@ -225,7 +225,7 @@ func (t *Service) confirmUpgrade(r *http.Request, data any) (any, error) {
 
 // 处理 GET 请求
 func (t *Service) handleLog() ([]byte, error) {
-	return []byte(fmt.Sprintf("\r\n%s", pkg.Version())), nil
+	return []byte(fmt.Sprintf("\r\n%s", version.Version())), nil
 }
 
 // /api/shutdown

@@ -12,6 +12,7 @@ import (
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/glog/pkg/zutil"
 	"github.com/xxl6097/go-service/internal/core"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
@@ -108,6 +109,11 @@ func (this *CoreService) install() error {
 }
 func (this *CoreService) uninstall() error {
 	defer func() {
+		if this.isrv != nil {
+			if gs, ok := this.isrv.(igs.Installer); ok {
+				gs.UnInstall()
+			}
+		}
 		this.clearForUninstall()
 		z.L().Debug("尝试停止服务")
 		err := this.stopService()

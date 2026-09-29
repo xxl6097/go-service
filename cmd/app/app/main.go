@@ -5,16 +5,16 @@ import (
 
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/cmd/app/app/srv"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/version"
 	"go.uber.org/zap"
 )
 
 func init() {
 	if utils.IsMacOs() {
-		pkg.AppVersion = "v0.0.3"
-		pkg.BinName = "aatest_v0.0.20_darwin_arm64"
+		version.AppVersion = "v0.0.3"
+		version.BinName = "aatest_v0.0.20_darwin_arm64"
 		fmt.Println("Hello World...1")
 	}
 }

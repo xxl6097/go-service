@@ -6,10 +6,10 @@ import (
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/pkg/z"
 	_ "github.com/xxl6097/go-service/assets/buffer"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/version"
 	"go.uber.org/zap"
 
 	"os"
@@ -33,21 +33,21 @@ func (this *Service) OnFinish() {
 
 func (this *Service) OnConfig() *service.Config {
 	cfg := service.Config{
-		Name: pkg.AppName,
+		Name: version.AppName,
 		//UserName:    "root",
-		DisplayName: fmt.Sprintf("AAATest_%s", pkg.AppVersion),
+		DisplayName: fmt.Sprintf("AAATest_%s", version.AppVersion),
 		Description: "A Golang AAATest Service..",
 	}
 	return &cfg
 }
 
 func (this *Service) OnVersion() string {
-	pkg.Version()
+	version.Version()
 	cfg, err := load()
 	if err == nil {
 		z.L().Debug("cfg", zap.Any("cfg", cfg))
 	}
-	return pkg.AppVersion
+	return version.AppVersion
 }
 
 func (this *Service) OnRun(service igs.Service) error {

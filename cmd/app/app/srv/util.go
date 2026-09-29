@@ -2,8 +2,8 @@ package srv
 
 import (
 	"github.com/xxl6097/glog/pkg/z"
-	"github.com/xxl6097/go-service/pkg"
 	"github.com/xxl6097/go-service/pkg/ukey"
+	"github.com/xxl6097/go-service/pkg/version"
 	"go.uber.org/zap"
 )
 
@@ -19,6 +19,6 @@ func load() (*Config, error) {
 		z.L().Error("ClientConfig解析错误", zap.Error(err))
 		return nil, err
 	}
-	pkg.Version()
+	version.Version()
 	return &cfg, nil
 }
