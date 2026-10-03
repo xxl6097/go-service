@@ -159,7 +159,7 @@ func Copy(srcFile, dstFile string) error {
 	//将本程序复制到目标为止，目标文件名称为配置文件的名称
 	dst, err := os.OpenFile(dstFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
 	if err != nil {
-		fmt.Printf("copy 创建目标文件失败：%v %v %v\n", srcFile, srcFile, err)
+		fmt.Printf("copy 创建目标文件失败：%v %v %v\n", srcFile, dstFile, err)
 		return err
 	}
 	defer dst.Close()
