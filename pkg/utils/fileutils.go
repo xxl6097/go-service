@@ -156,6 +156,8 @@ func Copy(srcFile, dstFile string) error {
 		fileName = finfo.Name()
 	}
 	defer src.Close()
+	if e := EnsureDir(dstFile); e != nil {
+	}
 	//将本程序复制到目标为止，目标文件名称为配置文件的名称
 	dst, err := os.OpenFile(dstFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0775)
 	if err != nil {
