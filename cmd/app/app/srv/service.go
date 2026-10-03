@@ -20,6 +20,11 @@ type Service struct {
 	gs        igs.Service
 }
 
+func (t *Service) UnInstall() {
+	//TODO implement me
+	z.L().Info("service UnInstall")
+}
+
 func (t *Service) OnStop() {
 	z.L().Info("service stop")
 }

@@ -2,16 +2,26 @@ package util
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
 )
 
-const (
-	DefaultInstallPath = "/usr/local/" + MarketName
-	// defaultBinName     = "AAServiceApp"
-)
+// DefaultInstallPath macOS 下安装到当前用户的 ~/Library/Application Support/<MarketName>。
+// 系统级的 /usr/local 属主是 root:wheel 0755，非 root 进程既建不了目录也写不进去，
+// 安装会卡在 EnsureDir 的 permission denied。
+var DefaultInstallPath = defaultInstallPath()
+
+// defaultInstallPath 取不到 $HOME 时退回系统路径。
+func defaultInstallPath() string {
+	if home, err := os.UserHomeDir(); err == nil && home != "" {
+		return filepath.Join(home, "Library", "Application Support", MarketName)
+	}
+	return "/usr/local/" + MarketName
+}
 
 // GetDiskUsage 获取 Unix 系统磁盘使用情况
 func GetDiskUsage(path string) (total, used, free uint64, err error) {
