@@ -36,6 +36,10 @@ func SignFileBySelfKey(buffer []byte, inFilePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("签名错误: %v", err)
 	}
+	// GenerateBin 改写了二进制，darwin 下原有 ad-hoc 签名会失效，必须重签
+	if e := utils.AdhocSign(outFilePath); e != nil {
+		z.L().Sugar().Warnf("ad-hoc 签名失败 %s: %v", outFilePath, e)
+	}
 	return outFilePath, nil
 }
 
@@ -66,6 +70,10 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 	if err != nil {
 		z.L().Sugar().Warn("签名错误", err)
 		return "", err
+	}
+	// 同上：改写后需重新做 ad-hoc 签名，否则 macOS 会 SIGKILL
+	if e := utils.AdhocSign(outFilePath); e != nil {
+		z.L().Sugar().Warnf("ad-hoc 签名失败 %s: %v", outFilePath, e)
 	}
 	return outFilePath, nil
 }

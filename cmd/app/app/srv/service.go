@@ -47,7 +47,11 @@ func (this *Service) OnConfig() *service.Config {
 	// LaunchAgent（~/Library/LaunchAgents/<name>.plist）；
 	// 否则 kardianos 会写到 /Library/LaunchDaemons，仍然需要 root。
 	if utils.IsMacOs() {
-		cfg.Option = service.KeyValue{"UserService": true}
+		cfg.Option = service.KeyValue{
+			"UserService": true,
+			// RunAtLoad 默认 false，不设的话登录后不会自动拉起
+			"RunAtLoad": true,
+		}
 	}
 	return &cfg
 }
