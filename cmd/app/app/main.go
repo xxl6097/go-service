@@ -1,22 +1,18 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-service/cmd/app/app/srv"
 	"github.com/xxl6097/go-service/pkg/gs"
-	"github.com/xxl6097/go-service/pkg/utils"
-	"github.com/xxl6097/go-service/pkg/version"
 	"go.uber.org/zap"
 )
 
 func init() {
-	if utils.IsMacOs() {
-		version.AppVersion = "v0.0.3"
-		version.BinName = "aatest_v0.0.20_darwin_arm64"
-		fmt.Println("Hello World...1")
-	}
+	//if utils.IsMacOs() {
+	//	version.AppVersion = "v0.0.3"
+	//	version.BinName = "aatest_v0.0.20_darwin_arm64"
+	//	fmt.Println("Hello World...1")
+	//}
 }
 
 //go:generate goversioninfo -icon=resource/icon.ico -manifest=resource/goversioninfo.exe.manifest
@@ -25,10 +21,10 @@ func main() {
 	//appSecret := "667fc391b1ca8f4c58d1b5f224356ad5" // 替换为你的 AppSecret
 	//wx.Api().Load(appID, appSecret)
 	s := srv.Service{}
-	if utils.IsMacOs() {
-		srv.Server(9091, &s)
-		return
-	}
+	//if utils.IsMacOs() {
+	//	srv.Server(9091, &s)
+	//	return
+	//}
 	err := gs.Run(&s)
 	z.L().Debug("程序结束", zap.Error(err))
 

@@ -38,10 +38,16 @@ func (this *Service) OnFinish() {
 
 func (this *Service) OnConfig() *service.Config {
 	cfg := service.Config{
-		Name: version.AppName,
+		Name: "aatest", //version.AppName
 		//UserName:    "root",
 		DisplayName: fmt.Sprintf("AAATest_%s", version.AppVersion),
 		Description: "A Golang AAATest Service..",
+	}
+	// macOS 下安装目录在用户目录（见 util_darwin.go），服务也注册为用户级
+	// LaunchAgent（~/Library/LaunchAgents/<name>.plist）；
+	// 否则 kardianos 会写到 /Library/LaunchDaemons，仍然需要 root。
+	if utils.IsMacOs() {
+		cfg.Option = service.KeyValue{"UserService": true}
 	}
 	return &cfg
 }
