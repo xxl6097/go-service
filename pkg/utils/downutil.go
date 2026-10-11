@@ -20,13 +20,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func DownloadFileWithCancelByUrls(urls []string) string {
+func DownloadFileWithCancelByUrls(urls []string, onProgress func(float64)) string {
 	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
 		default:
 			//tid := GetGoroutineID()
-			dstFilePath, err := DownloadWithCancel(ctx, s)
+			dstFilePath, err := DownloadWithCancel(ctx, s, onProgress)
 			FileSize(dstFilePath)
 			if err == nil {
 				z.L().Debug("下载成功", zap.String("本地路径", dstFilePath), zap.String("url", s))
@@ -48,7 +48,7 @@ func DownloadFileWithCancelByUrls(urls []string) string {
 	return newUrl
 }
 
-func DownloadWithCancel(ctx context.Context, url string, args ...string) (string, error) {
+func DownloadWithCancel(ctx context.Context, url string, onProgress func(float64), args ...string) (string, error) {
 	// 创建可取消的 HTTP 请求
 	//glog.Debug("开始下载", url)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -143,6 +143,9 @@ func DownloadWithCancel(ctx context.Context, url string, args ...string) (string
 			if totalSize > 0 {
 				progress := float64(written) / float64(totalSize) * 100
 				if progress-preProgress > 3 {
+					if onProgress != nil {
+						onProgress(progress)
+					}
 					fmt.Printf("[%d]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", goroutineId, float64(totalSize)/1e6, float64(written)/1e6, progress)
 					preProgress = progress
 				}

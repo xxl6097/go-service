@@ -206,7 +206,7 @@ func (t *Service) confirmUpgrade(r *http.Request, data any) (any, error) {
 		if value, ok := v["data"].(string); ok {
 			fmt.Println(value)
 			urls := github.Api().GetProxyUrls(value)
-			fileUri := utils.DownloadFileWithCancelByUrls(urls)
+			fileUri := utils.DownloadFileWithCancelByUrls(urls, nil)
 			if fileUri != "" {
 				z.L().Debug("升级文件", zap.String("fileUri", fileUri))
 				err := t.gs.Upgrade(r.Context(), fileUri)

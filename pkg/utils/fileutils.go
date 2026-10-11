@@ -17,7 +17,7 @@ import (
 
 func CheckFileOrDownload(ctx context.Context, fileUrlOrLocal string) (string, error) {
 	if IsURL(fileUrlOrLocal) {
-		filePath, err := DownloadWithCancel(ctx, fileUrlOrLocal)
+		filePath, err := DownloadWithCancel(ctx, fileUrlOrLocal, nil)
 		if err != nil {
 			z.L().Error("下载失败", zap.String("fileUrlOrLocal", fileUrlOrLocal), zap.Error(err))
 			return "", err

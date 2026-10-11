@@ -57,7 +57,7 @@ func update(srv igs.Service, w http.ResponseWriter, r *http.Request) {
 		}
 		binUrl := string(body)
 		z.L().Debug("升级URL地址", zap.String("binUrl", binUrl))
-		newUrl := utils.DownloadFileWithCancelByUrls(github.Api().GetProxyUrls(binUrl))
+		newUrl := utils.DownloadFileWithCancelByUrls(github.Api().GetProxyUrls(binUrl), nil)
 		newFilePath = newUrl
 		break
 	case "POST", "post":
