@@ -163,6 +163,9 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 		return map[string]interface{}{
 			"fullUrl":      fullUrl,
 			"patchUrl":     patchUrl,
+			"publishedAt":  r.PublishedAt,
+			"htmlUrl":      r.HtmlUrl,
+			"version":      r.TagName,
 			"releaseNotes": fmt.Sprintf("### ✅ 新版本\r\n* %s%s\r\n%s", r.TagName, text.String(), releaseNote),
 		}, nil
 	} else {
