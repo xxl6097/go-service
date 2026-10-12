@@ -124,6 +124,7 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 	hasNewVersion := utils.CompareVersions(r.TagName, oldVersion)
 	z.L().Debug("计算结果", zap.Int("hasNewVersion", hasNewVersion))
 
+	var fullAsset, patchAsset model.Assets
 	if hasNewVersion > 0 {
 		newVersionAppName := utils.ReplaceNewVersionBinName(fullName, r.TagName)
 		var fullUrl, patchUrl string
@@ -133,9 +134,11 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 			if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(newVersionAppName)) == 0 {
 				fullUrl = asset.BrowserDownloadUrl
 				fullSize = utils.ByteCountIEC(uint64(asset.Size))
+				fullAsset = asset
 			} else if strings.Compare(strings.ToLower(asset.Name), strings.ToLower(patchName)) == 0 {
 				patchUrl = asset.BrowserDownloadUrl
 				patchSize = utils.ByteCountIEC(uint64(asset.Size))
+				patchAsset = asset
 			}
 		}
 
@@ -162,6 +165,8 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 
 		return map[string]interface{}{
 			"raw":          *r,
+			"fullAsset":    fullAsset,
+			"patchAsset":   patchAsset,
 			"fullSize":     fullSize,
 			"patchSize":    patchSize,
 			"fullUrl":      fullUrl,
