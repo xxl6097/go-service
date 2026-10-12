@@ -127,9 +127,15 @@ func RunChildProcess(executable string, args ...string) error {
 		if err := cmd.Start(); err == nil {
 			return nil
 		} else {
-			// systemd-run 启动失败则回退到普通方式
-			z.Errorf("systemd-run 启动失败，回退普通子进程: %v", err)
+			// systemd-run 启动失败不能回退到普通 fork：普通 fork 的子进程仍在这个
+			// service cgroup 里，restart 触发 systemctl stop 时会被连带 SIGTERM，
+			// restart 照样不生效。直接报错，让调用方知道重启没能被安全拉起。
+			return fmt.Errorf("systemd-run 启动失败: %w", err)
 		}
+	}
+	// systemd 环境但缺少 systemd-run：普通 fork 逃不出 service cgroup，同上会连坐。
+	if isSystemd() {
+		return errors.New("systemd 环境缺少 systemd-run，无法安全拉起重启子进程")
 	}
 	cmd := exec.Command(executable, args...)
 	util.SetPlatformSpecificAttrs(cmd)
@@ -137,13 +143,21 @@ func RunChildProcess(executable string, args ...string) error {
 	return cmd.Start()
 }
 
-// useSystemdRun 判断当前是否为可用 systemd-run 的 Linux systemd 环境。
-func useSystemdRun() bool {
+// isSystemd 判断是否运行在 systemd 管理的 Linux 系统上。
+func isSystemd() bool {
 	if runtime.GOOS != "linux" {
 		return false
 	}
 	// systemd 运行时目录存在即视为 systemd 系统
 	if _, err := os.Stat("/run/systemd/system"); err != nil {
+		return false
+	}
+	return true
+}
+
+// useSystemdRun 判断当前是否为可用 systemd-run 的 Linux systemd 环境。
+func useSystemdRun() bool {
+	if !isSystemd() {
 		return false
 	}
 	if _, err := exec.LookPath("systemd-run"); err != nil {

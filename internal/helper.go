@@ -261,10 +261,12 @@ func (this *CoreService) update(signFilePath string, patch bool) error {
 	} else {
 		z.L().Debug(utils.RunCmd("ls", "-l"))
 	}
+	// 只拉起重启子进程，不要在这里 stopService()：当前服务自行 systemctl stop
+	// （KillMode=control-group）会把同一 cgroup 里的 systemd-run 辅助进程、以及
+	// systemctl 客户端自身一并 SIGTERM，restart 子进程还没被拉起服务就停在停止态了。
+	// restart 子进程在独立 scope 里执行 systemctl restart（stop+start），
+	// 当前进程会由那次 SIGTERM 触发优雅退出。
 	err = this.RunCMD("restart")
-	if !utils.IsWindows() {
-		_ = this.stopService()
-	}
 	return err
 }
 
