@@ -161,6 +161,9 @@ func (this *githubApi) CheckUpgrade(fullName string) (map[string]interface{}, er
 		}
 
 		return map[string]interface{}{
+			"raw":          *r,
+			"fullSize":     fullSize,
+			"patchSize":    patchSize,
 			"fullUrl":      fullUrl,
 			"patchUrl":     patchUrl,
 			"publishedAt":  r.PublishedAt,
