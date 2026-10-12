@@ -20,7 +20,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func DownloadFileWithCancelByUrls(urls []string, onProgress func(float64)) string {
+type Progress struct {
+	Loaded int64 `json:"loaded"`
+	Total  int64 `json:"total"`
+}
+
+func DownloadFileWithCancelByUrls(urls []string, onProgress func(Progress)) string {
 	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
 		var dst string
 		select {
@@ -48,7 +53,7 @@ func DownloadFileWithCancelByUrls(urls []string, onProgress func(float64)) strin
 	return newUrl
 }
 
-func DownloadWithCancel(ctx context.Context, url string, onProgress func(float64), args ...string) (string, error) {
+func DownloadWithCancel(ctx context.Context, url string, onProgress func(Progress), args ...string) (string, error) {
 	// 创建可取消的 HTTP 请求
 	//glog.Debug("开始下载", url)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -144,7 +149,7 @@ func DownloadWithCancel(ctx context.Context, url string, onProgress func(float64
 				progress := float64(written) / float64(totalSize) * 100
 				if progress-preProgress > 3 {
 					if onProgress != nil {
-						onProgress(progress)
+						onProgress(Progress{Loaded: written, Total: totalSize})
 					}
 					fmt.Printf("[%d]总大小: %.2fMB 已下载: %.2fMB 进度: %.2f%%\n", goroutineId, float64(totalSize)/1e6, float64(written)/1e6, progress)
 					preProgress = progress
