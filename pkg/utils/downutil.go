@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/xxl6097/glog/pkg/z"
@@ -25,32 +25,67 @@ type Progress struct {
 	Total  int64 `json:"total"`
 }
 
+// DownloadFileWithCancelByUrls 并发地从多个 url 下载同一个文件，谁先下载成功就用谁，
+// 并立即取消其余仍在进行的下载。返回成功下载到本地的文件路径；全部失败时返回空字符串。
+//
+// 这里刻意不走 DynamicSelect：DynamicSelect 会把每个 goroutine 的返回值都投递到结果
+// channel，下载失败的 goroutine 只能返回空路径，一旦这个空路径先被读到，上层就会把
+// 「下载成功但路径为空」当成结果，导致升级被静默跳过。因此成功路径是唯一出口，
+// 失败的 goroutine 只打日志、直接返回。
 func DownloadFileWithCancelByUrls(urls []string, onProgress func(Progress)) string {
-	newUrl := DynamicSelect[string](urls, func(ctx context.Context, i int, s string) string {
-		var dst string
-		select {
-		default:
-			//tid := GetGoroutineID()
-			dstFilePath, err := DownloadWithCancel(ctx, s, onProgress)
-			FileSize(dstFilePath)
-			if err == nil {
-				z.L().Debug("下载成功", zap.String("本地路径", dstFilePath), zap.String("url", s))
-				return dstFilePath
-			} else if errors.Is(err, context.Canceled) {
-				//fmt.Println("2通道 ", i, err.Error())
-				return dst
-			} else {
-				var netErr net.Error
-				if errors.As(err, &netErr) {
-					z.L().Error("超时错误", zap.String("本地路径", dstFilePath), zap.Error(netErr))
-					time.Sleep(time.Hour)
+	if len(urls) == 0 {
+		return ""
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	success := make(chan string, len(urls)) // 只投递成功的下载结果
+	var wg sync.WaitGroup
+	for _, u := range urls {
+		wg.Add(1)
+		go func(url string) {
+			defer wg.Done()
+			dstFilePath, err := DownloadWithCancel(ctx, url, onProgress)
+			if err != nil {
+				// 被其它 url 抢先完成后取消属于正常情况，不必报错
+				if !errors.Is(err, context.Canceled) {
+					z.L().Warn("下载失败", zap.String("url", url), zap.Error(err))
 				}
-				<-ctx.Done()
+				return
 			}
-		}
+			FileSize(dstFilePath)
+			z.L().Debug("下载成功", zap.String("本地路径", dstFilePath), zap.String("url", url))
+			select {
+			case success <- dstFilePath:
+			case <-ctx.Done():
+			}
+		}(u)
+	}
+
+	// 所有下载都结束时关闭 done，用于「全部失败」时能及时返回，而不是永久阻塞。
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case dst := <-success:
+		// 立刻取消其余下载并返回：不等待它们收尾，避免个别地址取消慢（如 DNS 卡住）
+		// 拖住整个升级流程；它们会在协程里自行清理各自的临时文件。
+		cancel()
 		return dst
-	})
-	return newUrl
+	case <-done:
+		// 全部结束，再确认一次是否有人成功（select 可能随机选中 done，而成功结果已在
+		// 缓冲 channel 里）。
+		select {
+		case dst := <-success:
+			return dst
+		default:
+			z.L().Error("所有下载地址均失败", zap.Int("urls", len(urls)))
+			return ""
+		}
+	}
 }
 
 func DownloadWithCancel(ctx context.Context, url string, onProgress func(Progress), args ...string) (string, error) {
