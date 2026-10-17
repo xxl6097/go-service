@@ -29,11 +29,13 @@ func GetDiskUsage(path string) (total, used, free uint64, err error) {
 }
 
 func SetPlatformSpecificAttrs(cmd *exec.Cmd) {
+	// ⚠️ 只能设 Setsid，不能再设 Setpgid：Go 在 FreeBSD 上同样是
+	// 「先 setsid、后 setpgid」，而 setsid 之后子进程已是会话首进程，
+	// 会话首进程不能再改自己的进程组（POSIX），setpgid 会返回 EPERM，
+	// exec 起不来并报 "fork/exec <path>: operation not permitted"。
+	// 详见 util_darwin.go 里的同一处说明。
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid:  true, // 创建新会话，脱离终端
-		Setpgid: true, // 创建新的进程组
-		Pgid:    0,    // 子进程成为进程组领导者
-		// 或者使用 Setsid: true 创建新会话（类似 nohup）
+		Setsid: true, // 创建新会话，脱离终端
 	}
 	// 重定向输入输出（避免挂起）
 	cmd.Stdout = nil
