@@ -95,15 +95,19 @@ func (this *CoreService) install() error {
 	time.Sleep(time.Second * 1)
 	err = this.startService()
 	if err != nil {
-		z.L().Warn(fmt.Sprintf("[%s]启动失败，错误信息:%v\n", this.config.DisplayName), zap.Error(err))
+		// 错误详情由 zap.Error 输出，格式化串里不要再占位，否则会打印 %!v(MISSING)
+		z.L().Warn(fmt.Sprintf("[%s]启动失败", this.config.DisplayName), zap.Error(err))
 	} else {
 		z.L().Debug(fmt.Sprintf("[%s]启动成功!", this.config.DisplayName))
 	}
 	time.Sleep(time.Second * 1)
 	z.L().Info(this.Status())
-	err = os.RemoveAll(currentBinPath)
-	if err != nil {
-		fmt.Println("delete error", currentBinPath, err)
+	// 删除运行中的安装包本体。Windows 下运行中的 exe 无法删除（Access is denied），
+	// 这里直接跳过；Linux/macOS 允许 unlink 正在运行的文件。
+	if !utils.IsWindows() {
+		if err = os.RemoveAll(currentBinPath); err != nil {
+			fmt.Println("delete error", currentBinPath, err)
+		}
 	}
 	return nil
 }
