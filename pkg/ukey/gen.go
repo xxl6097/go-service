@@ -59,6 +59,24 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 		z.L().Error("签名失败", zap.Error(err))
 		return "", err
 	}
+	// 传入的必须是完整签名数据块（rawKey + 4字节长度头 + body），
+	// 否则补齐后写进二进制只会得到一个"长度对、内容错"的坏程序。
+	rawKey, err := GetRawKey()
+	if err != nil {
+		z.L().Error("签名失败", zap.Error(err))
+		return "", err
+	}
+	if !bytes.HasPrefix(cfgBufferBytes, rawKey) {
+		err := errors.New("配置数据格式不正确：缺少 rawKey 头部，请传入 GenConfig 生成的签名数据块")
+		z.L().Error("签名失败", zap.Error(err))
+		return "", err
+	}
+	// 旧文件解析出来的签名数据可能比当前占位区短（占位区扩容过），必须先补齐对齐
+	cfgBufferBytes, err = NormalizeBuffer(cfgBufferBytes)
+	if err != nil {
+		z.L().Error("签名失败", zap.Error(err))
+		return "", err
+	}
 	outFilePath := filepath.Join(zutil.AppHome("temp", "sign", utils.GetID()), filepath.Base(newFilePath))
 	z.L().Sugar().Debugf("获取配置数据成功 大小：%d", len(cfgBufferBytes))
 	//oldBuffer := GetBuffer()
@@ -66,7 +84,7 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 	if oldBuffer != nil {
 		z.L().Sugar().Debug("oldBuffer size ", len(oldBuffer))
 	}
-	err := GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
+	err = GenerateBin(newFilePath, outFilePath, oldBuffer, cfgBufferBytes)
 	if err != nil {
 		z.L().Sugar().Warn("签名错误", err)
 		return "", err
@@ -79,6 +97,18 @@ func SignFileByBuffer(cfgBufferBytes []byte, newFilePath string) (string, error)
 }
 
 func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) error {
+	if len(oldBytes) == 0 {
+		return errors.New("占位符不能为空")
+	}
+	// 硬约束：签名数据必须与占位区等长。
+	// 长度不一致时替换会改变文件长度，但 ELF 的段表/节表偏移不会跟着更新，
+	// 结果是文件尾部整体位移、运行时全局变量读取错位（历史上表现为
+	// getHugePageSize 里 &sysTHPSizePath[0] 越界 panic）。
+	if len(newBytes) != len(oldBytes) {
+		return fmt.Errorf("签名数据长度【%d】与占位区长度【%d】不一致（差 %d 字节），替换会破坏可执行文件结构，已终止",
+			len(newBytes), len(oldBytes), len(newBytes)-len(oldBytes))
+	}
+
 	// 打开原文件
 	srcFile, err := os.Open(scrFilePath)
 	if err != nil {
@@ -114,12 +144,14 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 		indexSize += int64(n)
 		thisBuffer = thisBuffer[:n]
 		tempBuffer := append(prevBuffer, thisBuffer...)
-		index := bytes.Index(tempBuffer, oldBytes)
-		if index > -1 {
-			//glog.Printf("找到位置[%d]了，签名...\n", index)
-			z.L().Sugar().Debugf("程序签名成功 %d %s", index, dstFilePath)
-			isReplace = true
-			tempBuffer = bytes.Replace(tempBuffer, oldBytes, newBytes, -1)
+		// 只替换第一个匹配，避免二进制中出现多段占位符时被全部改写
+		if !isReplace {
+			if index := bytes.Index(tempBuffer, oldBytes); index > -1 {
+				//glog.Printf("找到位置[%d]了，签名...\n", index)
+				z.L().Sugar().Debugf("程序签名成功 %d %s", index, dstFilePath)
+				isReplace = true
+				tempBuffer = bytes.Replace(tempBuffer, oldBytes, newBytes, 1)
+			}
 		}
 		// 写入前一次的
 		writeSize, err1 := tmpFile.Write(tempBuffer[:len(prevBuffer)])
@@ -159,11 +191,6 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 	if errMsg != nil {
 		return fmt.Errorf("赋予文件执行权限时出错: %v\n", errMsg)
 	}
-	if !isReplace {
-		z.L().Warn("oldBytes", zap.Int("size", len(oldBytes)), zap.ByteString("oldBytes", oldBytes))
-		z.L().Warn("newBytes", zap.Int("size", len(newBytes)), zap.ByteString("newBytes", newBytes))
-		return errors.New("位置没找到，数据未替换😭")
-	}
 	err1 := srcFile.Close()
 	if err1 != nil {
 		z.L().Warn("srcFile.Close", zap.Error(err1))
@@ -171,6 +198,18 @@ func GenerateBin(scrFilePath, dstFilePath string, oldBytes, newBytes []byte) err
 	err1 = tmpFile.Close()
 	if err1 != nil {
 		z.L().Warn("tmpFile.Close", zap.Error(err1))
+	}
+	if !isReplace {
+		_ = os.Remove(dstFilePath)
+		z.L().Warn("oldBytes", zap.Int("size", len(oldBytes)), zap.ByteString("oldBytes", oldBytes))
+		z.L().Warn("newBytes", zap.Int("size", len(newBytes)), zap.ByteString("newBytes", newBytes))
+		return errors.New("位置没找到，数据未替换😭")
+	}
+	// 兜底校验：签名前后文件长度必须一致，否则产物不可信，直接丢弃
+	if srcFileSize > 0 && newFileSize != srcFileSize {
+		_ = os.Remove(dstFilePath)
+		return fmt.Errorf("签名后文件长度【%d】与源文件【%d】不一致（差 %d 字节），已丢弃产物以防破坏可执行文件",
+			newFileSize, srcFileSize, newFileSize-srcFileSize)
 	}
 
 	return nil

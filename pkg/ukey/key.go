@@ -1,14 +1,12 @@
 package ukey
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 	"os"
 
 	"github.com/xxl6097/glog/pkg/z"
@@ -47,50 +45,126 @@ func GetBuffer() []byte {
 	return buffer
 }
 
-func GetCfgBufferFromFile(filePath string) []byte {
-	srcFile, err := os.Open(filePath)
-	if err != nil {
-		z.L().Sugar().Error("无法打开文件", filePath, zap.Error(err))
-		return nil
+// BufferSize 返回当前占位区（占位符缓冲区）的长度
+func BufferSize() int {
+	return len(buffer)
+}
+
+// NormalizeBuffer 把签名数据补齐到占位区长度。
+//
+// 场景：跨版本升级时占位区可能扩容（例如 1024 -> 8192），
+// 从旧文件里解析出来的签名数据比新占位区短，必须先用 '+' 补齐再替换，
+// 否则替换会改变可执行文件长度、破坏 ELF 段表，程序启动时会 panic。
+func NormalizeBuffer(data []byte) ([]byte, error) {
+	size := len(buffer)
+	if size == 0 {
+		return nil, errors.New("占位缓冲区未注册，请先调用 ukey.Register")
 	}
+	if len(data) == size {
+		return data, nil
+	}
+	if len(data) > size {
+		return nil, fmt.Errorf("签名数据长度【%d】超出占位区长度【%d】", len(data), size)
+	}
+	out := make([]byte, size)
+	copy(out, data)
+	for i := len(data); i < size; i++ {
+		out[i] = B
+	}
+	return out, nil
+}
+
+// findKeyOffset 在文件中查找 rawKey 首次出现的绝对偏移，找不到返回 -1。
+// 分块读取，避免把大文件一次性读进内存。
+func findKeyOffset(filePath string, rawKey []byte) (int64, error) {
+	if len(rawKey) == 0 {
+		return -1, errors.New("rawKey 为空")
+	}
+	f, err := os.Open(filePath)
+	if err != nil {
+		return -1, err
+	}
+	defer f.Close()
+
+	const chunkSize = 1 << 20
+	keep := len(rawKey) - 1
+	buf := make([]byte, chunkSize+keep)
+	var base int64
+	filled := 0
+	for {
+		n, err := f.Read(buf[filled:])
+		filled += n
+		if idx := bytes.Index(buf[:filled], rawKey); idx >= 0 {
+			return base + int64(idx), nil
+		}
+		if err != nil {
+			if err == io.EOF {
+				return -1, nil
+			}
+			return -1, err
+		}
+		// 保留末尾 keep 字节用于跨块匹配
+		if filled > keep {
+			copy(buf, buf[filled-keep:filled])
+			base += int64(filled - keep)
+			filled = keep
+		}
+	}
+}
+
+// GetCfgBufferFromFile 从已签名的可执行文件中提取签名数据块。
+//
+// 返回长度 = len(rawKey) + 4 + dataLen（由文件内部的长度头决定），
+// 不再依赖当前进程的 len(buffer)，因此跨占位区长度的版本升级也能正确提取。
+func GetCfgBufferFromFile(filePath string) []byte {
 	rawKey, err := GetRawKey()
 	if err != nil {
 		z.L().Sugar().Error("GetRawKey", filePath, zap.Error(err))
 		return nil
 	}
-	defer srcFile.Close()
-	reader := bufio.NewReader(srcFile)
-	//var indexSize int64
-	cfgBufferSize := len(buffer)
-	prevBuffer := make([]byte, 0)
-	for {
-		thisBuffer := make([]byte, Divide(cfgBufferSize, 1024))
-		n, err2 := reader.Read(thisBuffer)
-		if err2 != nil && err2 != io.EOF {
-			z.L().Sugar().Error("读取文件时出错", zap.Error(err))
-			return nil
-		}
-		//indexSize += int64(n)
-		thisBuffer = thisBuffer[:n]
-		tempBuffer := append(prevBuffer, thisBuffer...)
-		index := bytes.Index(tempBuffer, rawKey)
-		if index > -1 {
-			tempBuffer1 := tempBuffer[index:]
-			if len(tempBuffer1) >= cfgBufferSize {
-				z.L().Sugar().Debugf("找到位置[%d]了，签名 %s \n", index, filePath)
-				return tempBuffer[index : index+cfgBufferSize]
-			} else {
-				z.L().Debug("长度缺失，继续...")
-			}
-		}
-
-		//前一次的+本次的转给 prev
-		prevBuffer = tempBuffer[len(prevBuffer):]
-		if n == 0 || err2 != nil {
-			break // 文件读取完毕
-		}
+	off, err := findKeyOffset(filePath, rawKey)
+	if err != nil || off < 0 {
+		z.L().Sugar().Error("未找到签名数据", filePath, zap.Error(err))
+		return nil
 	}
-	return nil
+	srcFile, err := os.Open(filePath)
+	if err != nil {
+		z.L().Sugar().Error("无法打开文件", filePath, zap.Error(err))
+		return nil
+	}
+	defer srcFile.Close()
+
+	st, err := srcFile.Stat()
+	if err != nil {
+		z.L().Sugar().Error("读取文件信息失败", filePath, zap.Error(err))
+		return nil
+	}
+
+	// 读取 4 字节长度头（紧跟在 rawKey 之后）
+	lenBuffer := make([]byte, BufferLenType)
+	if _, err := srcFile.ReadAt(lenBuffer, off+int64(len(rawKey))); err != nil {
+		z.L().Sugar().Error("读取签名长度失败", filePath, zap.Error(err))
+		return nil
+	}
+	dataLen := int(binary.BigEndian.Uint32(lenBuffer))
+	if dataLen <= 0 {
+		z.L().Sugar().Error("文件未签名或签名数据为空", filePath, zap.Int("dataLen", dataLen))
+		return nil
+	}
+	total := int64(len(rawKey)) + BufferLenType + int64(dataLen)
+	if off+total > st.Size() {
+		z.L().Sugar().Error("签名数据长度越界", filePath,
+			zap.Int64("offset", off), zap.Int64("total", total), zap.Int64("fileSize", st.Size()))
+		return nil
+	}
+
+	region := make([]byte, total)
+	if _, err := srcFile.ReadAt(region, off); err != nil {
+		z.L().Sugar().Error("读取签名数据失败", filePath, zap.Error(err))
+		return nil
+	}
+	z.L().Sugar().Debugf("找到签名位置[%d]，签名数据长度:%d（占位区长度:%d） %s", off, total, len(buffer), filePath)
+	return region
 }
 
 func LoadBuffer(buf []byte) ([]byte, error) {
@@ -179,19 +253,24 @@ func CanShowMenu() bool {
 //	return false
 //}
 
-// GenConfig 只有在计算buffer长度的时候 cap才为true，其他情况一律false
+// GenConfig 生成签名数据块：rawKey + 4字节长度头 + body(iv+md5+密文)
+//
+// cap 只有在计算占位区长度的时候才为 true，其他情况一律 false。
+//
+// 返回值长度恒等于 len(GetBuffer())（cap=true 时返回建议容量），
+// 一旦超出必须报错，绝不允许“静默撑大” —— 长度不一致的替换会
+// 直接破坏可执行文件结构（见 GenerateBin 的等长校验）。
 func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
-	//cfgJsonBytes, err := json.Marshal(cfg)
-	////data, err := json.MarshalIndent(cfg, "", "  ")
-	//if err != nil {
-	//	return nil, fmt.Errorf("json解析cfg错误:%v", err)
-	//}
-	//if cfgJsonBytes != nil {
-	//	//glog.Printf("原始配置信息[%d]:%s\n", len(cfgJsonBytes), string(cfgJsonBytes))
-	//}
 	if cfgBuffer == nil {
 		//glog.Printf("原始配置信息[%d]:%s\n", len(cfgJsonBytes), string(cfgJsonBytes))
 		return nil, fmt.Errorf("原始配置信息字节数组不能空")
+	}
+	if len(buffer) == 0 {
+		return nil, errors.New("占位缓冲区未注册，请先调用 ukey.Register")
+	}
+	rawKey, err := GetRawKey()
+	if err != nil {
+		return nil, err
 	}
 	z.L().Debug("配置buffer信息", zap.Int("size", len(cfgBuffer)))
 	temp, e := utils.GzipCompress(cfgBuffer)
@@ -205,39 +284,46 @@ func GenConfig(cfgBuffer []byte, cap bool) ([]byte, error) {
 		return nil, fmt.Errorf("AES加密cfg错误:%v", err)
 	}
 	//glog.Printf("加密配置信息[%d]\n", len(cfgBytes))
-	rawKey, err := GetRawKey()
-	if err != nil {
-		return nil, err
-	}
 	//glog.Printf("原始key信息[%d]:%s\n", len(rawKey), string(rawKey))
-	body := make([]byte, 0)
-	//body=md5+cfg 配置数据签名必须加md5 16字节值，
-	body = append(md5Keys, cfgBytes...)
-	if len(body) > len(buffer)-BufferLenType {
-		return nil, fmt.Errorf("数据长度【%d】不能大于缓冲区长度【%d】", len(body), len(buffer))
-	}
-	bodyLen := len(body)
-	bodyLenBytes := big.NewInt(int64(bodyLen)).Bytes()
-	bodyLenBytes = append(bytes.Repeat([]byte{'\x00'}, BufferLenType-len(bodyLenBytes)), bodyLenBytes...)
 
+	// body=md5+cfg，配置数据签名必须加md5 16字节值
+	body := make([]byte, 0, len(md5Keys)+len(cfgBytes))
+	body = append(body, md5Keys...)
+	body = append(body, cfgBytes...)
+	bodyLen := len(body)
+
+	// 头部 = rawKey + 4 字节长度头。原先的校验漏算了这部分，
+	// 导致 rawKey+4+body 略大于占位区时既不报错也不补齐。
+	headerLen := len(rawKey) + BufferLenType
+	if len(buffer) <= headerLen {
+		return nil, fmt.Errorf("占位区长度【%d】不足以容纳签名头部【%d】", len(buffer), headerLen)
+	}
+	if bodyLen > len(buffer)-headerLen {
+		return nil, fmt.Errorf("配置数据长度【%d】超出占位区可用长度【%d】(占位区=%d, 头部=%d)；请加大占位区 buffer 或精简配置",
+			bodyLen, len(buffer)-headerLen, len(buffer), headerLen)
+	}
+
+	bodyLenBytes := make([]byte, BufferLenType)
+	binary.BigEndian.PutUint32(bodyLenBytes, uint32(bodyLen))
 	z.L().Debug("body信息", zap.Int("size", bodyLen), zap.ByteString("body", bodyLenBytes))
 
-	//data=bodyLen+body
-	data := append(bodyLenBytes, body...)
-	//data=rawkey+bodyLen+body 终极形态数据
-	data = append(rawKey, data...)
+	size := headerLen + bodyLen
 	dataLen := len(buffer)
-	size := len(data)
-	//glog.Println("原始bffer大小", size)
 	if cap {
+		// 预留 1/3 余量，供部署/升级时写入实际配置
 		dataLen = size + size/3
 	}
-	if size < dataLen {
-		tempBytes := bytes.Repeat([]byte{B}, dataLen-size)
-		data = append(data, tempBytes...)
+	if size > dataLen {
+		return nil, fmt.Errorf("签名数据长度【%d】超出占位区长度【%d】", size, dataLen)
 	}
 
-	//glog.Println("扩展bffer大小", len(data))
+	data := make([]byte, 0, dataLen)
+	data = append(data, rawKey...)
+	data = append(data, bodyLenBytes...)
+	data = append(data, body...)
+	if size < dataLen {
+		data = append(data, bytes.Repeat([]byte{B}, dataLen-size)...)
+	}
 	return data, nil
 }
 
@@ -256,6 +342,9 @@ func genKey(key, sec []byte) []byte {
 }
 
 func DecKey(data []byte) ([]byte, error) {
+	if len(data) <= 16 {
+		return nil, fmt.Errorf("key 数据长度不足: %d", len(data))
+	}
 	jie, err := utils.DecAES(data[16:], data[:16])
 	if err != nil {
 		return nil, fmt.Errorf("decrypt key error: %v", err)
